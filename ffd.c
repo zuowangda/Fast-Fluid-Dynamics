@@ -219,17 +219,17 @@ int main()
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
-   FFD_solver(&para, var,BINDEX);
+  // Solve the problem
+  FFD_solver(&para, var, BINDEX);
 
+  // Wrtie the data in SCI format
+  write_SCI(&para, var, "output");
 
-	 write_SCI(&para,  var, "output");
+  // Free the memory
+  free_data(var);
+  free_index(BINDEX);
 
-     free_data(var);
- 	 free_index(BINDEX);
-
-	  getchar();
-
-  
-  
-	exit ( 0 );
+  // End the simulation
+  if(para.outp->version==DEBUG) getchar();
+  exit (0);
 } // End of main( )

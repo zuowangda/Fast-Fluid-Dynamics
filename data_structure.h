@@ -158,10 +158,10 @@ typedef struct
 } GEOM_DATA;
 
 typedef struct{
-  int   cal_mean;    /* 1: calculate mean value                              */
-  REAL v_ref;       /* reference velocity                                   */
-  REAL Temp_ref;    /* reference temperature                                */
-  int   plot_grid;   /* number of plotting grids                             */  
+  int cal_mean; /* 1: calculate mean value; 0: False                         */
+  REAL v_ref; /* Reference velocity for visualization                        */
+  REAL Temp_ref; /* Reference temperature for visualizations                 */
+  int plot_grid; /* number of plotting grids for visualization               */
   REAL v_length;    /* the ratio factor of the velocity length              */
   int   i_N;         /* the number of grids plotted in x direction           */
   int   j_N;         /* the number of grids plotted in y direction           */
