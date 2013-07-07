@@ -173,22 +173,22 @@ void free_index(int **BINDEX)
 }
 
 /******************************************************************************
-   clear simulation data
+   Set initial values for simulation variables
 ******************************************************************************/
-void clear_data(PARA_DATA *para, REAL **var)
+int set_initial_data(PARA_DATA *para, REAL **var)
 {
-	int i, size = (para->geom->imax + 2)*(para->geom->jmax+2)*(para->geom->kmax+2);
+  int i, size = (para->geom->imax + 2)*(para->geom->jmax+2)*(para->geom->kmax+2);
   
   para->mytime->t = 0.0;
   para->mytime->t_step = 0;
   para->outp->cal_mean = 0;
 
- 	for(i=0; i<size; i++) 
+  for(i=0; i<size; i++) 
   {
     var[GX][i]     = 0.0;
     var[GY][i]     = 0.0;
     var[GZ][i]     = 0.0;
-	var[VX][i]     = 0.001;
+    var[VX][i]     = 0.001;
     var[VY][i]     = 0.001;
     var[VZ][i]     = 0.001;
     var[VXM][i]    = 0.0;
@@ -197,8 +197,8 @@ void clear_data(PARA_DATA *para, REAL **var)
     var[VXS][i]    = 0.0;
     var[VYS][i]    = 0.0;
     var[VZS][i]    = 0.0;
-    var[DEN][i]    = 0.0;    
-	var[DENS][i]   = 0.0;
+    var[DEN][i]    = 0.0;
+    var[DENS][i]   = 0.0;
     var[TEMP][i]   = 288.0;
     var[TEMPM][i]  = 0.0;
     var[TEMPS][i]  = 0.0;
@@ -211,19 +211,20 @@ void clear_data(PARA_DATA *para, REAL **var)
     var[AB][i]     = 0.0;
     var[AF][i]     = 0.0;
     var[B][i]      = 0.0;
-	var[AP0][i]     = 0.0;
+    var[AP0][i]    = 0.0;
     var[TMP1][i]   = 0.0;
     var[TMP2][i]   = 0.0;
     var[TMP3][i]   = 0.0;
-	var[PP][i]     = 0.0;
-	var[FLAGP][i]    = -1.0;
-	var[FLAGU][i]    = -1.0;
-	var[FLAGV][i]    = -1.0;
-	var[FLAGW][i]    = -1.0;
-	var[VXBC][i]     = 0.0;
-	var[VYBC][i]     = 0.0;
-	var[VZBC][i]     = 0.0;
-	var[TEMPBC][i]     = 0.0;
-	}
-} /** clear_data() **/ 
+    var[PP][i]     = 0.0;
+    var[FLAGP][i]  = -1.0;
+    var[FLAGU][i]  = -1.0;
+    var[FLAGV][i]  = -1.0;
+    var[FLAGW][i]  = -1.0;
+    var[VXBC][i]   = 0.0;
+    var[VYBC][i]   = 0.0;
+    var[VZBC][i]   = 0.0;
+    var[TEMPBC][i] = 0.0;
+  }
+  return 0;
+} /** set_initial_data() **/ 
 

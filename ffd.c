@@ -183,15 +183,13 @@ int allocate_data ( void )
 ******************************************************************************/
 int main()
 { 
-
+  // Initialize the parameters
   para.geom = &geom;
   para.outp = &outp1;
   para.prob = &prob;
   para.mytime = &mytime;
   para.bc     = &bc;
   para.solv   = &solv;
-
-  // Initialize the parameters
   if(initialize(&para)) exit(1);
   
   // Read the mesh and simulation data from SCI genreated file
@@ -199,10 +197,12 @@ int main()
 
   printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
 
+  // Allocate memory for the variables
   if(allocate_data( )) exit(1);
 
-  clear_data(&para,  var);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+  // Set the initial values for the simulation data
+  if(set_initial_data(&para, var)) exit(1);
+
   if(!read_input(&para, var,BINDEX)) {printf("no file"); exit(1);}
  if(!read_zeroone(&para, var,BINDEX)) {printf("no file"); exit(1);}
 
