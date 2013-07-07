@@ -1,19 +1,33 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//  Filename: parameters.c
+//
+//  Written by:  Wangda Zuo
+//
+//  Last Modified: Wangda Zuo on 7/7/2013
+//
+//  Task: Define the parameters for the simulation
+//
+///////////////////////////////////////////////////////////////////////////////
 #include "data_structure.h"
 
 /******************************************************************************
-|  Input Parameters
+|  Define parameters for the simulation
 ******************************************************************************/
-void input_para(PARA_DATA *para)
+void define_parameter(PARA_DATA *para)
 {
-
+  /*--------------------------------------------------------------------------
+  Check if the parameters are read from other file
+  ---------------------------------------------------------------------------*/
+  
   /*---------------------------------------------------------------------------
   Initialize the variables
   ---------------------------------------------------------------------------*/
-      para->geom->uniform = 0; //1: uniform; 0: non-uniform 
+  para->geom->uniform = 0; //1: uniform; 0: non-uniform 
 
       para->mytime->dt = 0.1f; 
       para->mytime->t_steady = 100.0f; 
-	  para->mytime->t_output =1000 ;
+  para->mytime->t_output =1000 ;
 
       para->prob->nu    = 1.53e-5f;//1.53e-5f;
       para->prob->tur_model = LAM; //LAM, CHEN, CONST(==101nu)

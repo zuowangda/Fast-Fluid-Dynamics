@@ -203,8 +203,9 @@ int main()
   // Set the initial values for the simulation data
   if(set_initial_data(&para, var)) exit(1);
 
+  // Read the SCI data
   if(!read_input(&para, var,BINDEX)) {printf("no file"); exit(1);}
- if(!read_zeroone(&para, var,BINDEX)) {printf("no file"); exit(1);}
+  if(!read_zeroone(&para, var,BINDEX)) {printf("no file"); exit(1);}
 
   mark_cell(&para, var);
 

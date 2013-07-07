@@ -1,1 +1,1 @@
-void input_para(PARA_DATA *para);
+void define_parameter(PARA_DATA *para);

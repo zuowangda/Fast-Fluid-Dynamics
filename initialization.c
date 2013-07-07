@@ -9,13 +9,13 @@
 
 
 /******************************************************************************
-| Initialize the Variables   
+| Initialize the variables   
 ******************************************************************************/
 int initialize(PARA_DATA *para)
 {
 
   default_value(para);
-  input_para(para);
+  define_parameter(para);
 
   para->geom->dx = para->geom->Lx / (para->geom->imax);
   para->geom->dy = para->geom->Ly / (para->geom->jmax);
