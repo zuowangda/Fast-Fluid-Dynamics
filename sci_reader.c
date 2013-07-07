@@ -24,8 +24,6 @@ FILE *file_params;
 ******************************************************************************/
 int read_sci_max(PARA_DATA *para, REAL **var)
 {  
-  int  imax, jmax, kmax;
-  REAL Lx, Ly, Lz;
   char string[400];
 
   // Open the file
@@ -35,23 +33,17 @@ int read_sci_max(PARA_DATA *para, REAL **var)
     return 1;
   }
 
-  // Get the length in X, Y and Z directions
+  // Get the first line for the length in X, Y and Z directions
   fgets(string, 400, file_params);
-  sscanf(string,"%f%f%f",&Lx,&Ly,&Lz);
-  para->geom->Lx=Lx;
-  para->geom->Ly=Ly;
-  para->geom->Lz=Lz;
+  sscanf(string,"%f %f %f", &para->geom->Lx, &para->geom->Ly, &para->geom->Lz);
 
-  // Get the number of cells in X, Y and Z directions
+  // Get the second line for the number of cells in X, Y and Z directions
   fgets(string, 400, file_params);
-  sscanf(string,"%d%d%d", &imax, &jmax, &kmax);
-  para->geom->imax=imax;
-  para->geom->jmax=jmax;
-  para->geom->kmax=kmax;
+  sscanf(string,"%d %d %d", &para->geom->imax, &para->geom->jmax, &para->geom->kmax);
 
   fclose(file_params); 
   return 0;
-}
+} // End of read_sci_max()
 
 
 /******************************************************************************
