@@ -17,7 +17,7 @@
 #include "data_structure.h"
 #include "solver.h"
 #include "write_data.h"
-#include "init.h"
+#include "initialization.h"
 #include "boundary.h"
 #include "read_data.h"
 #include "grid.h"
@@ -74,7 +74,7 @@ int allocate_data ( void )
   temp      = (REAL *) malloc ( size*sizeof(REAL) );
   temp_s    = (REAL *) malloc ( size*sizeof(REAL) );
   temp_mean = (REAL *) malloc ( size*sizeof(REAL) );
-  dens      = (REAL *) malloc ( size*sizeof(REAL) );	
+  dens      = (REAL *) malloc ( size*sizeof(REAL) );
   dens_s    = (REAL *) malloc ( size*sizeof(REAL) );
   p         = (REAL *) malloc ( size*sizeof(REAL) ); 
   tmp1      = (REAL *) malloc ( size*sizeof(REAL) );  
@@ -174,7 +174,7 @@ int allocate_data ( void )
     return 0;
   }
 
-	return 1;
+  return 1;
 } /** allocate_data() **/
 
 
@@ -183,6 +183,7 @@ int allocate_data ( void )
 ******************************************************************************/
 int main()
 { 
+
   para.geom = &geom;
   para.outp = &outp1;
   para.prob = &prob;
@@ -190,7 +191,8 @@ int main()
   para.bc     = &bc;
   para.solv   = &solv;
 
-  initial(&para);
+  // Initialize the parameters
+  if(initialize(&para)) exit (1);
   
   if(!read_max(&para, var)) {printf("no file"); exit(1);}
 
