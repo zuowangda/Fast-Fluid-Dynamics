@@ -79,7 +79,7 @@ typedef enum{BILINEAR, FSJ} INTERPOLATION;
 
 typedef enum{DEMO, DEBUG} VERSION;
 
-typedef enum{NONE, SCI, TECPLOT} FILE_FORMAT;
+typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
 typedef struct 
 {
@@ -172,7 +172,7 @@ typedef struct{
 
 typedef struct{
   FILE_FORMAT   input_file;   /* Foramt of input file for configuration      */
-  char file_name[20];         /* Name of input file if there is              */
+  char file_name[50];         /* Name of input file if there is              */
 } INPU_DATA;
 
 typedef struct{
