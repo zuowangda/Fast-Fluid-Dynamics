@@ -159,8 +159,6 @@ int read_input(PARA_DATA *para, REAL **var, int **BINDEX)
    fgets(string, 400, file_params);
    sscanf(string,"%d%d%d%d%d%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
 
-
-
    fgets(string, 400, file_params);
    sscanf(string,"%d",&NBIN); 
 
