@@ -8,7 +8,7 @@
 
   Task: Main routine of Fast Fluid Dynamics
 
----------------------------------------------------------------------------- */	
+---------------------------------------------------------------------------- */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include "read_data.h"
 #include "grid.h"
 #include "timing.h"
-#include "input.h"
+#include "sci_reader.h"
 
 /* global variables */
 static REAL dt, diff, visc;
@@ -194,7 +194,8 @@ int main()
   // Initialize the parameters
   if(initialize(&para)) exit (1);
   
-  if(!read_max(&para, var)) {printf("no file"); exit(1);}
+  // Read the mesh and simulation data from SCI genreated file
+  if(read_max(&para, var)) exit(1);
 
   printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
 

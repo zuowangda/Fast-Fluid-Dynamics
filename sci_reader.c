@@ -20,7 +20,7 @@
 FILE *file_params;
 
 /******************************************************************************
-| Read the information for dimension and mesh 
+| Read the information for dimension and number of meshes 
 ******************************************************************************/
 int read_max(PARA_DATA *para, REAL **var)
 {  
@@ -31,8 +31,8 @@ int read_max(PARA_DATA *para, REAL **var)
   // Open the file
   if((file_params=fopen("input.cfd","r")) == NULL) 			
   {
-    fprintf(stderr,"Error:can not open error file!\n");
-    return 0;
+    fprintf(stderr,"Error:can not open the *.cfd file!\n");
+    return 1;
   }
 
   // Get the length in X, Y and Z directions
@@ -50,7 +50,7 @@ int read_max(PARA_DATA *para, REAL **var)
   para->geom->kmax=kmax;
 
   fclose(file_params); 
-  return 1;
+  return 0;
 }
 
 
