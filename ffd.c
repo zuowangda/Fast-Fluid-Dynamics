@@ -171,10 +171,10 @@ int allocate_data ( void )
       ! vxbc ||! vybc ||! vzbc ||! tempbc||! xindex ||! yindex ||! zindex) 
   {
     fprintf( stderr, "cannot allocate data\n" );
-    return 0;
+    return 1;
   }
 
-  return 1;
+  return 0;
 } /** allocate_data() **/
 
 
@@ -192,15 +192,14 @@ int main()
   para.solv   = &solv;
 
   // Initialize the parameters
-  if(initialize(&para)) exit (1);
+  if(initialize(&para)) exit(1);
   
   // Read the mesh and simulation data from SCI genreated file
   if(read_max(&para, var)) exit(1);
 
   printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
 
-  if(!allocate_data( ))
-    exit ( 1 );
+  if(allocate_data( )) exit(1);
 
   clear_data(&para,  var);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
