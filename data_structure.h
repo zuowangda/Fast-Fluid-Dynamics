@@ -79,6 +79,8 @@ typedef enum{BILINEAR, FSJ} INTERPOLATION;
 
 typedef enum{DEMO, DEBUG} VERSION;
 
+typedef enum{NONE, SCI, TECPLOT} FILE_FORMAT;
+
 typedef struct 
 {
   REAL  Lx;       /* domain size in x-direction                             */
@@ -143,7 +145,6 @@ typedef struct
   REAL  y9;
   REAL  y10;
 
-
   int   k1;
   int   k2;
   int   k3;
@@ -168,6 +169,11 @@ typedef struct{
   int   winy;        /* the resolution of screen at y direction              */ 
   VERSION  version;  /* DEMO, DEBUG                                          */     
 } OUTP_DATA;
+
+typedef struct{
+  FILE_FORMAT   input_file;   /* Foramt of input file for configuration      */
+  char file_name[20];         /* Name of input file if there is              */
+} INPU_DATA;
 
 typedef struct{
   REAL  RE;       /* Reynolds number Re                                     */
@@ -273,6 +279,7 @@ typedef struct
 typedef struct 
 {
   GEOM_DATA  *geom;
+  INPU_DATA  *inpu;
   OUTP_DATA  *outp;
   PROB_DATA  *prob;
   TIME_DATA  *mytime;

@@ -44,6 +44,7 @@ REAL *vxbc,*vybc,*vzbc,*tempbc;
 static GEOM_DATA geom;
 static PROB_DATA prob;
 static TIME_DATA mytime;
+static INPU_DATA inpu;
 static OUTP_DATA outp1;
 static BC_DATA bc;
 static SOLV_DATA solv;
@@ -185,6 +186,7 @@ int main()
 { 
   // Initialize the parameters
   para.geom = &geom;
+  para.inpu = &inpu;
   para.outp = &outp1;
   para.prob = &prob;
   para.mytime = &mytime;
