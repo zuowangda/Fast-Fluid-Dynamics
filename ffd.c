@@ -194,24 +194,30 @@ int main()
   para.solv   = &solv;
   if(initialize(&para)) exit(1);
   
-  // Read the mesh and simulation data from SCI genreated file
-  if(read_max(&para, var)) exit(1);
-
+  // Overwrite the mesh and simulation data from SCI genreated file
+  if(para.inpu->file_format == SCI) 
+  {
+    if(read_sci_max(&para, var)) exit(1);
+  }
+  
   printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
-
+  
   // Allocate memory for the variables
   if(allocate_data( )) exit(1);
 
   // Set the initial values for the simulation data
   if(set_initial_data(&para, var)) exit(1);
 
-  // Read the SCI data
-  if(!read_input(&para, var,BINDEX)) {printf("no file"); exit(1);}
-  if(!read_zeroone(&para, var,BINDEX)) {printf("no file"); exit(1);}
+  // Read the configurations defined by SCI 
+  if(para.inpu->file_format == SCI) 
+  {
+    if(read_sci_input(&para, var,BINDEX)) exit(1);
+    if(read_sci_zeroone(&para, var,BINDEX))  exit(1);
+    mark_cell(&para, var);
+  }
 
-  mark_cell(&para, var);
-
-   if(para.solv->read_file==1) read_data(&para,var);
+  // Read previous simulation data as initial values
+  if(para.solv->read_file==1) read_data(&para,var);
 
    FFD_solver(&para, var,BINDEX);
 

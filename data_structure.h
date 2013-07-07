@@ -171,7 +171,7 @@ typedef struct{
 } OUTP_DATA;
 
 typedef struct{
-  FILE_FORMAT   input_file;   /* Foramt of input file for configuration      */
+  FILE_FORMAT  file_format;   /* Foramt of input file for configuration      */
   char file_name[50];         /* Name of input file if there is              */
 } INPU_DATA;
 

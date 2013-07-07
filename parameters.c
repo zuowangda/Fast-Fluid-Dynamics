@@ -20,13 +20,14 @@ void define_parameter(PARA_DATA *para)
   /*--------------------------------------------------------------------------
   Check if the parameters are read from other file
   ---------------------------------------------------------------------------*/
-  para->inpu->input_file = SCI; // Define the input file format to be SCI
+  para->inpu->file_format = SCI; // Define the input file format to be SCI
   strcpy(para->inpu->file_name, "input.cfd"); //Name of input file
 
+  
     /*---------------------------------------------------------------------------
     Initialize the variables
     ---------------------------------------------------------------------------*/
-    para->geom->uniform = 0; //1: uniform; 0: non-uniform 
+   para->geom->uniform = 0; //1: uniform; 0: non-uniform 
 
     para->mytime->dt = 0.1f; 
     para->mytime->t_steady = 100.0f; 
