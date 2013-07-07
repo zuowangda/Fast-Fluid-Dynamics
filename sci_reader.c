@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "data_structure.h"
-#include "read_data.h"
+#include "ffd_data_reader.h"
 
 FILE *file_params;
 
@@ -415,7 +415,7 @@ fgets(string, 400, file_params);
    fgets(string, 400, file_params);
    sscanf(string,"%d",&restart);
 
-   para->solv->read_file=restart;
+   para->inpu->read_old_ffd_file=restart;
 
    temp = fgets(string, 400, file_params); //print frequency
    temp = fgets(string, 400, file_params); //Pressure variable Y/N
