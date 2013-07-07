@@ -1,26 +1,28 @@
-/* ----------------------------------------------------------------------------
-  
-  Filename:	    write.c
-
-  Written by:   Wangda Zuo
-
-	Task:	        output the data as format for tecplot	
-
----------------------------------------------------------------------------- */	
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: data_writer.c
+//
+// Written by: Wangda Zuo
+//
+// Last Modfied by Wangda Zuo on 7/7/2013
+//
+// Task: Write the data
+//
+///////////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
 #include "data_structure.h"
-#include "write_data.h"
+#include "data_writer.h"
 
 FILE *file1;
 
 /******************************************************************************
 | Write the data to a file for Tecplot 
 ******************************************************************************/
-int write_data(PARA_DATA *para, REAL **var, char *name)
+int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
 {
   int i, j, k;
   int imax=para->geom->imax, jmax=para->geom->jmax;

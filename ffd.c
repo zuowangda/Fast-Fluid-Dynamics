@@ -16,7 +16,7 @@
 
 #include "data_structure.h"
 #include "solver.h"
-#include "write_data.h"
+#include "data_writer.h"
 #include "initialization.h"
 #include "boundary.h"
 #include "ffd_data_reader.h"

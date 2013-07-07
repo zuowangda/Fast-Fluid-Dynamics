@@ -1,8 +1,19 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: solver.c
+//
+// Written by: Wangda Zuo
+//
+// Last Modified by: Wangda Zuo on 7/7/2013
+//
+//Task: Solver of Fast Fluid Dynamics program 
+//
+///////////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
 #include "data_structure.h"
 #include "solver.h"
-#include "write_data.h"
+#include "data_writer.h"
 #include "diffusion.h"
 #include "projection.h"
 #include "advection.h"
@@ -32,43 +43,39 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
 
   int cal_mean = para->outp->cal_mean;
-
-
   
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
   while( para->mytime->t_step < t_output)
   {
-
-     vel_step(para, var, BINDEX);	  
-  //   temp_step(para, var,BINDEX);
-    //den_step(para, var);
+    vel_step(para, var, BINDEX);  
+    //temp_step(para, var, BINDEX);
+    //den_step(para, var, BINDEX);
 
     timing(para);
 
-
+    // Start to record data for calculating mean velocity if needed
     if(para->mytime->t>t_steady && cal_mean==0)
     {
       cal_mean = 1;
-	  t_step += 1;
+      t_step += 1;
       printf("start to calculate mean properties.\n");
     }   
 
-   if(cal_mean == 1)
-     for(i=0; i<size; i++)
-     {
-       u_mean[i] += u[i];
-       v_mean[i] += v[i];
-       w_mean[i] += w[i];
-	 }
-
-
+    if(cal_mean == 1)
+      for(i=0; i<size; i++)
+      {
+        u_mean[i] += u[i];
+        v_mean[i] += v[i];
+        w_mean[i] += w[i];
+      }
   } // End of While loop  
 
   /*---------------------------------------------------------------------------
   | Post Process
   ---------------------------------------------------------------------------*/
+  // Calculate mean value
   if(cal_mean == 1)
     for(i=0; i<=size; i++)
     {
@@ -78,11 +85,10 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     }
 
 
-  write_unsteady(para, var, "unsteady");
-  write_data(para, var, "result");
+    write_unsteady(para, var, "unsteady");
+    write_tecplot_data(para, var, "result");
 
-
-  para->prob->output = 1;
+    para->prob->output = 1;
 } // End of FFD_solver( ) 
 
 
