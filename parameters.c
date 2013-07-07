@@ -20,9 +20,8 @@ void define_parameter(PARA_DATA *para)
   /*--------------------------------------------------------------------------
   Check if the parameters are read from other file
   ---------------------------------------------------------------------------*/
-  para->inpu->file_format = SCI; // Define the input file format to be SCI
-  strcpy(para->inpu->file_name, "input.cfd"); //Name of input file
-
+  para->inpu->parameter_file_format = SCI; // Define the input file format to be SCI
+  strcpy(para->inpu->parameter_file_name, "input.cfd"); //Name of input 
   
     /*---------------------------------------------------------------------------
     Initialize the variables
@@ -33,6 +32,8 @@ void define_parameter(PARA_DATA *para)
     para->mytime->t_steady = 100.0f; 
     para->mytime->t_output =1000 ;
 
+    para->inpu->read_old_ffd_file = 0; 
+
     para->prob->nu    = 1.53e-5f;//1.53e-5f;
     para->prob->tur_model = LAM; //LAM, CHEN, CONST(==101nu)
     para->prob->alpha =1.96e-5f; //1.96e-5
@@ -42,7 +43,7 @@ void define_parameter(PARA_DATA *para)
     para->solv->advection_solver = SEMI;  //LAX, SEMI, UPWIND, UPWIND_NEW;
     para->solv->interpolation = BILINEAR; //BILINEAR, FSJ
     para->solv->check_residual = 0; 
-    para->solv->read_file = 0; 
+
     para->prob->gravx = 0.0f;
     para->prob->gravy = 0.0f;
     para->prob->gravz = 0.0f;

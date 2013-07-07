@@ -171,8 +171,10 @@ typedef struct{
 } OUTP_DATA;
 
 typedef struct{
-  FILE_FORMAT  file_format;   /* Foramt of input file for configuration      */
-  char file_name[50];         /* Name of input file if there is              */
+  FILE_FORMAT parameter_file_format; /* Foramt of input parameter file       */
+  char parameter_file_name[50]; /* Name of input file if there is            */
+  int read_old_ffd_file;     /* 1: Read previous DDS file; 0: False          */
+  char old_ffd_file_name[50]; /* Name of previous FFD simulation data file   */
 } INPU_DATA;
 
 typedef struct{
@@ -273,7 +275,7 @@ typedef struct
   int check_residual; /* 1: check, 0: donot check                            */
   ADVECTION advection_solver; /* SEMI, LAX, UPWIND, UPWIND_NEW */  
   INTERPOLATION interpolation; /* BILINEAR, FSJ */
-  int  read_file;     /* 1: Read previous file                               */ 
+
 }SOLV_DATA;
 
 typedef struct 

@@ -1,15 +1,27 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//  Filename: ffd_data_reader.c
+//
+//  Written by: Wangda Zuo
+//
+//  Last Modified by: Wangda Zuo on 7/7/2013
+//
+//  Task: Read the previous FFD simulation data
+//
+///////////////////////////////////////////////////////////////////////////////
+
 #include <stdio.h>
 #include <string.h>
 
 #include "data_structure.h"
-#include "read_data.h"
+#include "ffd_data_reader.h"
 
 FILE *file_params;
 
 /******************************************************************************
-| Write the data to a file for Tecplot 
+| Read the previous FFD simulation data 
 ******************************************************************************/
-int read_data(PARA_DATA *para, REAL **var)
+int read_ffd_data(PARA_DATA *para, REAL **var)
 {
   int i,j, k;
   int imax = para->geom->imax;
@@ -34,5 +46,5 @@ int read_data(PARA_DATA *para, REAL **var)
 
   return 1;
 
-} // End of read_dara()
+} // End of read_ffd_data()
 

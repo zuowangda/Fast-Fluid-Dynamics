@@ -19,7 +19,7 @@
 #include "write_data.h"
 #include "initialization.h"
 #include "boundary.h"
-#include "read_data.h"
+#include "ffd_data_reader.h"
 #include "grid.h"
 #include "timing.h"
 #include "sci_reader.h"
@@ -195,7 +195,7 @@ int main()
   if(initialize(&para)) exit(1);
   
   // Overwrite the mesh and simulation data from SCI genreated file
-  if(para.inpu->file_format == SCI) 
+  if(para.inpu->parameter_file_format == SCI) 
   {
     if(read_sci_max(&para, var)) exit(1);
   }
@@ -209,7 +209,7 @@ int main()
   if(set_initial_data(&para, var)) exit(1);
 
   // Read the configurations defined by SCI 
-  if(para.inpu->file_format == SCI) 
+  if(para.inpu->parameter_file_format == SCI) 
   {
     if(read_sci_input(&para, var,BINDEX)) exit(1);
     if(read_sci_zeroone(&para, var,BINDEX))  exit(1);
@@ -217,7 +217,7 @@ int main()
   }
 
   // Read previous simulation data as initial values
-  if(para.solv->read_file==1) read_data(&para,var);
+  if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
    FFD_solver(&para, var,BINDEX);
 
