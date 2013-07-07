@@ -1,15 +1,15 @@
-/*----------------------------------------------------------------------------
-  
-  Filename:         sci_reader.c
-
-  Written by:       Mingang Jin
-
-  Last Modified by: Wangda Zuo
-
-  Task:             Input mesh and simulation data defined by SCI with a file 
-                    extension name ".cfd". 
-
----------------------------------------------------------------------------- */	
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: sci_reader.c
+//
+// Written by: Mingang Jin
+//
+// Last Modified by: Wangda Zuo on 7/7/2013
+//
+//Task: read mesh and simulation data defined by SCI with a file extension 
+// name ".cfd". 
+//
+///////////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,9 +29,9 @@ int read_sci_max(PARA_DATA *para, REAL **var)
   char string[400];
 
   // Open the file
-  if((file_params=fopen("input.cfd","r")) == NULL)
+  if((file_params=fopen(para->inpu->parameter_file_name,"r")) == NULL)
   {
-    fprintf(stderr,"Error:can not open the *.cfd file!\n");
+    fprintf(stderr,"Error:can not open the file \"%s\".\n", para->inpu->parameter_file_name);
     return 1;
   }
 
