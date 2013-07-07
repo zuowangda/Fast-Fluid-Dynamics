@@ -29,7 +29,7 @@ int read_max(PARA_DATA *para, REAL **var)
   char string[400];
 
   // Open the file
-  if((file_params=fopen("input.cfd","r")) == NULL) 			
+  if((file_params=fopen("input.cfd","r")) == NULL)
   {
     fprintf(stderr,"Error:can not open the *.cfd file!\n");
     return 1;
