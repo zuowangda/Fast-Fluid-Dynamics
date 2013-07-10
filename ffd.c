@@ -194,7 +194,7 @@ int main()
   para.solv   = &solv;
   if(initialize(&para)) exit(1);
   
-  // Overwrite the mesh and simulation data from SCI genreated file
+  // Overwrite the mesh and simulation data from SCI generated file
   if(para.inpu->parameter_file_format == SCI) 
   {
     if(read_sci_max(&para, var)) exit(1);

@@ -1,4 +1,14 @@
-
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: initialization.c
+//
+// Written by:  Wangda Zuo
+//
+// Last Modified: Wangda Zuo on 7/10/2013
+//
+// Task: Initialization functions
+//
+//////////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -7,78 +17,80 @@
 #include "initialization.h"
 #include "parameters.h"
 
-
 /******************************************************************************
-| Initialize the variables   
+| Initialize the parameters 
 ******************************************************************************/
 int initialize(PARA_DATA *para)
 {
+  // Define the default value for parameter
+  set_default_parameter(para);
 
-  default_value(para);
+  // Overwrite the default values using user defined values
   define_parameter(para);
 
+  // Fixme: We may delete these 3 lines
   para->geom->dx = para->geom->Lx / (para->geom->imax);
   para->geom->dy = para->geom->Ly / (para->geom->jmax);
   para->geom->dz = para->geom->Lz / (para->geom->kmax);
-  para->outp->i_N  = 2; //para->geom->imax;
-  para->outp->j_N  = 2; //para->geom->imax;
 
   if(para->prob->nu == 0.0)
     para->prob->nu = para->prob->mu / para->prob->rho;
-  
+
   /*---------------------------------------------------------------------------
-  Output the help information 
+  | Output the help information 
   ---------------------------------------------------------------------------*/
-	printf ( "\n\nHow to use this demo:\n\n" );
-	printf ( "\t Add densities with the right mouse button\n" );
-	printf ( "\t Add velocities with the left mouse button and dragging the mouse\n" );
-	printf ( "\t Toggle density/velocity display with the 'v' key\n" );
-	printf ( "\t Clear the simulation by pressing the 'c' key\n" );
-	printf ( "\t Quit by pressing the 'q' key\n" );
+  if(para->outp->version == DEMO)
+  {
+    printf ( "\n\nHow to use this demo:\n\n" );
+    printf ( "\t Add densities with the right mouse button\n" );
+    printf ( "\t Add velocities with the left mouse button and dragging the mouse\n" );
+    printf ( "\t Toggle density/velocity display with the 'v' key\n" );
+    printf ( "\t Clear the simulation by pressing the 'c' key\n" );
+    printf ( "\t Quit by pressing the 'q' key\n" );
+  }
 
   return 0;
-} // End of initial( )
+} // End of initialize( )
 
 /******************************************************************************
-| Set the Default Values for Variables   
+| Set the default value for parameters 
 ******************************************************************************/
-void default_value(PARA_DATA *para)
+void set_default_parameter(PARA_DATA *para)
 {
- para->geom->Lx = 1.0; 
-para->geom->Ly = 1.0;
+  para->geom->Lx = 1.0; 
+  para->geom->Ly = 1.0;
   para->geom->Lz = 1.0;
 
-	para->mytime->dt = 0.1; 
+  para->mytime->dt = 0.1; 
   para->mytime->t_output = 1000;
-  
 
   para->mytime->t  = 0.0;
   para->mytime->t_start = 0.0;
-  para->geom->x_strech = 0;
+  para->geom->x_strech = 0; // Uniform grid
   para->mytime->t_step = 0;
   para->mytime->t_start = clock();
 
-  para->prob->diff = 0.0000001;  
- 
+  para->prob->diff = 0.0000001; 
   para->prob->gravz = -9.8f;
-  para->prob->beta = 3.186e-3; /* coefficient of thermal expansion */
+  para->prob->beta = 3.186e-3; // coefficient of thermal expansion
   para->prob->alpha_co = 1.0;
-  para->prob->alpha = 2.376e-5; /* thermal diffusity */
+  para->prob->alpha = 2.376e-5; // Thermal diffusity
   para->prob->diff = 0.00001;
   para->prob->force = 1.0; 
   para->prob->source = 1.0;
 
-  para->prob->chen_a = 0.03874;  /* the coeffcient of Chen's model*/
-  para->prob->Prt = 0.9;   /* turbulent Prandl number */ 
- 	para->prob->mu = 0.01;  /* mu_air */
-  para->prob->rho = 1.0;
-  para->prob->nu = 0.0;
-  para->prob->tur_model = LAM;
+  para->prob->chen_a = 0.03874; // Coeffcient of Chen's model
+  para->prob->Prt = 0.9; // Turbulent Prandl number
+ 	para->prob->mu = 0.01; // Turbulence viscosity if using constant value
+  para->prob->rho = 1.0; //
+  para->prob->nu = 0.0; // Turbulence dynamic viscosity 
+  para->prob->tur_model = LAM; // No turbulence model
 
-  para->solv->check_residual = 0; /* donot check residual */
-  para->solv->solver = GS;        /* Gauss-Seidel Solver */
-  para->solv->interpolation = BILINEAR; 
+  para->solv->check_residual = 0; // Donot check residual */
+  para->solv->solver = GS; // Gauss-Seidel Solver
+  para->solv->interpolation = BILINEAR; // Bilinear interpolation
 
+  // Default values for boundary conditions
   para->bc->VX_bcE = 0.0;
   para->bc->VX_bcW = 0.0;
   para->bc->VX_bcN = 0.0;
@@ -100,6 +112,11 @@ para->geom->Ly = 1.0;
   para->bc->VZ_bcF = 0.0;
   para->bc->VZ_bcB = 0.0;
 
+  // Default values for Input
+  para->inpu->parameter_file_format = FFD; // Use user defined data in FFD
+  para->inpu->read_old_ffd_file = 0; // Do not read the old FFD data as initial value
+
+  // Default values for Output
   para->outp->Temp_ref   = 15.0;//35.5f;//10.25f;
   para->outp->cal_mean   = 0;
   para->outp->plot_grid  = para->geom->imax; 
@@ -108,11 +125,11 @@ para->geom->Ly = 1.0;
   para->outp->winy       = 600;
   para->outp->v_ref      = 1.0; 
   para->outp->Temp_ref   = 0.0; 
-  para->outp->version    = DEBUG;
+  para->outp->version    = DEBUG; // Running the debug version
   para->outp->i_N        = 1;
   para->outp->j_N        = 1;
 
-} // End of 
+} // End of set_default_parameter
 
 /******************************************************************************
    free simulation data

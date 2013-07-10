@@ -77,7 +77,7 @@ typedef enum{LAM, CHEN, CONST} TUR_MODEL;
 
 typedef enum{BILINEAR, FSJ} INTERPOLATION;
 
-typedef enum{DEMO, DEBUG} VERSION;
+typedef enum{DEMO, DEBUG, RUN} VERSION;
 
 typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
@@ -173,7 +173,7 @@ typedef struct{
 typedef struct{
   FILE_FORMAT parameter_file_format; /* Foramt of input parameter file       */
   char parameter_file_name[50]; /* Name of input file if there is            */
-  int read_old_ffd_file;     /* 1: Read previous DDS file; 0: False          */
+  int read_old_ffd_file;     /* 1: Read previous FFD file; 0: False          */
   char old_ffd_file_name[50]; /* Name of previous FFD simulation data file   */
 } INPU_DATA;
 
