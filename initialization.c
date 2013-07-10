@@ -54,6 +54,7 @@ int initialize(PARA_DATA *para)
 
 /******************************************************************************
 | Set the default value for parameters 
+| Fixme: Need to go thorugh the entire data structure to ensure all parameters are given default value
 ******************************************************************************/
 void set_default_parameter(PARA_DATA *para)
 {
@@ -180,14 +181,14 @@ void free_data(REAL **var)
   if(var[VYBC])  free(var[VYBC]);
   if(var[VZBC])  free(var[VZBC]);
   if(var[TEMPBC])  free(var[TEMPBC]);
-} /** free_data() **/
+} // End of free_data()
 
 void free_index(int **BINDEX)
-
-{ if(BINDEX[0]) free(BINDEX[0]);
+{ 
+  if(BINDEX[0]) free(BINDEX[0]);
   if(BINDEX[1]) free(BINDEX[1]);
   if(BINDEX[2]) free(BINDEX[2]);
-}
+} // End of free_index ()
 
 /******************************************************************************
    Set initial values for simulation variables
@@ -243,5 +244,5 @@ int set_initial_data(PARA_DATA *para, REAL **var)
     var[TEMPBC][i] = 0.0;
   }
   return 0;
-} /** set_initial_data() **/ 
+} // set_initial_data()
 
