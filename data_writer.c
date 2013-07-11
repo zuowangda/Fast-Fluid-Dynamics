@@ -138,55 +138,16 @@ void convert_to_tecplot(PARA_DATA *para, REAL **var)
   /*---------------------------------------------------------------------------
   | Convert variables at corners
   ---------------------------------------------------------------------------*/
-  corners(para, var, p);
-  corners(para, var, T);
-
-      /*
-  // West-South-Back
-  p[IX(0,0,0)] = (p[IX(0,1,0)] + p[IX(1,0,0)] + p[IX(0,0,1)]) / 3.0f;
-  T[IX(0,0,0)] = (T[IX(0,1,0)] + T[IX(1,0,0)] + T[IX(0,0,1)]) / 3.0f;
-  // West-North-Back
-  p[IX(0,jmax+1,0)] = ( p[IX(1,jmax+1,0)] + p[IX(0,jmax,0)] 
-                      + p[IX(0,jmax+1,1)] ) / 3.0f;
-  T[IX(0,jmax+1,0)] = ( T[IX(1,jmax+1,0)] + T[IX(0,jmax,0)] 
-                      + T[IX(0,jmax+1,1)] ) / 3.0f;
-  // East-South-Back
-  p[IX(imax+1,0,0)] = ( p[IX(imax,0,0)] + p[IX(imax+1,1,0)] 
-                      + p[IX(imax+1,0,1)] ) / 3.0f;
-  T[IX(imax+1,0,0)] = ( T[IX(imax,0,0)] + T[IX(imax+1,1,0)] 
-                      + T[IX(imax+1,0,1)]) / 3.0f;
-  // East-North-Back
-  p[IX(imax+1,jmax+1,0)] = ( p[IX(imax,jmax+1,0)] + p[IX(imax+1,jmax,0)]
-                           + p[IX(imax+1,jmax+1,1)]) / 3.0f;
-  T[IX(imax+1,jmax+1,0)] = ( T[IX(imax,jmax+1,0)] + T[IX(imax+1,jmax,0)]
-                           + T[IX(imax+1,jmax+1,1)]) / 3.0f;
-// West-South-Front
-  p[IX(0,0,kmax+1)] = ( p[IX(0,1,kmax+1)] + p[IX(1,0,kmax+1)] 
-                      + p[IX(0,0,kmax)]) / 3.0f;
-  T[IX(0,0,kmax+1)] = ( T[IX(0,1,kmax+1)] + T[IX(1,0,kmax+1)]
-                      + T[IX(0,0,kmax)]) / 3.0f;
-  // West-North-Front
-  p[IX(0,jmax+1,kmax+1)] = ( p[IX(1,jmax+1,kmax+1)] + p[IX(0,jmax,kmax+1)]
-                           + p[IX(0,jmax+1,kmax)]) / 3.0f;
-  T[IX(0,jmax+1,kmax+1)] = ( T[IX(1,jmax+1,kmax+1)] + T[IX(0,jmax,kmax+1)]
-                           + T[IX(0,jmax+1,kmax)]) / 3.0f;
-  // East-South-Front
-  p[IX(imax+1,0,kmax+1)] = ( p[IX(imax,0,kmax+1)] + p[IX(imax+1,1,kmax+1)]
-                           + p[IX(imax+1,0,kmax)]) / 3.0f;
-  T[IX(imax+1,0,kmax+1)] = ( T[IX(imax,0,kmax+1)] + T[IX(imax+1,1,kmax+1)]
-                           + T[IX(imax+1,0,kmax)]) / 3.0f;
-  // East-North-Front
-  p[IX(imax+1,jmax+1,kmax+1)] = ( p[IX(imax,jmax+1,0)] + p[IX(imax+1,jmax,0)]
-                                + p[IX(imax+1,jmax+1,kmax)]) / 3.0f;
-  T[IX(imax+1,jmax+1,kmax+1)] = ( T[IX(imax,jmax+1,0)] + T[IX(imax+1,jmax,0)]
-                                + T[IX(imax+1,jmax+1,kmax)]) / 3.0f;
-                                */
-} // End of convert_to_tecplot
+  convert_to_tecplot_corners(para, var, p);
+  convert_to_tecplot_corners(para, var, d);
+  convert_to_tecplot_corners(para, var, T);
+  convert_to_tecplot_corners(para, var, Tm);
+} // End of convert_to_tecplot()
 
 /******************************************************************************
 | Caclulate the variabels at 8 corners 
 ******************************************************************************/
-void corners(PARA_DATA *para, REAL **var, REAL *psi)
+void convert_to_tecplot_corners(PARA_DATA *para, REAL **var, REAL *psi)
 {
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
