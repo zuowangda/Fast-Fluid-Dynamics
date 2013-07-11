@@ -36,141 +36,20 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
   REAL *T = var[TEMP], *Tm = var[TEMPM];
   REAL *tmp1 = var[TMP1], *tmp2 = var[TMP2], *tmp3 = var[TMP3];
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGU];
+  char filename[20];
 
-
-
-  char filename[20];  
-  
   strcpy(filename, name);
   strcat(filename, ".plt");
 
-  /* open output file */
+  // Open output file
   if((file1 = fopen( filename, "w" ))==NULL)
   {
     fprintf(stderr,"Error:can not open input file!\n");
-    return -1;
+    return 1;
   }
 
-  
-     for(i=1; i<=imax; i++)
-		for(j=1; j<=jmax; j++)
-          for(k=1; k<=kmax; k++)
-		  {
-			  d[IX(i,j,k)]=  fabs( (u[IX(i,j,k)]-v[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])
-				             +(v[IX(i,j,k)]-v[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])
-							 +(w[IX(i,j,k)]-w[IX(i,j,k-1)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])); ///((gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]));
+  convert_to_tecplot(para, var);
 
-		  }
-
-
-
-    for(j=0; j<=jmax+1; j++)
-	  {
-		for(k=0; k<=kmax+1; k++)
-          {
-            
-                u[IX(imax+1,j,k)] = u[IX(imax,j,k)];
-				um[IX(imax+1,j,k)] = um[IX(imax,j,k)];   
-
-                     for(i=imax; i>=1; i--)
-                     {
-                          u[IX(i,j,k)] = 0.5f * (u[IX(i,j,k)]+u[IX(i-1,j,k)]);
-                          um[IX(i,j,k)] = 0.5f * (um[IX(i,j,k)]+um[IX(i-1,j,k)]);
-                      }
-            }
-	  }
-
-
-	
-    for(i=0; i<=imax+1; i++)
-	  {
-		for(k=0; k<=kmax+1; k++)
-          {
-            
-                v[IX(i,jmax+1,k)] = v[IX(i,jmax,k)];
-                vm[IX(i,jmax+1,k)] = vm[IX(i,jmax,k)];  
-
-                     for(j=jmax; j>=1; j--)
-                     {
-                          v[IX(i,j,k)] = 0.5f * (v[IX(i,j,k)]+v[IX(i,j-1,k)]);
-                          vm[IX(i,j,k)] = 0.5f * (vm[IX(i,j,k)]+vm[IX(i,j-1,k)]);
-                      }
-            }
-	  }
-   
-
-	 for(i=0; i<=imax+1; i++)
-	  {
-		for(j=0; j<=jmax+1; j++)
-          {
-            
-                w[IX(i,j,kmax+1)] = w[IX(i,j,kmax)];
-                wm[IX(i,j,kmax+1)] = wm[IX(i,j,kmax)];  
-
-                     for(k=kmax; k>=1; k--)
-                     {
-                          w[IX(i,j,k)] = 0.5f * (w[IX(i,j,k)]+w[IX(i,j,k-1)]);
-                          wm[IX(i,j,k)] = 0.5f * (wm[IX(i,j,k)]+wm[IX(i,j,k-1)]);
-                      }
-            }
-	  }
-  
-  //FOR_EACH_CELL
-	//  if(i>i1 && i<=i2 && j>j1 && j<=j2 && k<=k2) T[IX(i,j,k)]=308.3;
-  //END_FOR
-
-
- //W-S-B
-  p[IX(0,0,0)] = (p[IX(0,1,0)]+p[IX(1,0,0)]+p[IX(0,0,1)]) / 3.0f;
-  //W-N-B
-  p[IX(0,jmax+1,0)] = ( p[IX(1,jmax+1,0)]+p[IX(0,jmax,0)]
-                         +p[IX(0,jmax+1,1)]) / 3.0f;
-  //E-S-B
-  p[IX(imax+1,0,0)] = ( p[IX(imax,0,0)]+p[IX(imax+1,1,0)]
-                         +p[IX(imax+1,0,1)]) / 3.0f;
-  //E-N-B
-  p[IX(imax+1,jmax+1,0)] = ( p[IX(imax,jmax+1,0)]+p[IX(imax+1,jmax,0)]
-                              +p[IX(imax+1,jmax+1,1)]) / 3.0f;
-  //W-S-F
-  p[IX(0,0,kmax+1)] = ( p[IX(0,1,kmax+1)]+p[IX(1,0,kmax+1)]
-                         +p[IX(0,0,kmax)]) / 3.0f;  
-  //W-N-F
-  p[IX(0,jmax+1,kmax+1)] = ( p[IX(1,jmax+1,kmax+1)]+p[IX(0,jmax,kmax+1)]
-                              +p[IX(0,jmax+1,kmax)]) / 3.0f;
-
-  //E-S-F
-  p[IX(imax+1,0,kmax+1)] = ( p[IX(imax,0,kmax+1)]+p[IX(imax+1,1,kmax+1)]
-                              +p[IX(imax+1,0,kmax)]) / 3.0f;
-  //E-N-F
-  p[IX(imax+1,jmax+1,kmax+1)] = ( p[IX(imax,jmax+1,0)]+p[IX(imax+1,jmax,0)]
-                                   +p[IX(imax+1,jmax+1,kmax)]) / 3.0f;
-
-								    //W-S-B
-  T[IX(0,0,0)] = (T[IX(0,1,0)]+T[IX(1,0,0)]+T[IX(0,0,1)]) / 3.0f;
-  //W-N-B
-  T[IX(0,jmax+1,0)] = ( T[IX(1,jmax+1,0)]+T[IX(0,jmax,0)]
-                         +T[IX(0,jmax+1,1)]) / 3.0f;
-  //E-S-B
-  T[IX(imax+1,0,0)] = ( T[IX(imax,0,0)]+T[IX(imax+1,1,0)]
-                         +T[IX(imax+1,0,1)]) / 3.0f;
-  //E-N-B
-  T[IX(imax+1,jmax+1,0)] = ( T[IX(imax,jmax+1,0)]+T[IX(imax+1,jmax,0)]
-                              +T[IX(imax+1,jmax+1,1)]) / 3.0f;
-  //W-S-F
-  T[IX(0,0,kmax+1)] = ( T[IX(0,1,kmax+1)]+T[IX(1,0,kmax+1)]
-                         +T[IX(0,0,kmax)]) / 3.0f;  
-  //W-N-F
-  T[IX(0,jmax+1,kmax+1)] = ( T[IX(1,jmax+1,kmax+1)]+T[IX(0,jmax,kmax+1)]
-                              +T[IX(0,jmax+1,kmax)]) / 3.0f;
-
-  //E-S-F
-  T[IX(imax+1,0,kmax+1)] = ( T[IX(imax,0,kmax+1)]+T[IX(imax+1,1,kmax+1)]
-                              +T[IX(imax+1,0,kmax)]) / 3.0f;
-  //E-N-F
-  T[IX(imax+1,jmax+1,kmax+1)] = ( T[IX(imax,jmax+1,0)]+T[IX(imax+1,jmax,0)]
-                                   +T[IX(imax+1,jmax+1,kmax)]) / 3.0f;
-
-  
   fprintf( file1, "TITLE = ");
 
   fprintf( file1, "\"dt=%fs, t=%fs, nu=%f, Lx=%d, Ly=%d, Lz%d, Nx=%d, Ny=%d, Nz=%d \"\n",
@@ -180,21 +59,129 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
   fprintf( file1, 
            "VARIABLES =X, Y, Z, I, J, K, U, V, W, T, fu, fv \n");
   fprintf( file1, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
-
  
   FOR_ALL_CELL
     fprintf( file1, "%f\t%f\t%f\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
        x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k, u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)], T[IX(i,j,k)],
        flagp[IX(i,j,k)], p[IX(i,j,k)]);    
   END_FOR
-  
 
   fclose(file1);
 
-  printf("The data file %s has been written!\n", name);
+  printf("The data file %s has been written!\n", filename);
   return 0;
-
 } //write_data()
+
+/******************************************************************************
+| Convert data from FFD format to Tecplot format
+******************************************************************************/
+void convert_to_tecplot(PARA_DATA *para, REAL **var)
+{
+  int i, j, k;
+  int imax=para->geom->imax;
+  int jmax=para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
+  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];
+  REAL *T = var[TEMP], *Tm = var[TEMPM];
+
+  /*--------------------------------------------------------------------------
+  | Convert velocity 
+  ---------------------------------------------------------------------------*/
+  for(j=0; j<=jmax+1; j++)
+    for(k=0; k<=kmax+1; k++)
+    {
+      u[IX(imax+1,j,k)] = u[IX(imax,j,k)];
+      um[IX(imax+1,j,k)] = um[IX(imax,j,k)];
+      for(i=imax; i>=1; i--)
+      {
+        u[IX(i,j,k)] = 0.5f * (u[IX(i,j,k)]+u[IX(i-1,j,k)]);
+        um[IX(i,j,k)] = 0.5f * (um[IX(i,j,k)]+um[IX(i-1,j,k)]);
+      }
+    }
+
+  for(i=0; i<=imax+1; i++)
+    for(k=0; k<=kmax+1; k++)
+    {
+      v[IX(i,jmax+1,k)] = v[IX(i,jmax,k)];
+      vm[IX(i,jmax+1,k)] = vm[IX(i,jmax,k)];  
+      for(j=jmax; j>=1; j--)
+      {
+        v[IX(i,j,k)] = 0.5f * (v[IX(i,j,k)]+v[IX(i,j-1,k)]);
+        vm[IX(i,j,k)] = 0.5f * (vm[IX(i,j,k)]+vm[IX(i,j-1,k)]);
+      }
+    }
+
+  for(i=0; i<=imax+1; i++)
+    for(j=0; j<=jmax+1; j++)
+    {
+      w[IX(i,j,kmax+1)] = w[IX(i,j,kmax)];
+      wm[IX(i,j,kmax+1)] = wm[IX(i,j,kmax)];  
+      for(k=kmax; k>=1; k--)
+      {
+        w[IX(i,j,k)] = 0.5f * (w[IX(i,j,k)]+w[IX(i,j,k-1)]);
+        wm[IX(i,j,k)] = 0.5f * (wm[IX(i,j,k)]+wm[IX(i,j,k-1)]);
+      }
+    }
+
+  // Fixme: the value of d sounds strange
+/*  for(i=1; i<=imax; i++)
+    for(j=1; j<=jmax; j++)
+      for(k=1; k<=kmax; k++)
+		  {
+			  d[IX(i,j,k)]=  fabs( (u[IX(i,j,k)]-v[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])
+				             +(v[IX(i,j,k)]-v[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])
+							 +(w[IX(i,j,k)]-w[IX(i,j,k-1)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])); 
+		  }*/
+
+  /*---------------------------------------------------------------------------
+  | Convert variables at corners
+  ---------------------------------------------------------------------------*/
+  corners(para, var, p);
+  corners(para, var, T);
+
+      /*
+  // West-South-Back
+  p[IX(0,0,0)] = (p[IX(0,1,0)] + p[IX(1,0,0)] + p[IX(0,0,1)]) / 3.0f;
+  T[IX(0,0,0)] = (T[IX(0,1,0)] + T[IX(1,0,0)] + T[IX(0,0,1)]) / 3.0f;
+  // West-North-Back
+  p[IX(0,jmax+1,0)] = ( p[IX(1,jmax+1,0)] + p[IX(0,jmax,0)] 
+                      + p[IX(0,jmax+1,1)] ) / 3.0f;
+  T[IX(0,jmax+1,0)] = ( T[IX(1,jmax+1,0)] + T[IX(0,jmax,0)] 
+                      + T[IX(0,jmax+1,1)] ) / 3.0f;
+  // East-South-Back
+  p[IX(imax+1,0,0)] = ( p[IX(imax,0,0)] + p[IX(imax+1,1,0)] 
+                      + p[IX(imax+1,0,1)] ) / 3.0f;
+  T[IX(imax+1,0,0)] = ( T[IX(imax,0,0)] + T[IX(imax+1,1,0)] 
+                      + T[IX(imax+1,0,1)]) / 3.0f;
+  // East-North-Back
+  p[IX(imax+1,jmax+1,0)] = ( p[IX(imax,jmax+1,0)] + p[IX(imax+1,jmax,0)]
+                           + p[IX(imax+1,jmax+1,1)]) / 3.0f;
+  T[IX(imax+1,jmax+1,0)] = ( T[IX(imax,jmax+1,0)] + T[IX(imax+1,jmax,0)]
+                           + T[IX(imax+1,jmax+1,1)]) / 3.0f;
+// West-South-Front
+  p[IX(0,0,kmax+1)] = ( p[IX(0,1,kmax+1)] + p[IX(1,0,kmax+1)] 
+                      + p[IX(0,0,kmax)]) / 3.0f;
+  T[IX(0,0,kmax+1)] = ( T[IX(0,1,kmax+1)] + T[IX(1,0,kmax+1)]
+                      + T[IX(0,0,kmax)]) / 3.0f;
+  // West-North-Front
+  p[IX(0,jmax+1,kmax+1)] = ( p[IX(1,jmax+1,kmax+1)] + p[IX(0,jmax,kmax+1)]
+                           + p[IX(0,jmax+1,kmax)]) / 3.0f;
+  T[IX(0,jmax+1,kmax+1)] = ( T[IX(1,jmax+1,kmax+1)] + T[IX(0,jmax,kmax+1)]
+                           + T[IX(0,jmax+1,kmax)]) / 3.0f;
+  // East-South-Front
+  p[IX(imax+1,0,kmax+1)] = ( p[IX(imax,0,kmax+1)] + p[IX(imax+1,1,kmax+1)]
+                           + p[IX(imax+1,0,kmax)]) / 3.0f;
+  T[IX(imax+1,0,kmax+1)] = ( T[IX(imax,0,kmax+1)] + T[IX(imax+1,1,kmax+1)]
+                           + T[IX(imax+1,0,kmax)]) / 3.0f;
+  // East-North-Front
+  p[IX(imax+1,jmax+1,kmax+1)] = ( p[IX(imax,jmax+1,0)] + p[IX(imax+1,jmax,0)]
+                                + p[IX(imax+1,jmax+1,kmax)]) / 3.0f;
+  T[IX(imax+1,jmax+1,kmax+1)] = ( T[IX(imax,jmax+1,0)] + T[IX(imax+1,jmax,0)]
+                                + T[IX(imax+1,jmax+1,kmax)]) / 3.0f;
+                                */
+} // End of convert_to_tecplot
 
 /******************************************************************************
 | Caclulate the variabels at 8 corners 

@@ -385,11 +385,11 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       else 
         EK=EK+SK;
       // Assign value for each wall cell
-      for(ii=SI ;ii<=EI ;ii++)
-        for(ij=SJ ;ij<=EJ ;ij++)
-          for(ik=SK ;ik<=EK ;ik++)
+      for(ii=SI; ii<=EI; ii++)
+        for(ij=SJ; ij<=EJ; ij++)
+          for(ik=SK; ik<=EK; ik++)
           {
-            if(flagp[IX(ii,ij,ik)]<0)  // Fixme: find where flagp is defined
+            if(flagp[IX(ii,ij,ik)]<0)  // Default value: -1
             {
               BINDEX[0][index]=ii;
               BINDEX[1][index]=ij;
@@ -482,31 +482,29 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX)
   }
 
   for(k=1;k<=kmax;k++)
-	  for(j=1;j<=jmax;j++)
-		  for(i=1;i<=imax;i++)
-		  {
-			    fscanf(file_params,"%d" ,&mark); 
+    for(j=1;j<=jmax;j++)
+      for(i=1;i<=imax;i++)
+      {
+        fscanf(file_params,"%d" ,&mark); 
 
-				if(mark==1) 
-				  {
-					  flagp[IX(i,j,k)]=1;
-					  BINDEX[0][index]=i;
-					  BINDEX[1][index]=j;
-					  BINDEX[2][index]=k;
-					  index++;
+        if(mark==1) 
+        {
+          flagp[IX(i,j,k)]=1;
+          BINDEX[0][index]=i;
+          BINDEX[1][index]=j;
+          BINDEX[2][index]=k;
+          index++;
 
             
-				   }
-				delcount++;
-				if(delcount==25) 
-				{
+        }
+        delcount++;
+        
+        if(delcount==25) 
+        {
 					fscanf(file_params,"\n"); 
-				
 					delcount=0; 
 				}
 		  }
-
- 
 
     fclose(file_params);
 		  para->geom->index=index;
