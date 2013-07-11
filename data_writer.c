@@ -19,9 +19,59 @@
 FILE *file1;
 
 /******************************************************************************
-| Write the data to a file for Tecplot 
+| Write the selected data to a Tecplot file
 ******************************************************************************/
 int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
+{
+  int i, j, k;
+  int imax=para->geom->imax, jmax=para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  int n = para->mytime->t_step;
+  REAL *x = var[X], *y = var[Y], *z =var[Z];
+  REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
+  REAL *d = var[DEN];
+  REAL *T = var[TEMP];
+  REAL *flagp = var[FLAGP];
+  char filename[20];
+
+  strcpy(filename, name);
+  strcat(filename, ".plt");
+
+  // Open output file
+  if((file1 = fopen( filename, "w" ))==NULL)
+  {
+    fprintf(stderr,"Error:can not open input file!\n");
+    return 1;
+  }
+
+  convert_to_tecplot(para, var);
+
+  fprintf( file1, "TITLE = ");
+  fprintf( file1, "\"dt=%fs, t=%fs, nu=%f, Lx=%d, Ly=%d, Lz%d, Nx=%d, Ny=%d, Nz=%d \"\n",
+           para->mytime->dt, para->mytime->t, para->prob->nu, para->geom->Lx, para->geom->Ly, para->geom->Lz,
+           imax+2, jmax+2, kmax+2);
+
+  fprintf( file1, 
+           "VARIABLES =X, Y, Z, I, J, K, U, V, W, T, fu, fv \n");
+  fprintf( file1, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
+ 
+  FOR_ALL_CELL
+    fprintf( file1, "%f\t%f\t%f\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
+       x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k, u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)], T[IX(i,j,k)],
+       flagp[IX(i,j,k)], p[IX(i,j,k)]);    
+  END_FOR
+
+  fclose(file1);
+
+  printf("The data file %s has been written!\n", filename);
+  return 0;
+} //write_tecplot_data()
+
+/******************************************************************************
+| Write all data to a Tecplot file for debug purpose
+******************************************************************************/
+int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name)
 {
   int i, j, k;
   int imax=para->geom->imax, jmax=para->geom->jmax;
@@ -69,7 +119,7 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
 
   printf("The data file %s has been written!\n", filename);
   return 0;
-} //write_data()
+} //write_tecplot_all_data()
 
 /******************************************************************************
 | Convert data from FFD format to Tecplot format
