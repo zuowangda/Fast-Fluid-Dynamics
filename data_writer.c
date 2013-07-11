@@ -2,11 +2,10 @@
 //
 // Filename: data_writer.c
 //
-// Written by: Wangda Zuo
+// Task: Write the simulation data
 //
-// Last Modfied by Wangda Zuo on 7/7/2013
-//
-// Task: Write the data
+// Modification history:
+// 7/10/2013 by Wangda Zuo: re-construct the code for release
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -82,12 +81,13 @@ void convert_to_tecplot(PARA_DATA *para, REAL **var)
   int jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];
+  REAL *u = var[VX], *v = var[VY], *w = var[VZ];
+  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM];
+  REAL *p = var[IP], *d = var[DEN];
   REAL *T = var[TEMP], *Tm = var[TEMPM];
 
   /*--------------------------------------------------------------------------
-  | Convert velocity 
+  | Convert velocities 
   ---------------------------------------------------------------------------*/
   for(j=0; j<=jmax+1; j++)
     for(k=0; k<=kmax+1; k++)
@@ -125,16 +125,6 @@ void convert_to_tecplot(PARA_DATA *para, REAL **var)
       }
     }
 
-  // Fixme: the value of d sounds strange
-/*  for(i=1; i<=imax; i++)
-    for(j=1; j<=jmax; j++)
-      for(k=1; k<=kmax; k++)
-		  {
-			  d[IX(i,j,k)]=  fabs( (u[IX(i,j,k)]-v[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])
-				             +(v[IX(i,j,k)]-v[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])
-							 +(w[IX(i,j,k)]-w[IX(i,j,k-1)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])); 
-		  }*/
-
   /*---------------------------------------------------------------------------
   | Convert variables at corners
   ---------------------------------------------------------------------------*/
@@ -153,87 +143,31 @@ void convert_to_tecplot_corners(PARA_DATA *para, REAL **var, REAL *psi)
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
-  //W-S-B
-  psi[IX(0,0,0)] = (psi[IX(0,1,0)]+psi[IX(1,0,0)]+psi[IX(0,0,1)]) / 3.0f;
-  //W-N-B
-  psi[IX(0,jmax+1,0)] = ( psi[IX(1,jmax+1,0)]+psi[IX(0,jmax,0)]
-                         +psi[IX(0,jmax+1,1)]) / 3.0f;
-  //E-S-B
-  psi[IX(imax+1,0,0)] = ( psi[IX(imax,0,0)]+psi[IX(imax+1,1,0)]
-                         +psi[IX(imax+1,0,1)]) / 3.0f;
-  //E-N-B
-  psi[IX(imax+1,jmax+1,0)] = ( psi[IX(imax,jmax+1,0)]+psi[IX(imax+1,jmax,0)]
-                              +psi[IX(imax+1,jmax+1,1)]) / 3.0f;
-  //W-S-F
-  psi[IX(0,0,kmax+1)] = ( psi[IX(0,1,kmax+1)]+psi[IX(1,0,kmax+1)]
-                         +psi[IX(0,0,kmax)]) / 3.0f;  
-  //W-N-F
-  psi[IX(0,jmax+1,kmax+1)] = ( psi[IX(1,jmax+1,kmax+1)]+psi[IX(0,jmax,kmax+1)]
-                              +psi[IX(0,jmax+1,kmax)]) / 3.0f;
+  //West-South-Back
+  psi[IX(0,0,0)] = (psi[IX(0,1,0)] + psi[IX(1,0,0)] + psi[IX(0,0,1)]) / 3.0f;
+  //West-North-Back
+  psi[IX(0,jmax+1,0)] = ( psi[IX(1,jmax+1,0)] + psi[IX(0,jmax,0)]
+                        + psi[IX(0,jmax+1,1)]) / 3.0f;
+  //East-South-Back
+  psi[IX(imax+1,0,0)] = ( psi[IX(imax,0,0)] + psi[IX(imax+1,1,0)]
+                        + psi[IX(imax+1,0,1)]) / 3.0f;
+  //East-North-Back
+  psi[IX(imax+1,jmax+1,0)] = ( psi[IX(imax,jmax+1,0)] + psi[IX(imax+1,jmax,0)]
+                             + psi[IX(imax+1,jmax+1,1)]) / 3.0f;
+  //West-South-Front
+  psi[IX(0,0,kmax+1)] = ( psi[IX(0,1,kmax+1)] + psi[IX(1,0,kmax+1)]
+                        + psi[IX(0,0,kmax)]) / 3.0f;  
+  //West-North-Front
+  psi[IX(0,jmax+1,kmax+1)] = ( psi[IX(1,jmax+1,kmax+1)] + psi[IX(0,jmax,kmax+1)]
+                             + psi[IX(0,jmax+1,kmax)]) / 3.0f;
+  //East-South-Front
+  psi[IX(imax+1,0,kmax+1)] = ( psi[IX(imax,0,kmax+1)] + psi[IX(imax+1,1,kmax+1)]
+                             + psi[IX(imax+1,0,kmax)]) / 3.0f;
+  //Ease-North-Front
+  psi[IX(imax+1,jmax+1,kmax+1)] = ( psi[IX(imax,jmax+1,0)] + psi[IX(imax+1,jmax,0)]
+                                  + psi[IX(imax+1,jmax+1,kmax)]) / 3.0f;
+} // End of convert_to_tecplot_corners()
 
-  //E-S-F
-  psi[IX(imax+1,0,kmax+1)] = ( psi[IX(imax,0,kmax+1)]+psi[IX(imax+1,1,kmax+1)]
-                              +psi[IX(imax+1,0,kmax)]) / 3.0f;
-  //E-N-F
-  psi[IX(imax+1,jmax+1,kmax+1)] = ( psi[IX(imax,jmax+1,0)]+psi[IX(imax+1,jmax,0)]
-                                   +psi[IX(imax+1,jmax+1,kmax)]) / 3.0f;
-
-} //corners()
-
-
-
-int write_data1(PARA_DATA *para, REAL **var, char *name)
-{
-  int i, j, k;
-  int imax=para->geom->imax, jmax=para->geom->jmax;
-  int kmax = para->geom->kmax;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->t_step;
-  int i1=para->geom->i1,i2=para->geom->i2;
-  int j1=para->geom->j1,j2=para->geom->j2;
-  int k2=para->geom->k2;
-  REAL *x = var[GX], *y = var[GY], *z =var[GZ];
-  REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];
-  REAL *T = var[TEMP], *Tm = var[TEMPM];
-  REAL *tmp1 = var[TMP1], *tmp2 = var[TMP2], *tmp3 = var[TMP3];
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-
-  char filename[20];  
-  
-  strcpy(filename, name);
-  strcat(filename, ".plt");
-
-  /* open output file */
-  if((file1 = fopen( filename, "w" ))==NULL)
-  {
-    fprintf(stderr,"Error:can not open input file!\n");
-    return -1;
-  }
-
-     
-  fprintf( file1, "TITLE = ");
-
-  fprintf( file1, "\"dt=%fs, t=%fs, nu=%f, Lx=%d, Ly=%d, Lz%d, Nx=%d, Ny=%d, Nz=%d \"\n",
-          para->mytime->dt, para->mytime->t, para->prob->nu, para->geom->Lx, para->geom->Ly, para->geom->Lz,
-           imax+1, jmax+1, kmax+1);
-
- fprintf( file1, 
-          "VARIABLES =X, Y, Z, I, J, K,flagp,u,v,w \n");
- fprintf( file1, "ZONE F=POINT, I=%d, J=%d, K=%d\n",  imax+2, jmax+2, kmax+2); //imax+2, jmax+2, kmax+2
-
-
-FOR_ALL_CELL
-    // printf( "%f\t%f\t%f\t%d\t%d\t%d\n",	x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k);  
-    fprintf( file1, "%f\t%f\t%f\t%d\t%d\t%d\t%f\t%f\t%f\t%f\n",	x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k,flagp[IX(i,j,k)],u[IX(i,j,k)],v[IX(i,j,k)],w[IX(i,j,k)]);    
-END_FOR
-
-  fclose(file1);
-  
-  printf("The data file %s has been written!\n", name);
-  return 0;
-
-} //write_data()
 
 int write_unsteady(PARA_DATA *para, REAL **var, char *name)
 {

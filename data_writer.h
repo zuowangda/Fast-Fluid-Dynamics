@@ -2,11 +2,10 @@
 //
 // Filename: data_writer.h
 //
-// Written by: Wangda Zuo
-//
-// Last Modfied by Wangda Zuo on 7/7/2013
-//
 // Task: Header file of data_writer.h
+//
+// Modification history:
+// 7/10/2013 by Wangda Zuo: re-construct the code for release
 //
 ///////////////////////////////////////////////////////////////////////////////
 
