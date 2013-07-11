@@ -82,7 +82,14 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     return 1;
   }
 
-  // Allocate memory for ???
+  // Ingore the first and second lines
+  temp = fgets(string, 400, file_params);
+  temp = fgets(string, 400, file_params);
+
+  /*---------------------------------------------------------------------------
+  | Convert the cell dimensions defined by SCI to coordinates in FFD
+  ----------------------------------------------------------------------------*/
+  // Allocate temporary memory for diemension of each cell  
   delx = (REAL *) malloc ((imax+2)*sizeof(REAL));
   dely = (REAL *) malloc ((jmax+2)*sizeof(REAL));
   delz = (REAL *) malloc ((kmax+2)*sizeof(REAL));
@@ -97,26 +104,24 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   dely[0]=0;
   delz[0]=0;
 
-  // Ingore the first and second lines
-  temp = fgets(string, 400, file_params);
-  temp = fgets(string, 400, file_params);
-
-  //Read X coordinates
-  for(i=1;i<=imax;i++) fscanf(file_params, "%f", &delx[i]); 
+  // Read cell dimensions in X, Y, Z directions
+  for(i=1; i<=imax; i++) fscanf(file_params, "%f", &delx[i]); 
   fscanf(file_params,"\n");
-  //Read Y coordinates
-  for(j=1;j<=jmax;j++) fscanf(file_params, "%f", &dely[j]); 
+  for(j=1; j<=jmax; j++) fscanf(file_params, "%f", &dely[j]); 
   fscanf(file_params,"\n");
-  //Read Z coordinates
-  for(k=1;k<=kmax;k++) fscanf(file_params, "%f", &delz[k]); 
+  for(k=1; k<=kmax; k++) fscanf(file_params, "%f", &delz[k]); 
   fscanf(file_params,"\n");
 
+  // Store the locations of cell surfaces
+  // Fixme: var[GX] = gx
+  // Fixme: GX, GY, GZ are confusing iwth gravity, use another name
+  // Fixme: use one "temp", not tempx tempy and tempz
   for(i=0;i<=imax+1;i++)
   {
     tempx += delx[i];
     if(i>=imax) tempx=Lx;
-    for(j=0;j<=jmax+1;j++)
-      for(k=0;k<=kmax+1;k++) {var[GX][IX(i,j,k)]=tempx;}
+    for(j=0; j<=jmax+1; j++)
+      for(k=0; k<=kmax+1; k++) {var[GX][IX(i,j,k)]=tempx;}
   }
 
   for(j=0;j<=jmax+1;j++)
@@ -135,7 +140,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       for(j=0;j<=jmax+1;j++) {var[GZ][IX(i,j,k)]=tempz;}
   }
 
-  // Convert the coordinates for FFD
+  // Convert the coordinates for cell furfaces to the coordinates for the cell center
   FOR_ALL_CELL
     if(i<1)  x[IX(i,j,k)]= 0;
     else if (i>imax) x[IX(i,j,k)]= Lx;
@@ -150,307 +155,311 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     else z[IX(i,j,k)]= 0.5f* (gz[IX(i,j,k)]+gz[IX(i,j,k-1)]);
   END_FOR
 
+  // Get the wall property
+  fgets(string, 400, file_params);
+  sscanf(string,"%d%d%d%d%d%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
 
-   fgets(string, 400, file_params);
-   sscanf(string,"%d%d%d%d%d%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
+  /*---------------------------------------------------------------------------
+  | Read the inlet boundary conditions
+  ----------------------------------------------------------------------------*/
+  // Fixme: Get number of inlet boundaries
+  fgets(string, 400, file_params);
+  sscanf(string,"%d",&NBIN); 
 
-   fgets(string, 400, file_params);
-   sscanf(string,"%d",&NBIN); 
+  index=0;
 
-
-   index=0;
-
-   if(NBIN != 0)
-   {
-   for(i=1;i<=NBIN;i++)
-   {
-        fgets(string, 400, file_params);
-        sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
-      
+  // Setting inlet boundary
+  if(NBIN != 0)
+  {
+    // Loop for each inlet boundary
+    for(i=1;i<=NBIN;i++)
+    {
+      fgets(string, 400, file_params);
+      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
       if(EI==0)
-		{ if(SI==1) SI=0;
-		EI=SI+EI;
-        EJ=SJ+EJ-1;
+      { 
+        if(SI==1) SI=0;
+        EI=SI+EI; 
+        EJ=SJ+EJ-1; 
         EK=SK+EK-1;
-		}
+      }
 
-        if(EJ==0)
-		{ if(SJ==1) SJ=0;
-		EI=SI+EI-1;
+      if(EJ==0)
+      { 
+        if(SJ==1) SJ=0;
+        EI=SI+EI-1;
         EJ=SJ+EJ;
         EK=SK+EK-1;
-		}
+      }
 
-		 if(EK==0)
-		{ if(SK==1) SK=0;
-		EI=SI+EI-1;
+      if(EK==0)
+      { 
+        if(SK==1) SK=0;
+        EI=SI+EI-1;
         EJ=SJ+EJ-1;
         EK=SK+EK;
-		}
-  
+      }
 
+      // Assign the inlet boundary condition for each cell
+      for(ii=SI; ii<=EI; ii++)
+        for(ij=SJ; ij<=EJ; ij++)
+          for(ik=SK; ik<=EK; ik++)
+          {
+            BINDEX[0][index]=ii;
+            BINDEX[1][index]=ij;
+            BINDEX[2][index]=ik;
+            index++;
+            
+            var[TEMPBC][IX(ii,ij,ik)]=TMP;
+            var[VXBC][IX(ii,ij,ik)]=U; 
+            var[VYBC][IX(ii,ij,ik)]=V; 
+            var[VZBC][IX(ii,ij,ik)]=W;
+            flagp[IX(ii,ij,ik)]=0;
+          } // End of assigning the inlet B.C. for each cell 
 
-		for(ii=SI ;ii<=EI ;ii++)
-					for(ij=SJ ;ij<=EJ ;ij++)
-								for(ik=SK ;ik<=EK ;ik++)
-								{
-											BINDEX[0][index]=ii;
-											BINDEX[1][index]=ij;
-											BINDEX[2][index]=ik;
-											index++;
-										
-								var[TEMPBC][IX(ii,ij,ik)]=TMP;
-								var[VXBC][IX(ii,ij,ik)]=U ; 
-								var[VYBC][IX(ii,ij,ik)]=V ; 
-								var[VZBC][IX(ii,ij,ik)]=W ; 								
-								flagp[IX(ii,ij,ik)]=0;	
+    } // End of loop for each inlet boundary
+  } // End of setting inlet boundary
+    
+  if(para->outp->version == DEBUG) 
+    printf("Last index of inlet B.C. cell: %d\n", index); 
 
+  /*---------------------------------------------------------------------------
+  | Read the outlet boundary conditions
+  ----------------------------------------------------------------------------*/
+  fgets(string, 400, file_params);
+  sscanf(string,"%d",&NBOUT); 
+  para->bc->NBOUT=NBOUT;
 
-								}
-
-   }
-   }
-    printf( "index=%d\n", index); 
-
-   fgets(string, 400, file_params);
-   sscanf(string,"%d",&NBOUT); 
-
-   para->bc->NBOUT=NBOUT;
-
-   if(NBOUT !=0)
-   {
-   for(i=1;i<=NBOUT;i++)
-   {
-       fgets(string, 400, file_params);
-        sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
+  if(NBOUT !=0)
+  {
+    for(i=1;i<=NBOUT;i++)
+    {
+      fgets(string, 400, file_params);
+      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
 
       if(EI==0)
-		{ if(SI==1) SI=0;
-		EI=SI+EI;
+      { 
+        if(SI==1) SI=0;
+        EI=SI+EI;
         EJ=SJ+EJ-1;
         EK=SK+EK-1;
-		}
+      }
 
-        if(EJ==0)
-		{ if(SJ==1) SJ=0;
-		EI=SI+EI-1;
+      if(EJ==0)
+      { 
+        if(SJ==1) SJ=0;
+        EI=SI+EI-1;
         EJ=SJ+EJ;
         EK=SK+EK-1;
-		}
+      }
 
-		 if(EK==0)
-		{ if(SK==1) SK=0;
-		EI=SI+EI-1;
-        EJ=SJ+EJ-1;
-        EK=SK+EK;
-		}
+    if(EK==0)
+    { 
+      if(SK==1) SK=0;
+      EI=SI+EI-1;
+      EJ=SJ+EJ-1;
+      EK=SK+EK;
+    }
+    // Assign the outlet boundary condition for each cell
+    for(ii=SI; ii<=EI ;ii++)
+      for(ij=SJ; ij<=EJ ;ij++)
+        for(ik=SK; ik<=EK; ik++)
+        {
+          BINDEX[0][index]=ii;
+          BINDEX[1][index]=ij;
+          BINDEX[2][index]=ik;
+          index++;
 
+          // Fixme: Why assign TMP, U, V, W for oulet B.C?
+          var[TEMPBC][IX(ii,ij,ik)]=TMP;
+          var[VXBC][IX(ii,ij,ik)]=U ; 
+          var[VYBC][IX(ii,ij,ik)]=V ; 
+          var[VZBC][IX(ii,ij,ik)]=W ;
+          flagp[IX(ii,ij,ik)]=2;
+        } // End of assigning the inlet B.C. for each cell 
 
-		for(ii=SI ;ii<=EI ;ii++)
-					for(ij=SJ ;ij<=EJ ;ij++)
-								for(ik=SK ;ik<=EK ;ik++)
-								{
-											BINDEX[0][index]=ii;
-											BINDEX[1][index]=ij;
-											BINDEX[2][index]=ik;
-											index++;
-							
-								var[TEMPBC][IX(ii,ij,ik)]=TMP;
-								var[VXBC][IX(ii,ij,ik)]=U ; 
-								var[VYBC][IX(ii,ij,ik)]=V ; 
-								var[VZBC][IX(ii,ij,ik)]=W ; 								
-								flagp[IX(ii,ij,ik)]=2;	
+    } // End of loop for each outlet boundary
+  } // End of setting outlet boundary
 
-								}
+  /*---------------------------------------------------------------------------
+  | Fixme: Read the ?? boundary conditions
+  ----------------------------------------------------------------------------*/
+  fgets(string, 400, file_params);
+  sscanf(string,"%d",&NBL); 
 
-   }
-   }
+  if(NBL !=0)
+  {
+    for(i=1;i<=NBL;i++)
+    {
+      fgets(string, 400, file_params);
+      sscanf(string,"%d%d%d%d%d%d%d%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&FLTMP, &TMP);
 
-
-   fgets(string, 400, file_params);
-   sscanf(string,"%d",&NBL); 
-
-
-   if(NBL !=0)
-   {
-   for(i=1;i<=NBL;i++)
-   {
-        fgets(string, 400, file_params);
-        sscanf(string,"%d%d%d%d%d%d%d%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&FLTMP, &TMP);
-	
-
-       if(SI==1)
-
-	  {   SI=0;
-		  if(EI>=imax) EI=EI+SI+1;
-		  else EI=EI+SI;
-	  }
-	  else 
-		  EI=EI+SI-1;
-
-	   if(SJ==1)
-
-	  {   SJ=0;
-		  if(EJ>=jmax) EJ=EJ+SJ+1;
-		  else EJ=EJ+SJ;
-	  }
-	  else 
-		  EJ=EJ+SJ-1;
-
-	  if(SK==1)
-
-	  {   SK=0;
-		  if(EK>=kmax) EK=EK+SK+1;
-		  else EK=EK+SK;
-	  }
-	  else 
-		  EK=EK+SK-1;
-
-
-
-		for(ii=SI ;ii<=EI ;ii++)
-					for(ij=SJ ;ij<=EJ ;ij++)
-								for(ik=SK ;ik<=EK ;ik++)
-								{
-											BINDEX[0][index]=ii;
-											BINDEX[1][index]=ij;
-											BINDEX[2][index]=ik;
-                                            BINDEX[3][index]=FLTMP;
-											index++;
-								if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
-								if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP;		
-
-								flagp[IX(ii,ij,ik)]=1;	
-
-								}
-   }
-   }
-
-
-
-
-   fgets(string, 400, file_params);
-   sscanf(string,"%d",&NW); 
-
-
-   if(NW !=0)
-   {
-   for(i=1;i<=NW;i++)
-   {
-fgets(string, 400, file_params);
-        sscanf(string,"%d%d%d%d%d%d%d%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&FLTMP, &TMP);
-
-  
       if(SI==1)
+      {   
+        SI=0;
+        if(EI>=imax) EI=EI+SI+1;
+        else EI=EI+SI;
+      }
+      else 
+        EI=EI+SI-1;
 
-	  {   SI=0;
-		  if(EI>=imax) EI=EI+SI+1;
-		  else EI=EI+SI;
-	  }
-	  else 
-		  EI=EI+SI;
+      if(SJ==1)
+      {
+        SJ=0;
+        if(EJ>=jmax) EJ=EJ+SJ+1;
+        else EJ=EJ+SJ;
+      }
+      else 
+        EJ=EJ+SJ-1;
 
-	   if(SJ==1)
+      if(SK==1)
+      {
+        SK=0;
+        if(EK>=kmax) EK=EK+SK+1;
+        else EK=EK+SK;
+      }
+      else 
+        EK=EK+SK-1;
 
-	  {   SJ=0;
-		  if(EJ>=jmax) EJ=EJ+SJ+1;
-		  else EJ=EJ+SJ;
-	  }
-	  else 
-		  EJ=EJ+SJ;
+      for(ii=SI ;ii<=EI ;ii++)
+        for(ij=SJ ;ij<=EJ ;ij++)
+          for(ik=SK ;ik<=EK ;ik++)
+          {
+            BINDEX[0][index]=ii;
+            BINDEX[1][index]=ij;
+            BINDEX[2][index]=ik;
+            BINDEX[3][index]=FLTMP;
+            index++;
+            if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
+            if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP;		
 
-	  if(SK==1)
+            flagp[IX(ii,ij,ik)]=1;	
+          } // End of assigning value for ?? 
+    }
+  }
 
-	  {   SK=0;
-		  if(EK>=kmax) EK=EK+SK+1;
-		  else EK=EK+SK;
-	  }
-	  else 
-		  EK=EK+SK;
+  /*---------------------------------------------------------------------------
+  | Fixme: Read the wall boundary conditions
+  ----------------------------------------------------------------------------*/
+  fgets(string, 400, file_params);
+  sscanf(string,"%d",&NW); 
 
-		for(ii=SI ;ii<=EI ;ii++)
-					for(ij=SJ ;ij<=EJ ;ij++)
-								for(ik=SK ;ik<=EK ;ik++)
-								{
+  if(NW !=0)
+  {
+    // Read wall conditions for each wall
+    for(i=1;i<=NW;i++)
+    {
+      fgets(string, 400, file_params);
+      // X_index_start, Y_index_Start, Z_index_Start, 
+      // X_index_End, Y_index_End, Z_index_End, 
+      // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
+      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
+            &FLTMP, &TMP);
 
-				
-								if (flagp[IX(ii,ij,ik)]<0)  
-								 {
-                                    	    BINDEX[0][index]=ii;
-											BINDEX[1][index]=ij;
-											BINDEX[2][index]=ik;
-											BINDEX[3][index]=FLTMP;
-											index++;
+      // Reset X index
+      if(SI==1)
+      {
+        SI=0;
+        if(EI>=imax) EI=EI+SI+1;
+        else EI=EI+SI;
+      }
+      else // 
+        EI=EI+SI;
+      // Reset Y index
+      if(SJ==1)
+      {
+        SJ=0;
+        if(EJ>=jmax) EJ=EJ+SJ+1;
+        else EJ=EJ+SJ;
+      }
+      else 
+        EJ=EJ+SJ;
+      // Reset Z index
+      if(SK==1)
+      {   
+        SK=0;
+        if(EK>=kmax) 
+          EK=EK+SK+1;
+        else EK=EK+SK;
+      }
+      else 
+        EK=EK+SK;
+      // Assign value for each wall cell
+      for(ii=SI ;ii<=EI ;ii++)
+        for(ij=SJ ;ij<=EJ ;ij++)
+          for(ik=SK ;ik<=EK ;ik++)
+          {
+            if(flagp[IX(ii,ij,ik)]<0)  // Fixme: find where flagp is defined
+            {
+              BINDEX[0][index]=ii;
+              BINDEX[1][index]=ij;
+              BINDEX[2][index]=ik;
+              BINDEX[3][index]=FLTMP;
+              index++;
 
-									 flagp[IX(ii,ij,ik)]=1;
-								    if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
-								     if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP;
-								 }	
-      
-								}
+              flagp[IX(ii,ij,ik)]=1;
+              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
+              if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP; // Fixme: This should be heat flux
+            }
+          } // End of assigning value for each wall cell
  
-   }
-   }
+    } // End of assigning value for each wall surface
+  } // End of assigning value for wall boundary 
 
-   para->geom->index=index;
+  para->geom->index=index;
 
- 
-   temp = fgets(string, 400, file_params); //maximum iteration
-   temp = fgets(string, 400, file_params); //convergence rate
-   temp = fgets(string, 400, file_params); //Turbulence model
-   temp = fgets(string, 400, file_params); //initial value
-   temp = fgets(string, 400, file_params); //minimum value
-   temp = fgets(string, 400, file_params); //maximum value
-   temp = fgets(string, 400, file_params); //fts value
-   temp = fgets(string, 400, file_params); //under relaxation
-   temp = fgets(string, 400, file_params); //reference point
-   temp = fgets(string, 400, file_params); //monitering point
+  // Discard the unused data
+  temp = fgets(string, 400, file_params); //maximum iteration
+  temp = fgets(string, 400, file_params); //convergence rate
+  temp = fgets(string, 400, file_params); //Turbulence model
+  temp = fgets(string, 400, file_params); //initial value
+  temp = fgets(string, 400, file_params); //minimum value
+  temp = fgets(string, 400, file_params); //maximum value
+  temp = fgets(string, 400, file_params); //fts value
+  temp = fgets(string, 400, file_params); //under relaxation
+  temp = fgets(string, 400, file_params); //reference point
+  temp = fgets(string, 400, file_params); //monitering point
 
-   fgets(string, 400, file_params);
-   sscanf(string,"%d",&restart);
+  // Read setting for restarting the old FFD simulation
+  fgets(string, 400, file_params);
+  sscanf(string,"%d",&restart);
+  para->inpu->read_old_ffd_file=restart;
 
-   para->inpu->read_old_ffd_file=restart;
+  // Discard the unused data
+  temp = fgets(string, 400, file_params); //print frequency
+  temp = fgets(string, 400, file_params); //Pressure variable Y/N
+  temp = fgets(string, 400, file_params); //Steady state, buoyancy.
 
-   temp = fgets(string, 400, file_params); //print frequency
-   temp = fgets(string, 400, file_params); //Pressure variable Y/N
+  // Read pysical properties
+  fgets(string, 400, file_params);
+  sscanf(string,"%f %f %f %f %f %f %f %f %f", &density, &nu, &cp, 
+         &gravx, &gravy, &gravz, &beta, &trefmax, &spec);
 
-   temp = fgets(string, 400, file_params); //Steady state, buoyancy.
+  para->prob->rho=density;
+  para->prob->nu=nu;
+  para->prob->cond=cp;
+  para->prob->gravx=gravx;
+  para->prob->gravy=gravy;
+  para->prob->gravz=gravz;
+  para->prob->beta=beta;
+  para->prob->trefmax=trefmax;
+  para->prob->spec=spec;
 
-   fgets(string, 400, file_params);
-   sscanf(string,"%f %f %f %f %f %f %f %f %f",&density,&nu,&cp,&gravx,&gravy,&gravz,&beta,&trefmax,&spec);
+  // Read simulation time settings
+  fgets(string, 400, file_params);
+  sscanf(string,"%f %f %f",&t_start,&t_delta,&t_total);
 
-   para->prob->rho=density;
-   para->prob->nu=nu;
-   para->prob->cond=cp;
-   para->prob->gravx=gravx;
-   para->prob->gravy=gravy;
-   para->prob->gravz=gravz;
-   para->prob->beta=beta;
-   para->prob->trefmax=trefmax;
-   para->prob->spec=spec;
-
-   fgets(string, 400, file_params);
-   sscanf(string,"%f %f %f",&t_start,&t_delta,&t_total);
-
-   para->mytime->t_start=t_start;
-   para->mytime->dt=t_delta;
-   para->mytime->t_output=t_total;
-
-
-   temp = fgets(string, 400, file_params); //prandtl
-
-
-
+  para->mytime->t_start=t_start;
+  para->mytime->dt=t_delta;
+  para->mytime->t_output=t_total;
+  
+  temp = fgets(string, 400, file_params); //prandtl
   fclose(file_params);
-
 
   free(delx);
   free(dely);
   free(delz);
-  
-
   return 0;
-
 } // End of read_dara()
 
 

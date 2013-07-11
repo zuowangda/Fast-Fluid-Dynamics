@@ -194,13 +194,14 @@ int main()
   para.solv   = &solv;
   if(initialize(&para)) exit(1);
   
-  // Overwrite the mesh and simulation data from SCI generated file
+  // Overwrite the mesh and simulation data using SCI generated file
   if(para.inpu->parameter_file_format == SCI) 
   {
     if(read_sci_max(&para, var)) exit(1);
   }
-  
-  printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
+
+  if(para.outp->version == DEBUG) 
+    printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
   
   // Allocate memory for the variables
   if(allocate_data( )) exit(1);
@@ -230,6 +231,7 @@ int main()
   free_index(BINDEX);
 
   // End the simulation
-  if(para.outp->version==DEBUG) getchar();
+  if(para.outp->version==DEBUG || para.outp->version==DEMO) getchar();
+
   exit (0);
 } // End of main( )

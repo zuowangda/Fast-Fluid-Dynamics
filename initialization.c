@@ -118,14 +118,13 @@ void set_default_parameter(PARA_DATA *para)
   para->inpu->read_old_ffd_file = 0; // Do not read the old FFD data as initial value
 
   // Default values for Output
-  para->outp->Temp_ref   = 15.0;//35.5f;//10.25f;
+  para->outp->Temp_ref   = 0;//35.5f;//10.25f;
   para->outp->cal_mean   = 0;
   para->outp->plot_grid  = para->geom->imax; 
   para->outp->v_length   = 0.5;  
   para->outp->winx       = 600;
   para->outp->winy       = 600;
   para->outp->v_ref      = 1.0; 
-  para->outp->Temp_ref   = 0.0; 
   para->outp->version    = DEBUG; // Running the debug version
   para->outp->i_N        = 1;
   para->outp->j_N        = 1;
@@ -137,16 +136,16 @@ void set_default_parameter(PARA_DATA *para)
 ******************************************************************************/
 void free_data(REAL **var)
 {
-	if(var[X]) free(var[X]);
+  if(var[X]) free(var[X]);
   if(var[Y]) free(var[Y]);
   if(var[Z]) free(var[Z]);
-	if(var[VX]) free(var[VX]);
-	if(var[VY]) free(var[VY]);
+  if(var[VX]) free(var[VX]);
+  if(var[VY]) free(var[VY]);
   if(var[VZ]) free(var[VZ]);
-	if(var[VXS]) free(var[VXS]);
+  if(var[VXS]) free(var[VXS]);
   if(var[VYS]) free(var[VYS]);
   if(var[VZS]) free(var[VZS]);
- if(var[VXM]) free(var[VXM]);
+  if(var[VXM]) free(var[VXM]);
   if(var[VYM]) free(var[VYM]);
   if(var[VZM]) free(var[VZM]);
   if(var[DEN]) free(var[DEN]);
@@ -217,7 +216,7 @@ int set_initial_data(PARA_DATA *para, REAL **var)
     var[VZS][i]    = 0.0;
     var[DEN][i]    = 0.0;
     var[DENS][i]   = 0.0;
-    var[TEMP][i]   = 288.0;
+    var[TEMP][i]   = 0.0;
     var[TEMPM][i]  = 0.0;
     var[TEMPS][i]  = 0.0;
     var[IP][i]     = 0.0;
