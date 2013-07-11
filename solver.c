@@ -50,7 +50,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   while( para->mytime->t_step < t_output)
   {
     vel_step(para, var, BINDEX);  
-    //temp_step(para, var, BINDEX);
+    temp_step(para, var, BINDEX);
     //den_step(para, var, BINDEX);
 
     timing(para);
