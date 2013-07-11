@@ -223,6 +223,9 @@ int main()
   // Solve the problem
   FFD_solver(&para, var, BINDEX);
 
+  if(para.outp->version == DEBUG)
+    write_tecplot_all_data(&para, var, "result_all");
+
   // Wrtie the data in SCI format
   write_SCI(&para, var, "output");
 
