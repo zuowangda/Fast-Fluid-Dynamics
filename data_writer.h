@@ -11,6 +11,8 @@
 
 int write_tecplot_data(PARA_DATA *para, REAL **var, char *name);
 
+int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name);
+
 void convert_to_tecplot(PARA_DATA *para, REAL **var);
   
 void convert_to_tecplot_corners(PARA_DATA *para, REAL **var, REAL *psi);

@@ -101,18 +101,56 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name)
 
   fprintf( file1, "TITLE = ");
 
+  // Print simulation, diemension and mesh information
   fprintf( file1, "\"dt=%fs, t=%fs, nu=%f, Lx=%d, Ly=%d, Lz%d, Nx=%d, Ny=%d, Nz=%d \"\n",
            para->mytime->dt, para->mytime->t, para->prob->nu, para->geom->Lx, para->geom->Ly, para->geom->Lz,
            imax+2, jmax+2, kmax+2);
 
-  fprintf( file1, 
-           "VARIABLES =X, Y, Z, I, J, K, U, V, W, T, fu, fv \n");
-  fprintf( file1, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
+  // Print variables 
+  fprintf(file1, "VARIABLES = X, Y, Z, I, J, K, ");
+  fprintf(file1, "U, V, W, UM, VM, WM, US, VS, WS, ");
+  fprintf(file1, "DEN, DENS, P, ");
+  fprintf(file1, "T, TM, TS ");
+  fprintf(file1, "GX, GY, GZ ");
+  fprintf(file1, "FLAGU, FLAGV, FLAGW, FLAGP ");
+  fprintf(file1, "VXBC, VYBC, VZBV, TEMPBC ");
+  fprintf(file1, "AP, AN, AS, AW, AE, AF, AB, B, AP0, PP");
+  fprintf(file1, "\n");
+  fprintf(file1, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
  
   FOR_ALL_CELL
-    fprintf( file1, "%f\t%f\t%f\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",
-       x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k, u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)], T[IX(i,j,k)],
-       flagp[IX(i,j,k)], p[IX(i,j,k)]);    
+    // Coordinates
+    fprintf(file1, "%f\t%f\t%f\t%d\t%d\t%d\t",
+            x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k);
+    // Velocities
+    fprintf(file1, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t", 
+            var[VX][IX(i,j,k)], var[VY][IX(i,j,k)], var[VZ][IX(i,j,k)], 
+            var[VXM][IX(i,j,k)], var[VYM][IX(i,j,k)], var[VZM][IX(i,j,k)],
+            var[VXS][IX(i,j,k)], var[VYS][IX(i,j,k)], var[VZS][IX(i,j,k)]);
+    // Contaminant concentration, Pressure
+    fprintf(file1, "%f\t%f\t%f\t",
+            var[DEN][IX(i,j,k)], var[DENS][IX(i,j,k)], var[IP][IX(i,j,k)]);
+    // Temperature
+    fprintf(file1, "%f\t%f\t%f\t",
+            var[TEMP][IX(i,j,k)], var[TEMPM][IX(i,j,k)], var[TEMPS][IX(i,j,k)]);
+    // Gravity
+    fprintf(file1, "%f\t%f\t%f\t",
+            var[GX][IX(i,j,k)], var[GY][IX(i,j,k)], var[GZ][IX(i,j,k)]);
+    // Flags for simulaiton
+    fprintf(file1, "%f\t%f\t%f\t%f\t",
+            var[FLAGU][IX(i,j,k)], var[FLAGV][IX(i,j,k)], var[FLAGW][IX(i,j,k)],
+            var[FLAGP][IX(i,j,k)]);
+    // Boundary conditions
+    fprintf(file1, "%f\t%f\t%f\t%f\t",
+            var[VXBC][IX(i,j,k)], var[VYBC][IX(i,j,k)], var[VZBC][IX(i,j,k)],
+            var[TEMPBC][IX(i,j,k)]);
+    // Coefficients
+    fprintf(file1, "%f\t%f\t%f%f\t%f\t%f%f\t%f\t%f\t%f\t",
+            var[AP][IX(i,j,k)], var[AN][IX(i,j,k)], var[AS][IX(i,j,k)], 
+            var[AW][IX(i,j,k)], var[AE][IX(i,j,k)], var[AF][IX(i,j,k)], 
+            var[AB][IX(i,j,k)], var[B][IX(i,j,k)], var[AP0][IX(i,j,k)], 
+            var[PP][IX(i,j,k)]);
+
   END_FOR
 
   fclose(file1);
