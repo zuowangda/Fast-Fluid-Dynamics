@@ -110,10 +110,10 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name)
   fprintf(file1, "VARIABLES = X, Y, Z, I, J, K, ");
   fprintf(file1, "U, V, W, UM, VM, WM, US, VS, WS, ");
   fprintf(file1, "DEN, DENS, P, ");
-  fprintf(file1, "T, TM, TS ");
-  fprintf(file1, "GX, GY, GZ ");
-  fprintf(file1, "FLAGU, FLAGV, FLAGW, FLAGP ");
-  fprintf(file1, "VXBC, VYBC, VZBV, TEMPBC ");
+  fprintf(file1, "T, TM, TS, ");
+  fprintf(file1, "GX, GY, GZ, ");
+  fprintf(file1, "FLAGU, FLAGV, FLAGW, FLAGP, ");
+  fprintf(file1, "VXBC, VYBC, VZBV, TEMPBC, ");
   fprintf(file1, "AP, AN, AS, AW, AE, AF, AB, B, AP0, PP");
   fprintf(file1, "\n");
   fprintf(file1, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
@@ -145,7 +145,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name)
             var[VXBC][IX(i,j,k)], var[VYBC][IX(i,j,k)], var[VZBC][IX(i,j,k)],
             var[TEMPBC][IX(i,j,k)]);
     // Coefficients
-    fprintf(file1, "%f\t%f\t%f%f\t%f\t%f%f\t%f\t%f\t%f\t",
+    fprintf(file1, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
             var[AP][IX(i,j,k)], var[AN][IX(i,j,k)], var[AS][IX(i,j,k)], 
             var[AW][IX(i,j,k)], var[AE][IX(i,j,k)], var[AF][IX(i,j,k)], 
             var[AB][IX(i,j,k)], var[B][IX(i,j,k)], var[AP0][IX(i,j,k)], 
