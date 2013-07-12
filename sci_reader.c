@@ -353,34 +353,31 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
+      sscanf(string,"%d %d %d %d %d %d %d %f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
             &FLTMP, &TMP);
 
       // Reset X index
       if(SI==1)
       {
-        SI=0;
-        if(EI>=imax) EI=EI+SI+1;
-        else EI=EI+SI;
+        SI = 0;
+        if(EI>=imax) EI = EI + 1;
       }
       else // 
-        EI=EI+SI;
+        EI = EI + SI;
       // Reset Y index
       if(SJ==1)
       {
-        SJ=0;
-        if(EJ>=jmax) EJ=EJ+SJ+1;
-        else EJ=EJ+SJ;
+        SJ = 0;
+        if(EJ>=jmax) EJ = EJ + 1;
       }
       else 
-        EJ=EJ+SJ;
+        EJ = EJ + SJ;
       // Reset Z index
       if(SK==1)
       {   
-        SK=0;
+        SK = 0;
         if(EK>=kmax) 
-          EK=EK+SK+1;
-        else EK=EK+SK;
+          EK = EK + 1;
       }
       else 
         EK=EK+SK;
@@ -395,14 +392,13 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
               BINDEX[1][index]=ij;
               BINDEX[2][index]=ik;
               BINDEX[3][index]=FLTMP;
-              index++;
+              index++;  
 
               flagp[IX(ii,ij,ik)]=1;
               if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
               if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP; // Fixme: This should be heat flux
             }
           } // End of assigning value for each wall cell
- 
     } // End of assigning value for each wall surface
   } // End of assigning value for wall boundary 
 

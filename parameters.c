@@ -50,12 +50,11 @@ void define_parameter(PARA_DATA *para)
     para->prob->tratio=0.001;
     para->outp->version = DEBUG; //DEMO, DEBUG;
 
-    para->bc->bcN = OUTFLOW;
-    para->bc->bcS = INFLOW;
+    para->bc->bcN = NOSLIP;
+    para->bc->bcS = NOSLIP;
     para->bc->bcW = NOSLIP;
     para->bc->bcE = NOSLIP;   
     para->bc->bcF = NOSLIP;
     para->bc->bcB = NOSLIP;
-    para->bc->VY_bcS = 0.3f;
 
 } // End of input_para( )
