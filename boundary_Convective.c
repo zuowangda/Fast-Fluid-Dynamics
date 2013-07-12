@@ -167,15 +167,17 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
     {
       psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
     }
-    
 
+    /*-------------------------------------------------------------------------
+    | Fixme: Check the meaning of flagp == 1
+    -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==1)
     {
       if(BINDEX[3][it]==1)
       {
         psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
         /*---------------------------------------------------------------------
-        | Loop through j index
+        | I index
         ---------------------------------------------------------------------*/
         if(i==0) // West  
         {
@@ -197,10 +199,9 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
           if(flagp[IX(i-1,j,k)]<0) 
             ae[IX(i-1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
                                       * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
-
+        } // End of if() for I index
         /*---------------------------------------------------------------------
-        | Loop through j index
+        | J index
         ---------------------------------------------------------------------*/
         if(j==0) // South
         {
@@ -222,9 +223,9 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
           if(flagp[IX(i,j+1,k)]<0) 
             as[IX(i,j+1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
                                       * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
+        } // End of if() for J index
         /*---------------------------------------------------------------------
-        | Loop through k index
+        | K index
         ---------------------------------------------------------------------*/
         // Floor
         if(k==0) 
@@ -249,13 +250,13 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
           if(flagp[IX(i,j,k-1)]<0) 
             af[IX(i,j,k-1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
                                       * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-        }
+        } // End of if() for K index
       } // End of if(BINDEX[3][it]==1)
 
       if(BINDEX[3][it]==0) // Fixme: What does the value of BINDEX mean?
       {
         /*---------------------------------------------------------------------
-        | Loop through i index
+        | I index
         ---------------------------------------------------------------------*/
         // West
         if(i==0 && flagp[IX(i+1,j,k)]<0) //Fixme: What does value of flagp mean?
@@ -294,9 +295,9 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
                             * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
           }
-        }
+        } // End of if() for I index
         /*---------------------------------------------------------------------
-        | Loop through j index
+        | J index
         ---------------------------------------------------------------------*/
         // South
         if(j==0 && flagp[IX(i,j+1,k)]<0)
@@ -335,59 +336,88 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
                             * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
           }
+        } // End of if() for J index
+        /*---------------------------------------------------------------------
+        | Loop for k index
+        ---------------------------------------------------------------------*/
+        // Floor
+        if(k==0 && flagp[IX(i,j,k+1)]<0)
+        { 
+          ab[IX(i,j,k+1)] = 0;
+          b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] 
+                          * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
+                          * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];
         }
+        // Ceiling
+        else if(k==kmax+1 && flagp[IX(i,j,k-1)]<0) 
+        { 
+          af[IX(i,j,k-1)] = 0;
+          b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)] 
+                          * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                          * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
+        }
+        // Between Floor and Ceiling
+        else
+        {
+          if(flagp[IX(i,j,k+1)]<0) 
+          { 
+            ab[IX(i,j,k+1)] = 0; 
+            b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                            * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k+1)];
+          } 
+          if(flagp[IX(i,j,k-1)]<0) 
+          { 
+            af[IX(i,j,k-1)] = 0;
+            b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)]
+                            * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                            * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
+          } 
+        } // End of if() for K index
+      } // End of if(BINDEX[3][it]==0)
+    } // End of if(flagp[IX(i,j,k)]==1)
 
-					if(k==0)
-					{
-                       if(flagp[IX(i,j,k+1)]<0)
-					   { ab[IX(i,j,k+1)]=0;
-					   b[IX(i,j,k+1)]+= 0.001f*q[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-							psi[IX(i,j,k)]= q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];				   
-					   } 
-					
-					}
-					else if(k==kmax+1)
-					{
-					   if(flagp[IX(i,j,k-1)]<0) 
-					   { af[IX(i,j,k-1)]=0;
-					   b[IX(i,j,k-1)]+= 0.001f*q[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-							psi[IX(i,j,k)]= q[IX(i,j,k)]/4.0f+psi[IX(i,j,k-1)];				   
-					   } 
-					}
-					else
-					{
-						if(flagp[IX(i,j,k+1)]<0) 
-						{ ab[IX(i,j,k+1)]=0; 
-						b[IX(i,j,k+1)]+= 0.001f*q[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-							psi[IX(i,j,k)]= q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];					
-						} 
-						if(flagp[IX(i,j,k-1)]<0) 
-						{ af[IX(i,j,k-1)]=0;
-						b[IX(i,j,k-1)]+= 0.001f*q[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-							psi[IX(i,j,k)]= q[IX(i,j,k)]/4.0f+psi[IX(i,j,k-1)];					
-						} 
-					
-					}
-					
-					
-				  }
-
-
-
-
-				}
-                if(flagp[IX(i,j,k)]==2)
-				{
-					if(i==0)      {aw[IX(i+1,j,k)]=0;psi[IX(i,j,k)]=psi[IX(i+1,j,k)];}
-					if(i==imax+1) {ae[IX(i-1,j,k)]=0;psi[IX(i,j,k)]=psi[IX(i-1,j,k)];}
-					if(j==0)      {as[IX(i,j+1,k)]=0;psi[IX(i,j,k)]=psi[IX(i,j+1,k)];}
-					if(j==jmax+1) {an[IX(i,j-1,k)]=0;psi[IX(i,j,k)]=psi[IX(i,j-1,k)];}
-					if(k==0)      {ab[IX(i,j,k+1)]=0;psi[IX(i,j,k)]=psi[IX(i,j,k+1)];}
-					if(k==kmax+1) {af[IX(i,j,k-1)]=0;psi[IX(i,j,k)]=psi[IX(i,j,k-1)];}
-				}
-			}
-
-}
+    /*-------------------------------------------------------------------------
+    | Fixme: Check the meaning of flagp == 2
+    -------------------------------------------------------------------------*/
+    if(flagp[IX(i,j,k)]==2)
+    {
+      if(i==0)      
+      {
+        aw[IX(i+1,j,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
+      }
+      if(i==imax+1) 
+      {
+        ae[IX(i-1,j,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
+      }
+      if(j==0)      
+      {
+        as[IX(i,j+1,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
+      }
+      if(j==jmax+1) 
+      {
+        an[IX(i,j-1,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
+      }
+      if(k==0)
+      {
+        ab[IX(i,j,k+1)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
+      }
+      if(k==kmax+1) 
+      {
+        af[IX(i,j,k-1)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
+      }
+    } // End of if(flagp[IX(i,j,k)]==2)
+  } // End of for() loop for go through the index
+} // End of set_bnd_temp()
 
 
 /******************************************************************************
