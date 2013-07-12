@@ -139,7 +139,9 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BIN
  
 }// End of set_bnd_vel( )
 
-
+/*******************************************************************************
+| Set boundary conditon for the temperature
+*******************************************************************************/
 void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BINDEX)
 {
   int i, j, k;
@@ -156,91 +158,119 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,int **BIN
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
-  for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-                if(flagp[IX(i,j,k)]==0)
-				{
-					psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
-				}
-                if(flagp[IX(i,j,k)]==1)
+  for(it=0; it<index; it++)
+  {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    if(flagp[IX(i,j,k)]==0)
+    {
+      psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
+    }
+    
 
-				{
-                 if(BINDEX[3][it]==1)
-					{
-					psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
+    if(flagp[IX(i,j,k)]==1)
+    {
+      if(BINDEX[3][it]==1)
+      {
+        psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
+        /*---------------------------------------------------------------------
+        | Loop through j index
+        ---------------------------------------------------------------------*/
+        if(i==0) // West  
+        {
+          if(flagp[IX(i+1,j,k)]<0) 
+            aw[IX(i+1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+        else if(i==imax+1) // East
+        {
+          if(flagp[IX(i-1,j,k)]<0)
+            ae[IX(i-1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+        else // Between West and East
+        {
+          if(flagp[IX(i+1,j,k)]<0) 
+            aw[IX(i+1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+          if(flagp[IX(i-1,j,k)]<0) 
+            ae[IX(i-1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
 
-					if(i==0)
-					{
-						if(flagp[IX(i+1,j,k)]<0) {aw[IX(i+1,j,k)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					}
-					else if(i==imax+1)
-					{
-	                   if(flagp[IX(i-1,j,k)]<0)  { ae[IX(i-1,j,k)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}				
-					
-					}
-					else
-					{
-					   if(flagp[IX(i+1,j,k)]<0) {aw[IX(i+1,j,k)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					   if(flagp[IX(i-1,j,k)]<0) {ae[IX(i-1,j,k)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					}
+        /*---------------------------------------------------------------------
+        | Loop through j index
+        ---------------------------------------------------------------------*/
+        if(j==0) // South
+        {
+          if(flagp[IX(i,j+1,k)]<0) 
+            as[IX(i,j+1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+        else if(j==jmax+1) // North
+        {
+          if(flagp[IX(i,j-1,k)]<0) 
+            an[IX(i,j-1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+        else // Between South and North
+        {
+          if(flagp[IX(i,j-1,k)]<0) 
+            an[IX(i,j-1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]) 
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+          if(flagp[IX(i,j+1,k)]<0) 
+            as[IX(i,j+1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
+                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
 
+        /*---------------------------------------------------------------------
+        | Loop through k index
+        ---------------------------------------------------------------------*/
+        if(k==0) // Floor
+        {
+          if(flagp[IX(i,j,k+1)]<0) 
+            ab[IX(i,j,k+1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+        }
+        else if(k==kmax+1) // Ceilling
+        {
+          if(flagp[IX(i,j,k-1)]<0) 
+            af[IX(i,j,k-1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]); 
+        }
+        else // Between Floor and Ceiling
+        {
+          if(flagp[IX(i,j,k+1)]<0) 
+            ab[IX(i,j,k+1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+          if(flagp[IX(i,j,k-1)]<0) 
+            af[IX(i,j,k-1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+        }
+      } // End of if(BINDEX[3][it]==1)
 
-					if(j==0)
-					{
-
-                        if(flagp[IX(i,j+1,k)]<0) { as[IX(i,j+1,k)]= coeff_h*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					
-					}
-					else if(j==jmax+1)
-					{
-					    if(flagp[IX(i,j-1,k)]<0) { an[IX(i,j-1,k)]= coeff_h*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					}
-					else
-					{
-						if(flagp[IX(i,j-1,k)]<0) { an[IX(i,j-1,k)]= coeff_h*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					    if(flagp[IX(i,j+1,k)]<0) { as[IX(i,j+1,k)]= coeff_h*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);}
-					}
-
-					if(k==0)
-					{
-                       if(flagp[IX(i,j,k+1)]<0) { ab[IX(i,j,k+1)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);} 
-					
-					}
-					else if(k==kmax+1)
-					{
-					   if(flagp[IX(i,j,k-1)]<0) { af[IX(i,j,k-1)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);} 
-					}
-					else
-					{
-						if(flagp[IX(i,j,k+1)]<0) { ab[IX(i,j,k+1)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);} 
-						if(flagp[IX(i,j,k-1)]<0) { af[IX(i,j,k-1)]= coeff_h*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);} 
-					
-					 }
-					}
-
-		   if(BINDEX[3][it]==0)
-					{
-                      if(i==0)
-					{
-						if(flagp[IX(i+1,j,k)]<0)
-						{
-						aw[IX(i+1,j,k)]=0;
-						b[IX(i+1,j,k)]+=0.001f*q[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-						psi[IX(i,j,k)]= q[IX(i,j,k)]/4.0f+psi[IX(i+1,j,k)];
-						}
-					}
-					else if(i==imax+1)
-					{
-	                   if(flagp[IX(i-1,j,k)]<0) 
-					   { ae[IX(i-1,j,k)]=0;
-					   b[IX(i-1,j,k)]+=0.001f*q[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					   psi[IX(i,j,k)]= q[IX(i,j,k)]/4.0f+psi[IX(i-1,j,k)];
-					   }				
-					
-					}
+      if(BINDEX[3][it]==0) // Fixme: What does the value of BINDEX mean?
+      {
+        if(i==0 && flagp[IX(i+1,j,k)]<0) //Fixme: What does value of flagp mean?
+          {
+            aw[IX(i+1,j,k)] = 0;
+            b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] 
+                            * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                            * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
+          }
+        else if(i==imax+1)
+        {
+          if(flagp[IX(i-1,j,k)]<0) 
+          { 
+            ae[IX(i-1,j,k)] = 0;
+            b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)]
+                            * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                            * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)];
+          }
+        }
 					else
 					{
 					   if(flagp[IX(i+1,j,k)]<0) 
