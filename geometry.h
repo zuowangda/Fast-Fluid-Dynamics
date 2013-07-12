@@ -9,4 +9,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k);
+REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+
+REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+
+REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+
+REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+
+REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+
+REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
