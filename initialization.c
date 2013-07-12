@@ -241,6 +241,7 @@ int set_initial_data(PARA_DATA *para, REAL **var)
     var[VYBC][i]   = 0.0;
     var[VZBC][i]   = 0.0;
     var[TEMPBC][i] = 0.0;
+    var[QBC][i]    = 0.0;
   }
   return 0;
 } // set_initial_data()

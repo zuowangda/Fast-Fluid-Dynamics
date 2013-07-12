@@ -396,7 +396,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
               flagp[IX(ii,ij,ik)]=1;
               if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
-              if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP; // Fixme: This should be heat flux
+              if(FLTMP==0) 
+              {
+                var[QBC][IX(ii,ij,ik)]=TMP;
+              }
             }
           } // End of assigning value for each wall cell
     } // End of assigning value for each wall surface

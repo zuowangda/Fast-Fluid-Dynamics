@@ -75,6 +75,7 @@
 #define VYBC 41
 #define VZBC 42
 #define TEMPBC 43
+#define QBC 44
 
 typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC,SYMMETRY} BCTYPE;
 
