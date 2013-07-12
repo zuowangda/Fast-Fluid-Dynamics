@@ -1,12 +1,13 @@
-/* ----------------------------------------------------------------------------
-
-	File:	        boundary.h
-
-	Written by:   Wangda Zuo
-
-	Task:         Declare the subroutines in boundary.c
-
----------------------------------------------------------------------------- */
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: bounary.h
+//
+// Task: Head file of boundary.c
+//
+// Modification history:
+// 7/10/2013 by Wangda Zuo: re-construct the code for release
+//
+///////////////////////////////////////////////////////////////////////////////
 
 void set_bnd(PARA_DATA *str_geom, REAL **var, int var_type, REAL *x, int **BINDEX);
 
