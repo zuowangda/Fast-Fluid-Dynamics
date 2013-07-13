@@ -40,7 +40,8 @@ void set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BINDEX)
 /******************************************************************************
 |  Set the boundary conditions for velocity
 ******************************************************************************/
-void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BINDEX)
+void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
+                 int **BINDEX)
 {
   int i, j, k;
   int it;
@@ -211,9 +212,8 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB],*b=var[B], *q = var[QFLUX];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
-  REAL axy, ayz, azx;
+  REAL axy, ayz, azx; // Area of surfaces
   REAL coeff_h=para->prob->coeff_h;
-  int caseID = para->solv->caseID;
 
   REAL coeq = 0.001; // Fixme: Chekc why times 0.001 for heat flux
 
@@ -469,16 +469,15 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 /******************************************************************************
 |  Set the boundary conditions for pressure
 ******************************************************************************/
-void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p,int **BINDEX)
+void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
 {
-  int i, j, k,it;
+  int i, j, k, it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int index=para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB];
-  int caseID = para->solv->caseID;
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
