@@ -15,8 +15,8 @@
 
 #include "data_structure.h"
 #include "boundary.h"
-
 #include "inlet_profile.h"
+#include "geometry.h"
 
 /******************************************************************************
 |  Set the boundary conditions
@@ -165,6 +165,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB],*b=var[B],*q=var[DEN];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
+  REAL axy, ayz, azx;
   REAL coeff_h=para->prob->coeff_h;
   int caseID = para->solv->caseID;
 
@@ -176,15 +177,16 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     j = BINDEX[1][it];
     k = BINDEX[2][it];
 
+    axy = area_xy(para, var, i, j, k, IMAX, IJMAX);
+    ayz = area_yz(para, var, i, j, k, IMAX, IJMAX);
+    azx = area_zx(para, var, i, j, k, IMAX, IJMAX);
+
     /*-------------------------------------------------------------------------
-    | Fixme: Check the meaning of flagp == 0
+    | Inlet boundary
     | 0: Inlet, -1: Fluid,  1: Solid Wall or Block, 2: Outlet
-    | 
     -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==0)
-    {
-      psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
-    }
+      psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
     /*-------------------------------------------------------------------------
     | Fixme: Check the meaning of flagp == 1
