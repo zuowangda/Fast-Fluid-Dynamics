@@ -212,15 +212,15 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
         for(ij=SJ; ij<=EJ; ij++)
           for(ik=SK; ik<=EK; ik++)
           {
-            BINDEX[0][index]=ii;
-            BINDEX[1][index]=ij;
-            BINDEX[2][index]=ik;
+            BINDEX[0][index] = ii;
+            BINDEX[1][index] = ij;
+            BINDEX[2][index] = ik;
             index++;
             
-            var[TEMPBC][IX(ii,ij,ik)]=TMP;
-            var[VXBC][IX(ii,ij,ik)]=U; 
-            var[VYBC][IX(ii,ij,ik)]=V; 
-            var[VZBC][IX(ii,ij,ik)]=W;
+            var[TEMPBC][IX(ii,ij,ik)] = TMP;
+            var[VXBC][IX(ii,ij,ik)] = U; 
+            var[VYBC][IX(ii,ij,ik)] = V; 
+            var[VZBC][IX(ii,ij,ik)] = W;
             flagp[IX(ii,ij,ik)] = 0; // Cell flag to be inlet
           } // End of assigning the inlet B.C. for each cell 
 
@@ -247,9 +247,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       if(EI==0)
       { 
         if(SI==1) SI=0;
-        EI=SI+EI;
-        EJ=SJ+EJ-1;
-        EK=SK+EK-1;
+        EI = SI + EI;
+        EJ = SJ + EJ - 1;
+        EK = SK + EK - 1;
       }
 
       if(EJ==0)
@@ -407,7 +407,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
               // Set the cell to solid
               flagp[IX(ii,ij,ik)] = 1; 
-              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP; printf("%f\n", var[TEMPBC][IX(ii,ij,ik)]);
+              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP; 
+              printf("%f\n", var[TEMPBC][IX(ii,ij,ik)]); // Fixme: Debug
               if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
             }
           } // End of assigning value for each wall cell
