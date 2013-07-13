@@ -223,24 +223,20 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         // North wall boundary and southern neighbor is fluid
         else if(j==jmax+1)
         {
-          if(flagp[IX(i,j-1,k)]<0) 
-            an[IX(i,j-1,k)] = coeff_h * azx;
+          if(flagp[IX(i,j-1,k)]<0) an[IX(i,j-1,k)] = coeff_h * azx;
         }
         // Between South and North
         else 
         {
           // Southern neighbor is fluid
-          if(flagp[IX(i,j-1,k)]<0) 
-            an[IX(i,j-1,k)] = coeff_h * azx;
+          if(flagp[IX(i,j-1,k)]<0) an[IX(i,j-1,k)] = coeff_h * azx;
           // Northern neighbor is fluid
-          if(flagp[IX(i,j+1,k)]<0) 
-            as[IX(i,j+1,k)] = coeff_h * azx;
+          if(flagp[IX(i,j+1,k)]<0) as[IX(i,j+1,k)] = coeff_h * azx;
         } 
         // Floor and ceiling neighbor is fluid
         if(k==0)
         {
-          if(flagp[IX(i,j,k+1)]<0) 
-            ab[IX(i,j,k+1)] = coeff_h * axy;
+          if(flagp[IX(i,j,k+1)]<0) ab[IX(i,j,k+1)] = coeff_h * axy;
         }
         // Ceilling and floor neighbor is fluid
         else if(k==kmax+1)
@@ -251,11 +247,9 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         else 
         {
           // Ceiling neighbor is fluid
-          if(flagp[IX(i,j,k+1)]<0) 
-            ab[IX(i,j,k+1)] = coeff_h * axy;
+          if(flagp[IX(i,j,k+1)]<0) ab[IX(i,j,k+1)] = coeff_h * axy;
           // Floor neighbor is fluid
-          if(flagp[IX(i,j,k-1)]<0) 
-            af[IX(i,j,k-1)] = coeff_h * axy;
+          if(flagp[IX(i,j,k-1)]<0) af[IX(i,j,k-1)] = coeff_h * axy;
         } 
       } // End of contant temperature wall
       // Constant heat flux
