@@ -481,21 +481,70 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
-   for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
+  for(it=0;it<index;it++)
+  {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
 
-         if(i>0)       { if(flagp[IX(i-1,j,k )]<0)  { p[IX(i,j,k )] =p[IX(i-1,j,k )];  ae[IX(i-1,j,k )]=0;}}
-		 if(i<imax+1)  { if(flagp[IX(i+1,j,k )]<0)  { p[IX(i,j,k )]=p[IX(i+1,j,k )]; 	 aw[IX(i+1,j,k )]=0;}}
-		 if(j>0)       { if(flagp[IX(i,j-1,k )]<0)  { p[IX(i,j,k )]=p[IX(i,j-1,k )];  an[IX(i,j-1,k )]=0;}}
-		 if(j<jmax+1)  { if(flagp[IX(i,j+1,k )]<0)  { p[IX(i,j,k )]=p[IX(i,j+1,k )]; 	 as[IX(i,j+1,k )]=0;}}
-		 if(k>0)       { if(flagp[IX(i,j,k-1 )]<0)  { p[IX(i,j,k )]=p[IX(i,j,k-1 )];   af[IX(i,j,k-1 )]=0; }}
-		 if(k<kmax+1)  { if(flagp[IX(i,j,k+1 )]<0)  { p[IX(i,j,k )]=p[IX(i,j,k+1 )];   ab[IX(i,j,k+1 )]=0; }}
-            }
-    
-		
+    /*-------------------------------------------------------------------------
+    | For X direction
+    -------------------------------------------------------------------------*/
+    if(i>0)
+    { 
+      if(flagp[IX(i-1,j,k)]<0)  
+      { 
+        p[IX(i,j,k)] = p[IX(i-1,j,k)];
+        ae[IX(i-1,j,k)] = 0;
+      } 
+    }
+    if(i<imax+1)  
+    { 
+      if(flagp[IX(i+1,j,k )]<0)
+      { 
+        p[IX(i,j,k)] = p[IX(i+1,j,k)];
+        aw[IX(i+1,j,k)] = 0;
+      }
+    }
+    /*-------------------------------------------------------------------------
+    | For Y direction
+    -------------------------------------------------------------------------*/
+    if(j>0)
+    { 
+      if(flagp[IX(i,j-1,k)]<0)
+      { 
+        p[IX(i,j,k)] = p[IX(i,j-1,k )];  
+        an[IX(i,j-1,k)] = 0;
+      }
+    } 
+    if(j<jmax+1)  
+    { 
+      if(flagp[IX(i,j+1,k)]<0)  
+      { 
+        p[IX(i,j,k )] = p[IX(i,j+1,k )];
+        as[IX(i,j+1,k)] = 0;
+      }
+    } 
+    /*-------------------------------------------------------------------------
+    | For Z direction
+    -------------------------------------------------------------------------*/
+    if(k>0)       
+    { 
+      if(flagp[IX(i,j,k-1)]<0)  
+      { 
+        p[IX(i,j,k)] = p[IX(i,j,k-1)];
+        af[IX(i,j,k-1)] = 0; 
+      }
+    }
+    if(k<kmax+1)  
+    { 
+      if(flagp[IX(i,j,k+1 )]<0)  
+      { 
+        p[IX(i,j,k)] = p[IX(i,j,k+1)];   
+        ab[IX(i,j,k+1)] = 0; 
+      } 
+    }
+  }
 } // End of set_bnd_pressure( )
 
 
@@ -514,19 +563,29 @@ void mass_conservation(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL mass_in = 0.0, mass_out = 0.00000001f, mass_ratio;
   REAL area_temp,area_out=0;
-   REAL *flagp = var[FLAGP];
+  REAL *flagp = var[FLAGP];
+  REAL axy, ayz, azx;
+
 
   /*---------------------------------------------------------------------------
   | Compute the total inflow
   ---------------------------------------------------------------------------*/
-    for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-                 if(flagp[IX(i,j,k)]==0)
-				{
-					if(i==0) mass_in += u[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+  for(it=0;it<index;it++)
+  {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+
+    axy = area_xy(para, var, i, j, k, IMAX, IJMAX);
+    ayz = area_yz(para, var, i, j, k, IMAX, IJMAX);
+    azx = area_zx(para, var, i, j, k, IMAX, IJMAX);
+
+    if(flagp[IX(i,j,k)]==0)
+    {
+      if(i==0) 
+        mass_in += u[IX(i,j,k)] * yz;
+
+
 					if(i==imax+1) mass_in += (-u[IX(i,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
 					if(j==0) mass_in += v[IX(i,j,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
 					if(j==jmax+1) mass_in += (-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
