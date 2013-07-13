@@ -39,7 +39,7 @@ REAL *tmp1, *tmp2, *tmp3;
 REAL *ap, *an, *as, *aw, *ae, *b, *ab, *af, *ap0;
 REAL *flagp, *flagu, *flagv, *flagw;
 REAL *locmin,*locmax;
-REAL *vxbc,*vybc,*vzbc,*tempbc, *qbc;
+REAL *vxbc,*vybc,*vzbc,*tempbc, *qfluxbc, *qflux;
 
 static GEOM_DATA geom;
 static PROB_DATA prob;
@@ -104,8 +104,9 @@ int allocate_data ( void )
   vybc      = (REAL *) malloc ( size*sizeof(REAL) );
   vzbc      = (REAL *) malloc ( size*sizeof(REAL) );
   tempbc    = (REAL *) malloc ( size*sizeof(REAL) );
-  qbc       = (REAL *) malloc ( size*sizeof(REAL) );
-  var	      = (REAL **) malloc ( 45*sizeof(REAL*) );
+  qfluxbc   = (REAL *) malloc ( size*sizeof(REAL) );
+  qflux     = (REAL *) malloc ( size*sizeof(REAL) );
+  var       = (REAL **) malloc ( 46*sizeof(REAL*) );
   
   var[X]      = x;
   var[Y]      = y;
@@ -151,7 +152,8 @@ int allocate_data ( void )
   var[VYBC]   =vybc;
   var[VZBC]   =vzbc;
   var[TEMPBC] =tempbc;
-  var[QBC]    = qbc;
+  var[QFLUXBC]= qfluxbc;
+  var[QFLUX]  = qflux;
 
   xindex = (int *) malloc ( size*sizeof(int) );
   yindex = (int *) malloc ( size*sizeof(int) );
@@ -171,7 +173,8 @@ int allocate_data ( void )
       !tmp1 || !tmp2 || !tmp3 ||
       !ap || !ae || !aw || !as || !an || !ab || !af || !b || !gx || !gy || !gz || !ap0 || !pp || !flagp ||
       ! flagu || ! flagv || ! flagw || ! locmin || ! locmax ||
-      ! vxbc ||! vybc ||! vzbc || !tempbc || !qbc ||! xindex ||! yindex ||! zindex) 
+      ! vxbc ||! vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
+      !xindex ||! yindex ||! zindex) 
   {
     fprintf( stderr, "cannot allocate data\n" );
     return 1;

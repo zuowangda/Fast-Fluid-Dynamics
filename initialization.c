@@ -180,6 +180,9 @@ void free_data(REAL **var)
   if(var[VYBC])  free(var[VYBC]);
   if(var[VZBC])  free(var[VZBC]);
   if(var[TEMPBC])  free(var[TEMPBC]);
+  if(var[QFLUXBC])  free(var[QFLUXBC]);
+  if(var[QFLUX])  free(var[QFLUX]);
+
 } // End of free_data()
 
 void free_index(int **BINDEX)
@@ -241,7 +244,8 @@ int set_initial_data(PARA_DATA *para, REAL **var)
     var[VYBC][i]   = 0.0;
     var[VZBC][i]   = 0.0;
     var[TEMPBC][i] = 0.0;
-    var[QBC][i]    = 0.0;
+    var[QFLUXBC][i]= 0.0;
+    var[QFLUX][i]  = 0.0;
   }
   return 0;
 } // set_initial_data()

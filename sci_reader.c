@@ -214,7 +214,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
             var[VXBC][IX(ii,ij,ik)]=U; 
             var[VYBC][IX(ii,ij,ik)]=V; 
             var[VZBC][IX(ii,ij,ik)]=W;
-            flagp[IX(ii,ij,ik)]=0;
+            flagp[IX(ii,ij,ik)] = 0; // Cell flag to be inlet
           } // End of assigning the inlet B.C. for each cell 
 
     } // End of loop for each inlet boundary
@@ -276,24 +276,26 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
           var[VYBC][IX(ii,ij,ik)]=V ; 
           var[VZBC][IX(ii,ij,ik)]=W ;
           flagp[IX(ii,ij,ik)]=2;
-        } // End of assigning the inlet B.C. for each cell 
+        } // End of assigning the outlet B.C. for each cell 
 
     } // End of loop for each outlet boundary
   } // End of setting outlet boundary
 
   /*---------------------------------------------------------------------------
-  | Fixme: Read the ?? boundary conditions
+  | Read the internal solid block boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string,"%d",&NBL); 
-
   if(NBL !=0)
   {
-    for(i=1;i<=NBL;i++)
+    for(i=1; i<=NBL; i++)
     {
       fgets(string, 400, file_params);
-      sscanf(string,"%d%d%d%d%d%d%d%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&FLTMP, &TMP);
-
+      // X_index_start, Y_index_Start, Z_index_Start, 
+      // X_index_End, Y_index_End, Z_index_End, 
+      // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
+      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
+                                        &FLTMP, &TMP);
       if(SI==1)
       {   
         SI=0;
@@ -330,16 +332,15 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
             BINDEX[2][index]=ik;
             BINDEX[3][index]=FLTMP;
             index++;
-            if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
-            if(FLTMP==0) var[DEN][IX(ii,ij,ik)]=TMP;		
-
-            flagp[IX(ii,ij,ik)]=1;	
-          } // End of assigning value for ?? 
+            if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP;
+            if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
+            flagp[IX(ii,ij,ik)] = 1; // Flag for solid
+          } // End of assigning value for internal solid block
     }
   }
 
   /*---------------------------------------------------------------------------
-  | Fixme: Read the wall boundary conditions
+  | Read the wall boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string,"%d",&NW); 
@@ -386,7 +387,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
         for(ij=SJ; ij<=EJ; ij++)
           for(ik=SK; ik<=EK; ik++)
           {
-            if(flagp[IX(ii,ij,ik)]<0)  // Default value: -1
+            // If cell hasn't been updated (default value -1)
+            if(flagp[IX(ii,ij,ik)]<0)
             {
               BINDEX[0][index]=ii;
               BINDEX[1][index]=ij;
@@ -396,10 +398,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
               flagp[IX(ii,ij,ik)]=1;
               if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
-              if(FLTMP==0) 
-              {
-                var[QBC][IX(ii,ij,ik)]=TMP;
-              }
+              if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)]=TMP;
             }
           } // End of assigning value for each wall cell
     } // End of assigning value for each wall surface

@@ -75,7 +75,8 @@
 #define VYBC 41
 #define VZBC 42
 #define TEMPBC 43
-#define QBC 44
+#define QFLUXBC 44 // Heat flux on the boundary
+#define QFLUX 45  // Heat flux
 
 typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC,SYMMETRY} BCTYPE;
 

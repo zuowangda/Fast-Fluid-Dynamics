@@ -163,7 +163,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
-  REAL *af = var[AF], *ab = var[AB],*b=var[B],*q=var[DEN];
+  REAL *af = var[AF], *ab = var[AB],*b=var[B], *q=var[DEN];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
   REAL axy, ayz, azx;
   REAL coeff_h=para->prob->coeff_h;
