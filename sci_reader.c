@@ -53,7 +53,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 {
   int i, j, k;
   int ii,ij,ik;
-  REAL tempx=0.0f, tempy=0.0f, tempz=0.0f;
+  REAL tempx, tempy, tempz;
   REAL Lx = para->geom->Lx;
   REAL Ly = para->geom->Ly;
   REAL Lz = para->geom->Lz;
@@ -112,47 +112,55 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   for(k=1; k<=kmax; k++) fscanf(file_params, "%f", &delz[k]); 
   fscanf(file_params,"\n");
 
-  // Store the locations of cell surfaces
-  // Fixme: var[GX] = gx
-  // Fixme: GX, GY, GZ are confusing iwth gravity, use another name
+  // Store the locations of grid cell surfaces
   // Fixme: use one "temp", not tempx tempy and tempz
-  for(i=0;i<=imax+1;i++)
+  tempx = 0.0; tempy = 0.0; tempz = 0.0;
+  for(i=0; i<=imax+1; i++)
   {
     tempx += delx[i];
-    if(i>=imax) tempx=Lx;
+    if(i>=imax) tempx = Lx;
     for(j=0; j<=jmax+1; j++)
-      for(k=0; k<=kmax+1; k++) {var[GX][IX(i,j,k)]=tempx;}
+      for(k=0; k<=kmax+1; k++) var[GX][IX(i,j,k)]=tempx;
   }
 
-  for(j=0;j<=jmax+1;j++)
+  for(j=0; j<=jmax+1; j++)
   {
     tempy += dely[j];
-    if(j>=jmax) tempy=Ly;
-    for(i=0;i<=imax+1;i++)
-      for(k=0;k<=kmax+1;k++) {var[GY][IX(i,j,k)]=tempy;}
+    if(j>=jmax) tempy = Ly;
+    for(i=0; i<=imax+1; i++)
+      for(k=0; k<=kmax+1; k++) var[GY][IX(i,j,k)] = tempy;
   }
 
-  for(k=0;k<=kmax+1;k++)
+  for(k=0; k<=kmax+1; k++)
   {
     tempz += delz[k];
-    if(k>=kmax) tempz=Lz;
-    for(i=0;i<=imax+1;i++)
-      for(j=0;j<=jmax+1;j++) {var[GZ][IX(i,j,k)]=tempz;}
+    if(k>=kmax) tempz = Lz;
+    for(i=0; i<=imax+1; i++)
+      for(j=0; j<=jmax+1; j++) var[GZ][IX(i,j,k)] = tempz;
   }
 
   // Convert the coordinates for cell furfaces to the coordinates for the cell center
   FOR_ALL_CELL
-    if(i<1)  x[IX(i,j,k)]= 0;
-    else if (i>imax) x[IX(i,j,k)]= Lx;
-    else    x[IX(i,j,k)]= 0.5f* (gx[IX(i,j,k)]+gx[IX(i-1,j,k)]);
+    if(i<1) 
+      x[IX(i,j,k)] = 0;
+    else if(i>imax) 
+      x[IX(i,j,k)] = Lx;
+    else 
+      x[IX(i,j,k)] = 0.5 * (gx[IX(i,j,k)]+gx[IX(i-1,j,k)]);
 
-    if(j<1)  y[IX(i,j,k)]= 0;
-    else if(j>jmax) y[IX(i,j,k)]= Ly;
-    else y[IX(i,j,k)]= 0.5f* (gy[IX(i,j,k)]+gy[IX(i,j-1,k)]);
+    if(j<1)  
+      y[IX(i,j,k)] = 0;
+    else if(j>jmax) 
+      y[IX(i,j,k)] = Ly;
+    else 
+      y[IX(i,j,k)] = 0.5 * (gy[IX(i,j,k)]+gy[IX(i,j-1,k)]);
 
-    if(k<1)  z[IX(i,j,k)]= 0;
-    else if(k>kmax) z[IX(i,j,k)]= Lz;
-    else z[IX(i,j,k)]= 0.5f* (gz[IX(i,j,k)]+gz[IX(i,j,k-1)]);
+    if(k<1)  
+      z[IX(i,j,k)] = 0;
+    else if(k>kmax) 
+      z[IX(i,j,k)] = Lz;
+    else 
+      z[IX(i,j,k)] = 0.5 * (gz[IX(i,j,k)]+gz[IX(i,j,k-1)]);
   END_FOR
 
   // Get the wall property
@@ -165,9 +173,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   // Fixme: Get number of inlet boundaries
   fgets(string, 400, file_params);
   sscanf(string,"%d",&NBIN); 
-
   index=0;
-
   // Setting inlet boundary
   if(NBIN != 0)
   {
@@ -175,29 +181,30 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     for(i=1;i<=NBIN;i++)
     {
       fgets(string, 400, file_params);
-      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
+      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f", &SI, &SJ, &SK, &EI, &EJ, &EK,
+                                              &TMP, &MASS, &U, &V, &W);
       if(EI==0)
       { 
-        if(SI==1) SI=0;
-        EI=SI+EI; 
-        EJ=SJ+EJ-1; 
-        EK=SK+EK-1;
+        if(SI==1) SI = 0;
+        EI = SI + EI; 
+        EJ = SJ + EJ - 1; 
+        EK = SK + EK - 1;
       }
 
       if(EJ==0)
       { 
-        if(SJ==1) SJ=0;
-        EI=SI+EI-1;
-        EJ=SJ+EJ;
-        EK=SK+EK-1;
+        if(SJ==1) SJ = 0;
+        EI = SI + EI - 1;
+        EJ = SJ + EJ;
+        EK = SK + EK - 1;
       }
 
       if(EK==0)
       { 
-        if(SK==1) SK=0;
-        EI=SI+EI-1;
-        EJ=SJ+EJ-1;
-        EK=SK+EK;
+        if(SK==1) SK = 0;
+        EI = SI + EI - 1;
+        EJ = SJ + EJ - 1;
+        EK = SK + EK;
       }
 
       // Assign the inlet boundary condition for each cell
@@ -354,8 +361,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%d %d %d %d %d %d %d %f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
+      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
             &FLTMP, &TMP);
+      printf("%s\n", string);
 
       // Reset X index
       if(SI==1)
@@ -377,11 +385,11 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       if(SK==1)
       {   
         SK = 0;
-        if(EK>=kmax) 
-          EK = EK + 1;
+        if(EK>=kmax) EK = EK + 1;
       }
       else 
-        EK=EK+SK;
+        EK = EK + SK;
+      printf("%d %d %d %d %d %d\n", SI, SJ, SK, EI, EJ, EK);
       // Assign value for each wall cell
       for(ii=SI; ii<=EI; ii++)
         for(ij=SJ; ij<=EJ; ij++)
@@ -399,7 +407,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
               // Set the cell to solid
               flagp[IX(ii,ij,ik)] = 1; 
-              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP;
+              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP; printf("%f\n", var[TEMPBC][IX(ii,ij,ik)]);
               if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
             }
           } // End of assigning value for each wall cell
