@@ -390,15 +390,17 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
             // If cell hasn't been updated (default value -1)
             if(flagp[IX(ii,ij,ik)]<0)
             {
-              BINDEX[0][index]=ii;
-              BINDEX[1][index]=ij;
-              BINDEX[2][index]=ik;
-              BINDEX[3][index]=FLTMP;
+              BINDEX[0][index] = ii;
+              BINDEX[1][index] = ij;
+              BINDEX[2][index] = ik;
+              // Define the thermal boundary property
+              BINDEX[3][index] = FLTMP;
               index++;  
 
-              flagp[IX(ii,ij,ik)]=1;
-              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)]=TMP;
-              if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)]=TMP;
+              // Set the cell to solid
+              flagp[IX(ii,ij,ik)] = 1; 
+              if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP;
+              if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
             }
           } // End of assigning value for each wall cell
     } // End of assigning value for each wall surface
