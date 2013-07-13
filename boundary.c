@@ -676,10 +676,9 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
     } // End of computing outflow
   } // End of for loop for going through all the inlets and outlets
   
-  /*---------------------------------------------------------------------------
-  | Return the ratio of inflow and outflow
-  ---------------------------------------------------------------------------*/
   mass_ratio = mass_in / mass_out;
-
+  /*---------------------------------------------------------------------------
+  | Return the adjusted velocuty for mass conservation
+  ---------------------------------------------------------------------------*/
   return (mass_in-mass_out)/area_out;
 }
