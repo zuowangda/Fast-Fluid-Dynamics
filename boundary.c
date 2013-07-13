@@ -549,9 +549,47 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
 
 
 /******************************************************************************
-| Check the mass conservation of the domain
+| Make the mass conserved by adjusting the outflow rate
 ******************************************************************************/
-void mass_conservation(PARA_DATA *para, REAL **var,int **BINDEX)
+void mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX)
+{
+  int i, j, k;
+  int it;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int index= para->geom->index;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *u = var[VX], *v = var[VY], *w = var[VZ];
+  REAL dvel;
+  REAL *flagp = var[FLAGP]; 
+  
+  dvel = adjust_velocity(para, var, BINDEX); //(mass_in-mass_out)/area_out
+
+  /*---------------------------------------------------------------------------
+  | Adjust the outflow
+  ---------------------------------------------------------------------------*/
+  for(it=0;it<index;it++)
+  {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    // Fixme: Adding or substracting velocity may cause change in flow direction
+    if(flagp[IX(i,j,k)]==2)
+    {
+      if(i==0) u[IX(i,j,k)] -= dvel;
+      if(i==imax+1) u[IX(i-1,j,k)]+= dvel;
+      if(j==0) v[IX(i,j,k)] -= dvel;
+      if(j==jmax+1) v[IX(i,j-1,k)] += dvel;
+      if(k==0) w[IX(i,j,k)] -= dvel;
+      if(k==kmax+1) w[IX(i,j,k-1)] += dvel;
+    }
+  }
+} // End of mass_conservation()
+
+/******************************************************************************
+| get the inflow and outflow mass ratio of the domain
+******************************************************************************/
+REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
 {
   int i, j, k;
   int it;
@@ -561,16 +599,13 @@ void mass_conservation(PARA_DATA *para, REAL **var,int **BINDEX)
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL mass_in = 0.0, mass_out = 0.00000001f, mass_ratio;
+  REAL mass_in = 0.0, mass_out = 0.00000001, mass_ratio;
   REAL area_temp,area_out=0;
   REAL *flagp = var[FLAGP];
   REAL axy, ayz, azx;
 
-
-  /*---------------------------------------------------------------------------
-  | Compute the total inflow
-  ---------------------------------------------------------------------------*/
-  for(it=0;it<index;it++)
+  // Go through all the inelt and outlets
+  for(it=0; it<index; it++)
   {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
@@ -579,107 +614,72 @@ void mass_conservation(PARA_DATA *para, REAL **var,int **BINDEX)
     axy = area_xy(para, var, i, j, k, IMAX, IJMAX);
     ayz = area_yz(para, var, i, j, k, IMAX, IJMAX);
     azx = area_zx(para, var, i, j, k, IMAX, IJMAX);
-
+    /*-------------------------------------------------------------------------
+    | Compute the total inflow
+    -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==0)
     {
+      // West
+      if(i==0) mass_in += u[IX(i,j,k)] * ayz;
+      // East
+      if(i==imax+1) mass_in += (-u[IX(i,j,k)]) * ayz;
+      // South
+      if(j==0) mass_in += v[IX(i,j,k)] * azx;
+      // North
+      if(j==jmax+1) mass_in += (-v[IX(i,j,k)]) * azx;
+      // Floor
+      if(k==0) mass_in += w[IX(i,j,k)] * axy;
+      // Ceiling
+      if(k==kmax+1) mass_in += (-w[IX(i,j,k)]) * axy;
+    }
+    /*-------------------------------------------------------------------------
+    | Compute the total outflow
+    -------------------------------------------------------------------------*/
+    if(flagp[IX(i,j,k)]==2)
+    {
+      // West
       if(i==0) 
-        mass_in += u[IX(i,j,k)] * yz;
-
-
-					if(i==imax+1) mass_in += (-u[IX(i,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==0) mass_in += v[IX(i,j,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==jmax+1) mass_in += (-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(k==0) mass_in += w[IX(i,j,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-					if(k==kmax+1) mass_in += (-w[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);  
-			    }
-				 if(flagp[IX(i,j,k)]==2)
-				 {
-				 	if(i==0) mass_out += (-u[IX(i,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(i==imax+1) mass_out += u[IX(i-1,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==0) mass_out += (-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==jmax+1) mass_out += v[IX(i,j-1,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(k==0) mass_out += (-w[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-					if(k==kmax+1) mass_out += w[IX(i,j,k-1)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);  
-				 	
-					 if(i==0)      area_out +=  (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(i==imax+1) 
-					{
-						area_out +=(gy[IX(i-1,j,k)]-gy[IX(i-1,j-1,k)])* (gz[IX(i-1,j,k)]-gz[IX(i-1,j,k-1)]);
-			
-					}
-					if(j==0)      area_out +=  (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==jmax+1) area_out +=  (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(k==0)      area_out +=  (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-					if(k==kmax+1) area_out +=  (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);					 
-				 }
-
-	         }
+      {
+        mass_out += (-u[IX(i,j,k)]) * ayz; 
+        area_out +=  ayz;
+      }
+      // East
+      if(i==imax+1) 
+      {
+        mass_out += u[IX(i-1,j,k)] * ayz;
+        area_out += ayz;
+      }
+      // South
+      if(j==0) 
+      {
+        mass_out += (-v[IX(i,j,k)]) * azx;
+        area_out += azx;
+      }
+      // North
+      if(j==jmax+1) 
+      {
+        mass_out += v[IX(i,j-1,k)] * azx;
+        area_out += azx;
+      }
+      // Floor
+      if(k==0) 
+      {
+        mass_out += (-w[IX(i,j,k)]) * axy;
+        area_out += axy;
+      }
+      // Ceiling
+      if(k==kmax+1) 
+      {
+        mass_out += w[IX(i,j,k-1)] * axy;
+        area_out += axy;
+      }
+    } // End of computing outflow
+  } // End of for loop for going through all the inlets and outlets
   
   /*---------------------------------------------------------------------------
   | Return the ratio of inflow and outflow
   ---------------------------------------------------------------------------*/
-    mass_ratio = mass_in / mass_out;
- //  printf("mass_in = %f, mass_out = %f, mass_in/mass_out=%f\n", mass_in, mass_out, area_out);
+  mass_ratio = mass_in / mass_out;
 
-	if(mass_ratio>10000) mass_ratio=10000;
-
-    /*---------------------------------------------------------------------------
-    | Adjust the outflow
-    ---------------------------------------------------------------------------*/
-   for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-                 if(flagp[IX(i,j,k)]==2)
-				 {
-				  	if(i==0) {u[IX(i,j,k)]-= (mass_in-mass_out)/area_out;}
-					if(i==imax+1) {u[IX(i-1,j,k)]+= (mass_in-mass_out)/area_out;}
-					 if(j==0) {v[IX(i,j,k)] -= (mass_in-mass_out)/area_out;}
-					 if(j==jmax+1) {v[IX(i,j-1,k)] += (mass_in-mass_out)/area_out;}
-					 if(k==0) {w[IX(i,j,k)] -= (mass_in-mass_out)/area_out;}
-					 if(k==kmax+1) {w[IX(i,j,k-1)] += (mass_in-mass_out)/area_out;}
-				 
-				 }
-            }
-
-
-   mass_in = 0.0;
-   mass_out = 0.00000001f;
-
-       for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-                 if(flagp[IX(i,j,k)]==0)
-				{
-					if(i==0) mass_in += u[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(i==imax+1) mass_in += (-u[IX(i,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==0) mass_in += v[IX(i,j,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==jmax+1) mass_in += (-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(k==0) mass_in += w[IX(i,j,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-					if(k==kmax+1) mass_in += (-w[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);  
-			    }
-				 if(flagp[IX(i,j,k)]==2)
-				 {
-				 	if(i==0) mass_out += (-u[IX(i,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(i==imax+1) mass_out += u[IX(i-1,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==0) mass_out += (-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(j==jmax+1) mass_out += v[IX(i,j-1,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(k==0) mass_out += (-w[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-					if(k==kmax+1) mass_out += w[IX(i,j,k-1)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);  
-				 	
-				 
-				 }
-
-	         }
-  
-  /*---------------------------------------------------------------------------
-  | Return the ratio of inflow and outflow
-  ---------------------------------------------------------------------------*/
-    mass_ratio = mass_in / mass_out;
- 
-     
-
-} // End of mass_conservation()
+  return (mass_in-mass_out)/area_out;
+}

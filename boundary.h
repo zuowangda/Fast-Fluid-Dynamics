@@ -20,3 +20,5 @@ void set_bnd_density(PARA_DATA *para, REAL **var, REAL *p);
 void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *vx, int **BINDEX);
 
 void mass_conservation(PARA_DATA *para, REAL **var,int **BINDEX);
+
+REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX);
