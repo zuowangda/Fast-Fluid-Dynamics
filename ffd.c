@@ -1,14 +1,14 @@
-/*----------------------------------------------------------------------------
-  
-  Filename: ffd.c
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: ffd.c
+//
+// Task: Main routine of Fast Fluid Dynamics
+//
+// Modification history:
+// 7/10/2013 by Wangda Zuo: re-constructed the code for release
+//
+///////////////////////////////////////////////////////////////////////////////
 
-  Written by:  Wangda Zuo
-
-  Last Modified: Wangda Zuo on 7/7/2013
-
-  Task: Main routine of Fast Fluid Dynamics
-
----------------------------------------------------------------------------- */
 
 #include <stdlib.h>
 #include <stdio.h>
