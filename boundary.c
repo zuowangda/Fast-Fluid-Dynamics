@@ -49,11 +49,8 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BIN
   int index= para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
-  REAL *x = var[X], *z = var[Z];
   REAL *af = var[AF], *ab = var[AB];
-  int caseID = para->solv->caseID;
   REAL *flagp = var[FLAGP];
-  // REAL *flagu = var[FLAGU], *flagv = var[FLAGV], *flagw = var[FLAGW];
 
   switch(var_type)
   {
