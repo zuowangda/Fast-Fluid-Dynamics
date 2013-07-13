@@ -176,7 +176,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     i = BINDEX[0][it];
     j = BINDEX[1][it];
     k = BINDEX[2][it];
-
+    
     axy = area_xy(para, var, i, j, k, IMAX, IJMAX);
     ayz = area_yz(para, var, i, j, k, IMAX, IJMAX);
     azx = area_zx(para, var, i, j, k, IMAX, IJMAX);
@@ -185,257 +185,241 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     | Inlet boundary
     | 0: Inlet, -1: Fluid,  1: Solid Wall or Block, 2: Outlet
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==0)
-      psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
+    if(flagp[IX(i,j,k)]==0) psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
     /*-------------------------------------------------------------------------
-    | Fixme: Check the meaning of flagp == 1
+    | Slid wall or block
     -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==1)
     {
+      // Constant temperature
       if(BINDEX[3][it]==1)
       {
-        psi[IX(i,j,k)]=var[TEMPBC][IX(i,j,k)];
-        /*---------------------------------------------------------------------
-        | I index
-        ---------------------------------------------------------------------*/
-        if(i==0) // West  
-        {
-          if(flagp[IX(i+1,j,k)]<0) 
-            aw[IX(i+1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
-        else if(i==imax+1) // East
-        {
-          if(flagp[IX(i-1,j,k)]<0)
-            ae[IX(i-1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
-        else // Between West and East
-        {
-          if(flagp[IX(i+1,j,k)]<0) 
-            aw[IX(i+1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-          if(flagp[IX(i-1,j,k)]<0) 
-            ae[IX(i-1,j,k)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        } // End of if() for I index
-        /*---------------------------------------------------------------------
-        | J index
-        ---------------------------------------------------------------------*/
-        if(j==0) // South
-        {
-          if(flagp[IX(i,j+1,k)]<0) 
-            as[IX(i,j+1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
-        else if(j==jmax+1) // North
-        {
-          if(flagp[IX(i,j-1,k)]<0) 
-            an[IX(i,j-1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
-        else // Between South and North
-        {
-          if(flagp[IX(i,j-1,k)]<0) 
-            an[IX(i,j-1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]) 
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-          if(flagp[IX(i,j+1,k)]<0) 
-            as[IX(i,j+1,k)] = coeff_h * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                                      * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        } // End of if() for J index
-        /*---------------------------------------------------------------------
-        | K index
-        ---------------------------------------------------------------------*/
-        // Floor
-        if(k==0) 
-        {
-          if(flagp[IX(i,j,k+1)]<0) 
-            ab[IX(i,j,k+1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-        }
-        // Ceilling
-        else if(k==kmax+1) 
-        {
-          if(flagp[IX(i,j,k-1)]<0) 
-            af[IX(i,j,k-1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]); 
-        }
-        // Between Floor and Ceiling
-        else 
-        {
-          if(flagp[IX(i,j,k+1)]<0) 
-            ab[IX(i,j,k+1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-          if(flagp[IX(i,j,k-1)]<0) 
-            af[IX(i,j,k-1)] = coeff_h * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                                      * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-        } // End of if() for K index
-      } // End of if(BINDEX[3][it]==1)
+        psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
-      if(BINDEX[3][it]==0) // Fixme: What does the value of BINDEX mean?
-      {
-        /*---------------------------------------------------------------------
-        | I index
-        ---------------------------------------------------------------------*/
-        // West
-        if(i==0 && flagp[IX(i+1,j,k)]<0) //Fixme: What does value of flagp mean?
-        {
-          aw[IX(i+1,j,k)] = 0;
-          b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] 
-                          * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                          * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
+        // West boundary wall and eastern neighbor cell is fluid
+        if(i==0)
+        {  
+          if(flagp[IX(i+1,j,k)]<0) aw[IX(i+1,j,k)] = coeff_h * ayz;
         }
-        // East
-        else if(i==imax+1 && flagp[IX(i-1,j,k)]<0) 
-        { 
-          ae[IX(i-1,j,k)] = 0;
-          b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)]
-                          * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                          * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)];
+        // East boundary wall and western neigbor cell is fluid
+        else if(i==imax+1)
+        {
+          if(flagp[IX(i-1,j,k)]<0) ae[IX(i-1,j,k)] = coeff_h * ayz;
         }
         // Between West and East
         else 
         {
+          // Eastern neighbor cell is fluid
+          if(flagp[IX(i+1,j,k)]<0) aw[IX(i+1,j,k)] = coeff_h * ayz;
+          // Western neigbor cell is fluid
+          if(flagp[IX(i-1,j,k)]<0) ae[IX(i-1,j,k)] = coeff_h * ayz;
+        }
+        // South wall boundary and northern neighbor is fluid
+        if(j==0)
+        {
+          if(flagp[IX(i,j+1,k)]<0) as[IX(i,j+1,k)] = coeff_h * azx;
+        }
+        // North wall boundary and southern neighbor is fluid
+        else if(j==jmax+1)
+        {
+          if(flagp[IX(i,j-1,k)]<0) 
+            an[IX(i,j-1,k)] = coeff_h * azx;
+        }
+        // Between South and North
+        else 
+        {
+          // Southern neighbor is fluid
+          if(flagp[IX(i,j-1,k)]<0) 
+            an[IX(i,j-1,k)] = coeff_h * azx;
+          // Northern neighbor is fluid
+          if(flagp[IX(i,j+1,k)]<0) 
+            as[IX(i,j+1,k)] = coeff_h * azx;
+        } 
+        // Floor and ceiling neighbor is fluid
+        if(k==0)
+        {
+          if(flagp[IX(i,j,k+1)]<0) 
+            ab[IX(i,j,k+1)] = coeff_h * axy;
+        }
+        // Ceilling and floor neighbor is fluid
+        else if(k==kmax+1)
+        {
+          if(flagp[IX(i,j,k-1)]<0) af[IX(i,j,k-1)] = coeff_h * axy; 
+        }
+        // Between Floor and Ceiling
+        else 
+        {
+          // Ceiling neighbor is fluid
+          if(flagp[IX(i,j,k+1)]<0) 
+            ab[IX(i,j,k+1)] = coeff_h * axy;
+          // Floor neighbor is fluid
+          if(flagp[IX(i,j,k-1)]<0) 
+            af[IX(i,j,k-1)] = coeff_h * axy;
+        } 
+      } // End of contant temperature wall
+      // Constant heat flux
+      if(BINDEX[3][it]==0)
+      {
+        // West wall boundary and eastern neighbor is fluid
+        if(i==0)
+        {
+          if(flagp[IX(i+1,j,k)]<0) 
+          {
+            aw[IX(i+1,j,k)] = 0;
+            b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
+          }
+        }
+        // East wall bounary and western neighbor is fluid
+        else if(i==imax+1)
+        {
+          if(flagp[IX(i-1,j,k)]<0) 
+          { 
+            ae[IX(i-1,j,k)] = 0;
+            b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)];
+          }
+        }
+        // Between West and East
+        else 
+        {
+          // Eastern neighbot is fluid
           if(flagp[IX(i+1,j,k)]<0) 
           {
             aw[IX(i+1,j,k)] = 0; 
-            b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] 
-                            * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                            * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+            b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i+1,j,k)];
           }
+          // Western neighbor is fluid
           if(flagp[IX(i-1,j,k)]<0) 
           {
             ae[IX(i-1,j,k)] = 0;
-            b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)]
-                            * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                            * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+            b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
           }
-        } // End of if() for I index
-        /*---------------------------------------------------------------------
-        | J index
-        ---------------------------------------------------------------------*/
-        // South
-        if(j==0 && flagp[IX(i,j+1,k)]<0)
+        } 
+        // South wall boundary and northern neighbor is fluid
+        if(j==0)
         {
-          as[IX(i,j+1,k)] = 0;
-          b[IX(i,j+1,k)] += 0.001 * q[IX(i,j,k)] 
-                          * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                          * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
-        }
-        // North
-        else if(j==jmax+1 && flagp[IX(i,j-1,k)]<0)
-        { 
-          an[IX(i,j-1,k)] = 0; 
-          b[IX(i,j-1,k)] += 0.001 * q[IX(i,j,k)]
-                          * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                          * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
+          if(flagp[IX(i,j+1,k)]<0)
+          {
+            as[IX(i,j+1,k)] = 0;
+            b[IX(i,j+1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
+          }
+        } 
+        // North wall boundary and southern neighbor is fluid
+        else if(j==jmax+1)
+        {
+          if(flagp[IX(i,j-1,k)]<0)
+          { 
+            an[IX(i,j-1,k)] = 0; 
+            b[IX(i,j-1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
+          }
         }
         // Between South and North
         else
         {
+          // Southern neighbor is fluid
           if(flagp[IX(i,j-1,k)]<0) 
           { 
             an[IX(i,j-1,k)] =0; 
-            b[IX(i,j-1,k)] += 0.001 * q[IX(i,j,k)]
-                            * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                            * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+            b[IX(i,j-1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
           }
+          // Northern neighbor is fluid
           if(flagp[IX(i,j+1,k)]<0) 
           { 
             as[IX(i,j+1,k)] = 0; 
-            b[IX(i,j+1,k)] += 0.001 * q[IX(i,j,k)]
-                            * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])
-                            * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+            b[IX(i,j+1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
           }
-        } // End of if() for J index
-        /*---------------------------------------------------------------------
-        | Loop for k index
-        ---------------------------------------------------------------------*/
-        // Floor
-        if(k==0 && flagp[IX(i,j,k+1)]<0)
-        { 
-          ab[IX(i,j,k+1)] = 0;
-          b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] 
-                          * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]) 
-                          * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];
+        } 
+        // Floor boundary and ceiling neighbor is fluid
+        if(k==0)
+        {
+          if(flagp[IX(i,j,k+1)]<0)
+          { 
+            ab[IX(i,j,k+1)] = 0;
+            b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] * axy; // Fixme: Why 0.001
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];
+          }
         }
-        // Ceiling
-        else if(k==kmax+1 && flagp[IX(i,j,k-1)]<0) 
-        { 
-          af[IX(i,j,k-1)] = 0;
-          b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)] 
-                          * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                          * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-          psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
+        // Ceiling boundary and floor neighbor is fluid
+        else if(k==kmax+1)
+        {
+          if(flagp[IX(i,j,k-1)]<0) 
+          { 
+            af[IX(i,j,k-1)] = 0;
+            b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)] *axy; // Fixme: Why 0.001
+            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
+          }
         }
         // Between Floor and Ceiling
         else
         {
+          // Ceiling neighbor is fluid
           if(flagp[IX(i,j,k+1)]<0) 
           { 
             ab[IX(i,j,k+1)] = 0; 
-            b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                            * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+            b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] * axy; // Fixme: Why 0.001
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k+1)];
           } 
+          // Floor neighbor is fluid
           if(flagp[IX(i,j,k-1)]<0) 
           { 
             af[IX(i,j,k-1)] = 0;
-            b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)]
-                            * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
-                            * (gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
+            b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)] * axy; // Fixme: Why 0.001
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
           } 
-        } // End of if() for K index
-      } // End of if(BINDEX[3][it]==0)
-    } // End of if(flagp[IX(i,j,k)]==1)
+        } 
+      } // End of constant heat flux
+    } // End of wall boundary
 
     /*-------------------------------------------------------------------------
-    | Fixme: Check the meaning of flagp == 2
+    | Outlet boundary
     -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==2)
     {
+      // West
       if(i==0)      
       {
         aw[IX(i+1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
       }
+      // North
       if(i==imax+1) 
       {
         ae[IX(i-1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
       }
+      // South
       if(j==0)      
       {
         as[IX(i,j+1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
       }
+      // North
       if(j==jmax+1) 
       {
         an[IX(i,j-1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
       }
+      // Floor
       if(k==0)
       {
         ab[IX(i,j,k+1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
       }
+      // Ceiling
       if(k==kmax+1) 
       {
         af[IX(i,j,k-1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
       }
-    } // End of if(flagp[IX(i,j,k)]==2)
+    } // End of boundary for outlet
   } // End of for() loop for go through the index
 } // End of set_bnd_temp()
 
