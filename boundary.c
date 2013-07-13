@@ -163,11 +163,13 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
-  REAL *af = var[AF], *ab = var[AB],*b=var[B], *q=var[DEN];
+  REAL *af = var[AF], *ab = var[AB],*b=var[B], *q = var[QFLUX];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
   REAL axy, ayz, azx;
   REAL coeff_h=para->prob->coeff_h;
   int caseID = para->solv->caseID;
+
+  REAL coeq = 0.001; // Fixme: Chekc why times 0.001 for heat flux
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
@@ -261,7 +263,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i+1,j,k)]<0) 
           {
             aw[IX(i+1,j,k)] = 0;
-            b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
+            b[IX(i+1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
           }
         }
@@ -271,7 +273,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i-1,j,k)]<0) 
           { 
             ae[IX(i-1,j,k)] = 0;
-            b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
+            b[IX(i-1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)];
           }
         }
@@ -282,14 +284,14 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i+1,j,k)]<0) 
           {
             aw[IX(i+1,j,k)] = 0; 
-            b[IX(i+1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
+            b[IX(i+1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i+1,j,k)];
           }
           // Western neighbor is fluid
           if(flagp[IX(i-1,j,k)]<0) 
           {
             ae[IX(i-1,j,k)] = 0;
-            b[IX(i-1,j,k)] += 0.001 * q[IX(i,j,k)] * ayz; // Fixme: Why 0.001
+            b[IX(i-1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
           }
         } 
@@ -299,7 +301,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j+1,k)]<0)
           {
             as[IX(i,j+1,k)] = 0;
-            b[IX(i,j+1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
+            b[IX(i,j+1,k)] += coeq * q[IX(i,j,k)] * azx;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
           }
         } 
@@ -309,7 +311,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j-1,k)]<0)
           { 
             an[IX(i,j-1,k)] = 0; 
-            b[IX(i,j-1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
+            b[IX(i,j-1,k)] += coeq * q[IX(i,j,k)] * azx;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
           }
         }
@@ -320,14 +322,14 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j-1,k)]<0) 
           { 
             an[IX(i,j-1,k)] =0; 
-            b[IX(i,j-1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
+            b[IX(i,j-1,k)] += coeq * q[IX(i,j,k)] * azx;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
           }
           // Northern neighbor is fluid
           if(flagp[IX(i,j+1,k)]<0) 
           { 
             as[IX(i,j+1,k)] = 0; 
-            b[IX(i,j+1,k)] += 0.001 * q[IX(i,j,k)] * azx; // Fixme: Why 0.001
+            b[IX(i,j+1,k)] += coeq * q[IX(i,j,k)] * azx;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
           }
         } 
@@ -337,7 +339,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j,k+1)]<0)
           { 
             ab[IX(i,j,k+1)] = 0;
-            b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] * axy; // Fixme: Why 0.001
+            b[IX(i,j,k+1)] += coeq * q[IX(i,j,k)] * axy;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];
           }
         }
@@ -347,7 +349,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j,k-1)]<0) 
           { 
             af[IX(i,j,k-1)] = 0;
-            b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)] *axy; // Fixme: Why 0.001
+            b[IX(i,j,k-1)] += coeq * q[IX(i,j,k)] *axy;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
           }
         }
@@ -358,14 +360,14 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j,k+1)]<0) 
           { 
             ab[IX(i,j,k+1)] = 0; 
-            b[IX(i,j,k+1)] += 0.001 * q[IX(i,j,k)] * axy; // Fixme: Why 0.001
+            b[IX(i,j,k+1)] += coeq * q[IX(i,j,k)] * axy;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k+1)];
           } 
           // Floor neighbor is fluid
           if(flagp[IX(i,j,k-1)]<0) 
           { 
             af[IX(i,j,k-1)] = 0;
-            b[IX(i,j,k-1)] += 0.001 * q[IX(i,j,k)] * axy; // Fixme: Why 0.001
+            b[IX(i,j,k-1)] += coeq * q[IX(i,j,k)] * axy;
             psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
           } 
         } 
