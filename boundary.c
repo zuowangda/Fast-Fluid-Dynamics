@@ -5,7 +5,7 @@
 // Task: Define the boundary conditions
 //
 // Modification history:
-// 7/10/2013 by Wangda Zuo: re-construct the code for release
+// 7/10/2013 by Wangda Zuo: re-constructed the code for release
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -31,17 +31,15 @@ void set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BINDEX)
       set_bnd_vel(para, var, VY, psi, BINDEX); break;
     case VZ:
       set_bnd_vel(para, var, VZ, psi, BINDEX); break;
-	case TEMP:
-	  set_bnd_temp(para, var, TEMP, psi,BINDEX); 
-		break;
- 
+    case TEMP:
+      set_bnd_temp(para, var, TEMP, psi,BINDEX); break; 
   }
-} // set_bnd() 
+} // End of set_bnd() 
 
 
-/**************************************************************************************************************
+/******************************************************************************
 |  Set the boundary conditions for velocity
-*******************************************************************************************************************/
+******************************************************************************/
 void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BINDEX)
 {
   int i, j, k;
@@ -54,100 +52,151 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BIN
   REAL *x = var[X], *z = var[Z];
   REAL *af = var[AF], *ab = var[AB];
   int caseID = para->solv->caseID;
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  REAL *flagp = var[FLAGP];
+  // REAL *flagu = var[FLAGU], *flagv = var[FLAGV], *flagw = var[FLAGW];
 
+  switch(var_type)
+  {
     /* --------------------------------------------------------------------------
-  | ROOM South
-  -------------------------------------------------------------------------- */
-   switch(var_type)
+    | VX
+    -------------------------------------------------------------------------- */
+    case VX:
+      for(it=0; it<index; it++)
       {
-        case VX:
-            for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-				//printf("%d\t%d\t%d\t%d\n",it,i,j,k);
-                if(flagp[IX(i,j,k)]==0)
-				{
-					psi[IX(i,j,k)]=var[VXBC][IX(i,j,k)];
-					if(i!=0) psi[IX(i-1,j,k)]=var[VXBC][IX(i,j,k)];
-				}
-                if(flagp[IX(i,j,k)]==1)
-				{
-					psi[IX(i,j,k)]=0;
-					if(i!=0) psi[IX(i-1,j,k)]=0;
-				}
-                if(flagp[IX(i,j,k)]==2)
-				{
-					if(i==0) {psi[IX(i,j,k)]=psi[IX(i+1,j,k)]; aw[IX(i+1,j,k)]=0;}
-					if(i==imax+1) {psi[IX(i-1,j,k)]=psi[IX(i-2,j,k)];ae[IX(i-2,j,k)]=0;}
-					if(j==0) { as[IX(i,j+1,k)]=0;}
-					if(j==jmax+1) { an[IX(i,j-1,k)]=0;}
-					if(k==0) { ab[IX(i,j,k+1)]=0;}
-					if(k==kmax+1) { af[IX(i,j,k-1)]=0;}
-				}
-			}
+        i = BINDEX[0][it];
+        j = BINDEX[1][it];
+        k = BINDEX[2][it];
+        // Inlet
+        if(flagp[IX(i,j,k)]==0)
+        {
+          psi[IX(i,j,k)] = var[VXBC][IX(i,j,k)];
+          if(i!=0) psi[IX(i-1,j,k)] = var[VXBC][IX(i,j,k)];
+        }
+        // Solid wall
+        if(flagp[IX(i,j,k)]==1)
+        {
+          psi[IX(i,j,k)] = 0;
+          if(i!=0) psi[IX(i-1,j,k)] = 0;
+        }
+        // Outlet
+        if(flagp[IX(i,j,k)]==2)
+        {
+          // West
+          if(i==0) 
+          {
+            psi[IX(i,j,k)] = psi[IX(i+1,j,k)]; 
+            aw[IX(i+1,j,k)] = 0;
+          }
+          // East
+          if(i==imax+1) 
+          {
+            psi[IX(i-1,j,k)] = psi[IX(i-2,j,k)]; 
+            ae[IX(i-2,j,k)] = 0;
+          }
+          // South
+          if(j==0) as[IX(i,j+1,k)] = 0;
+          // North
+          if(j==jmax+1) an[IX(i,j-1,k)] = 0;
+          // Floor
+          if(k==0) ab[IX(i,j,k+1)] = 0;
+          // Ceiling
+          if(k==kmax+1) af[IX(i,j,k-1)] = 0;
+        }
+      } // End of setting VX
+      break;
+    /* --------------------------------------------------------------------------
+    | VY
+    -------------------------------------------------------------------------- */
+    case VY:
+      for(it=0;it<index;it++)
+      {
+        i = BINDEX[0][it];
+        j = BINDEX[1][it];
+        k = BINDEX[2][it];
+        // Inlet
+        if(flagp[IX(i,j,k)]==0)
+        {
+          psi[IX(i,j,k)] = var[VYBC][IX(i,j,k)];
+          if(j!=0) psi[IX(i,j-1,k)] = var[VYBC][IX(i,j,k)];
+        }
+        // Solid wall
+        if(flagp[IX(i,j,k)]==1)
+        {
+          psi[IX(i,j,k)] = 0;
+          if(j!=0) psi[IX(i,j-1,k)] = 0;
+        }
+        // Outlet
+        if(flagp[IX(i,j,k)]==2)
+        {
+          // West
+          if(i==0) aw[IX(i+1,j,k)]=0;
+          // East
+          if(i==imax+1) ae[IX(i-1,j,k)]=0;
+          // South
+          if(j==0) 
+          {
+            as[IX(i,j+1,k)] = 0; 
+            psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
+          }
+          // North
+          if(j==jmax+1) 
+          {
+            an[IX(i,j-2,k)] = 0;
+            psi[IX(i,j-1,k)] = psi[IX(i,j-2,k)];
+          }
+          // Floor
+          if(k==0) ab[IX(i,j,k+1)] = 0;
+          if(k==kmax+1) af[IX(i,j,k-1)] = 0;
+        }
+      } // End of setting VY
+      break;
+    /* --------------------------------------------------------------------------
+    | VZ
+    -------------------------------------------------------------------------- */
+    case VZ:
+      for(it=0;it<index;it++)
+      {
+        i = BINDEX[0][it];
+        j = BINDEX[1][it];
+        k = BINDEX[2][it];
+        // Inlet
+        if(flagp[IX(i,j,k)]==0)
+        {
+          psi[IX(i,j,k)] = var[VZBC][IX(i,j,k)];
+          if(k!=0) psi[IX(i,j,k-1)] = var[VZBC][IX(i,j,k)];
+        }
+        if(flagp[IX(i,j,k)]==1)
+        {
+          psi[IX(i,j,k)] = 0;
+          if(k!=0) psi[IX(i,j,k-1)] = 0;
+        }
+        if(flagp[IX(i,j,k)]==2)
+        {
+          // West
+          if(i==0) aw[IX(i+1,j,k)] = 0;
+          // East
+          if(i==imax+1) ae[IX(i-1,j,k)] = 0;
+          //South
+          if(j==0) as[IX(i,j+1,k)] = 0;
+          // North
+          if(j==jmax+1) an[IX(i,j-1,k)]=0;
+          // Floor
+          if(k==0) 
+          { 
+            ab[IX(i,j,k+1)] = 0;
+            psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
+          }
+          // Ceiling
+          if(k==kmax+1) 
+          { 
+            af[IX(i,j,k-2)] = 0;
+            psi[IX(i,j,k-1)] = psi[IX(i,j,k-2)];
+          }
+        }
+      } // End of setting VZ
+      break;
+   } // End of switch case
 
-			break;
-
-		case VY:
-            for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-                if(flagp[IX(i,j,k)]==0)
-				{
-					psi[IX(i,j,k)]=var[VYBC][IX(i,j,k)];
-					if(j!=0) psi[IX(i,j-1,k)]=var[VYBC][IX(i,j,k)];
-				}
-                if(flagp[IX(i,j,k)]==1)
-				{
-					psi[IX(i,j,k)]=0;
-					if(j!=0) psi[IX(i,j-1,k)]=0;
-				}
-                if(flagp[IX(i,j,k)]==2)
-				{
-					if(i==0) {aw[IX(i+1,j,k)]=0;}
-					if(i==imax+1) {ae[IX(i-1,j,k)]=0;}
-					if(j==0) { as[IX(i,j+1,k)]=0;psi[IX(i,j,k)]=psi[IX(i,j+1,k)];}
-					if(j==jmax+1) { an[IX(i,j-2,k)]=0;psi[IX(i,j-1,k)]=psi[IX(i,j-2,k)];}
-					if(k==0) { ab[IX(i,j,k+1)]=0;}
-					if(k==kmax+1) { af[IX(i,j,k-1)]=0;}
-				}
-			}
-			 break;
-        case VZ:
-            for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-                if(flagp[IX(i,j,k)]==0)
-				{
-					psi[IX(i,j,k)]=var[VZBC][IX(i,j,k)];
-					if(k!=0) psi[IX(i,j,k-1)]=var[VZBC][IX(i,j,k)];
-				}
-                if(flagp[IX(i,j,k)]==1)
-				{
-					psi[IX(i,j,k)]=0;
-					if(k!=0) psi[IX(i,j,k-1)]=0;
-				}
-                if(flagp[IX(i,j,k)]==2)
-				{
-					if(i==0) {aw[IX(i+1,j,k)]=0;}
-					if(i==imax+1) {ae[IX(i-1,j,k)]=0;}
-					if(j==0) { as[IX(i,j+1,k)]=0;}
-					if(j==jmax+1) { an[IX(i,j-1,k)]=0;}
-					if(k==0) { ab[IX(i,j,k+1)]=0;psi[IX(i,j,k)]=psi[IX(i,j,k+1)];}
-					if(k==kmax+1) { af[IX(i,j,k-2)]=0;psi[IX(i,j,k-1)]=psi[IX(i,j,k-2)];}
-				}
-			}
-			break;
-   }
-  
- 
 }// End of set_bnd_vel( )
 
 /*******************************************************************************
@@ -434,8 +483,7 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p,int **BINDEX)
   REAL *af = var[AF], *ab = var[AB];
   int caseID = para->solv->caseID;
 
-   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-  
+  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
    for(it=0;it<index;it++)
 			{
