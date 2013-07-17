@@ -50,7 +50,6 @@ static BC_DATA bc;
 static SOLV_DATA solv;
 static PARA_DATA para;
 
-
 clock_t start, end;
 
 /******************************************************************************

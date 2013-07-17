@@ -10,6 +10,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 #include <time.h>
+#include <windows.h>
+#include <conio.h>
+
+HANDLE hMapFile;
+LPCTSTR pBuf;
+
 
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
@@ -86,7 +92,7 @@ typedef enum{GS, TDMA} SOLVERTYPE;
 
 typedef enum{SEMI, LAX, UPWIND, UPWIND_NEW} ADVECTION;
 
-typedef enum{LAM, CHEN, CONST} TUR_MODEL;
+typedef enum{LAM, CHEN, CONSTANT} TUR_MODEL;
 
 typedef enum{BILINEAR, FSJ} INTERPOLATION;
 
@@ -274,6 +280,7 @@ typedef struct
   REAL   dt;         /* time step size                                      */
   REAL   t;          /* current time                                        */
   REAL   t_steady;   /* necessary time for steady flow                      */
+  REAL    dt_cosim;  // Time step for co-simulation data exchange 
   int     t_output;   /* the interval of iteration step to output data       */
   int     t_step;     /* current iteration step                              */
   clock_t t_start;    /* starting CPU time                                   */
@@ -288,7 +295,8 @@ typedef struct
   int check_residual; /* 1: check, 0: donot check                            */
   ADVECTION advection_solver; /* SEMI, LAX, UPWIND, UPWIND_NEW */  
   INTERPOLATION interpolation; /* BILINEAR, FSJ */
-
+  int   nextstep;    // 1: yes; -1: no, wait
+  int cosimulation;  // 0: single; 1: cosimulation
 }SOLV_DATA;
 
 typedef struct 

@@ -1,0 +1,3 @@
+int createSharedData();
+
+int freeSharedData();

@@ -29,9 +29,10 @@ void define_parameter(PARA_DATA *para)
   para->geom->uniform = 0; //1: uniform; 0: non-uniform 
 
   para->mytime->dt = 0.1f; 
-  para->mytime->t_steady = 100.0f; 
+  para->mytime->t_steady = 100.0; 
   para->mytime->t_output =1000 ;
-
+  para->mytime->dt_cosim = 1.0;
+  para->solv->nextstep = -1;
   para->inpu->read_old_ffd_file = 0; 
 
   para->prob->nu    = 1.53e-5f;//1.53e-5f;
@@ -43,11 +44,12 @@ void define_parameter(PARA_DATA *para)
   para->solv->advection_solver = SEMI;  //LAX, SEMI, UPWIND, UPWIND_NEW;
   para->solv->interpolation = BILINEAR; //BILINEAR, FSJ
   para->solv->check_residual = 0; 
+  para->solv->cosimulation = 1; // Do cosimulation
 
   para->prob->gravx = 0.0f;
   para->prob->gravy = 0.0f;
   para->prob->gravz = 0.0f;
-  para->prob->tratio=0.001;
+  para->prob->tratio = 0.001;
   para->outp->version = DEBUG; //DEMO, DEBUG;
 
   para->bc->bcN = NOSLIP;
@@ -56,9 +58,9 @@ void define_parameter(PARA_DATA *para)
   para->bc->bcE = NOSLIP;   
   para->bc->bcF = NOSLIP;
   para->bc->bcB = NOSLIP;
-  para->bc->bcTN = ADIBATIC; 
-  para->bc->bcTS = ADIBATIC; 
-  para->bc->bcTF = ADIBATIC;
-  para->bc->bcTB = ADIBATIC; 
+  //para->bc->bcTN = ADIBATIC; 
+  //para->bc->bcTS = ADIBATIC; 
+  //para->bc->bcTF = ADIBATIC;
+  //para->bc->bcTB = ADIBATIC; 
 
 } // End of input_para( )

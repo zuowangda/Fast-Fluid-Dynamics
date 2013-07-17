@@ -11,6 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "data_structure.h"
 #include "solver.h"
 #include "data_writer.h"
@@ -22,7 +23,7 @@
 #include "solver_tdma.h"
 #include "boundary.h"
 #include "utility.h"
-
+#include "cosimulation_interface.h"
 /******************************************************************************
 | FFD Solver
 ******************************************************************************/
@@ -41,9 +42,15 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   int  IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
-
   int cal_mean = para->outp->cal_mean;
-  
+
+
+  if(para->solv->cosimulation == 1) 
+  {  
+    if (createSharedData())
+      exit (1);
+    getchar();
+  }
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
@@ -89,6 +96,8 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     write_tecplot_data(para, var, "result");
 
     para->prob->output = 1;
+  if(para->solv->cosimulation == 1) 
+    freeSharedData( );
 } // End of FFD_solver( ) 
 
 
