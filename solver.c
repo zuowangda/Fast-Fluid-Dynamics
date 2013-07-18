@@ -47,9 +47,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
 
   if(para->solv->cosimulation == 1) 
   {  
-    if (createSharedData())
-      exit (1);
-    getchar();
+    //getchar();
   }
   /*---------------------------------------------------------------------------
   | Solver Loop
@@ -97,7 +95,8 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
 
     para->prob->output = 1;
   if(para->solv->cosimulation == 1) 
-    freeSharedData( );
+    getchar();
+    //freeSharedData( );
 } // End of FFD_solver( ) 
 
 
