@@ -236,7 +236,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     if(flagp[IX(i,j,k)]==0) psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
     /*-------------------------------------------------------------------------
-    | Slid wall or block
+    | Solid wall or block
     -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==1)
     {

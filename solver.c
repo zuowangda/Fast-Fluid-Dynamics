@@ -23,7 +23,7 @@
 #include "solver_tdma.h"
 #include "boundary.h"
 #include "utility.h"
-#include "cosimulation_interface.h"
+#include "cosimulation.h"
 /******************************************************************************
 | FFD Solver
 ******************************************************************************/
@@ -43,16 +43,21 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
+  REAL t_cosim;
 
 
   if(para->solv->cosimulation == 1) 
-  {  
-    //getchar();
+  {
+    // Exchange the intial consitions for cosimulation
+    read_cosimulaiton_data(para, var);
+    write_cosimulation_data(para, var);
+    t_cosim = para->mytime->t + para->mytime->dt_cosim;
   }
+
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
-  while( para->mytime->t_step < t_output)
+  while(para->mytime->t_step < t_output)
   {
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);
@@ -75,6 +80,19 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
         v_mean[i] += v[i];
         w_mean[i] += w[i];
       }
+
+    // Synchronize the data for cosimulation
+    if(para->solv->cosimulation == 1 && para->mytime->t >= t_cosim) 
+    {
+      //Exchange the data for cosimulation
+      read_cosimulaiton_data(para, var);
+      write_cosimulation_data(para, var);
+
+      // set the next synchronization time
+      t_cosim += para->mytime->dt_cosim;
+    }
+
+
   } // End of While loop  
 
   /*---------------------------------------------------------------------------
@@ -89,14 +107,14 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
       w_mean[i] = w_mean[i] / t_step;
     }
 
-
     write_unsteady(para, var, "unsteady");
     write_tecplot_data(para, var, "result");
 
     para->prob->output = 1;
-  if(para->solv->cosimulation == 1) 
-    getchar();
-    //freeSharedData( );
+    
+    //if(para->solv->cosimulation == 1) 
+    //getchar();
+
 } // End of FFD_solver( ) 
 
 
