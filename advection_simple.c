@@ -37,79 +37,10 @@ void advection(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   {
     case VX:
       trace_vx(para, var, var_type, d, d0, BINDEX);
-
-
-  case VY:
-  {
-	/*---------------------------------------------------------------------------
-  | Tracing Back and Interplotaing
-  ---------------------------------------------------------------------------*/
-  FOR_V_CELL
-
-	  if(flagv[IX(i,j,k)]>=0) continue;
-
-      /*-------------------------------------------------------------------------
-    | Step 1: Tracing Back
-    -------------------------------------------------------------------------*/
-    
-	u0 = 0.5f* ((u[IX(i,j,k)]   + u[IX(i-1,j,  k)]) *(y [IX(i,j+1,k)]-gy[IX(i,j,k)])
-		       +(u[IX(i,j+1,k)] + u[IX(i-1,j+1,k)]) *(gy[IX(i,j,  k)]-y[IX(i,j,k)]))/(y[IX(i,j+1,k)]-y[IX(i,j,k)]);
-	
-    v0 = v[IX(i,j,k)]; 
-
-
-   	w0 = 0.5f *((w[IX(i,j,  k)]+ w[IX(i,j  ,k-1)])* (y [IX(i,j+1,k)]- gy[IX(i,j,k)])
-		       +(w[IX(i,j+1,k)]+ w[IX(i,j+1,k-1)])* (gy[IX(i,j,  k)]- y [IX(i,j,k)]))/(y[IX(i,j+1,k)]-y[IX(i,j,k)]); 
-    
-       
-    OL[X] = x[IX(i,j,k)] - u0*dt; 
-    OL[Y] = gy[IX(i,j,k)] - v0*dt;
-    OL[Z] = z[IX(i,j,k)] - w0*dt;
-
-   
-    OC[X] = i; OC[Y] = j; OC[Z] = k;  
-
-	COOD[X] =1; COOD[Y]=1; COOD[Z]=1;
-	LOC[X]  =1; LOC[Y] =1; LOC[Z] =1;
-
-	it=1;
-
-	while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1)
-	   {
-		   it++;
-		    if(COOD[X]==1 && LOC[X]==1)		     XLOCATION(para, var, flagv,  x, u0, i, j, k, OL,OC, LOC ,COOD); 
-		    if(COOD[Y]==1 && LOC[Y]==1)			 YLOCATION(para, var, flagv, gy, v0, i, j, k, OL,OC, LOC ,COOD); 
-		    if(COOD[Z]==1 && LOC[Z]==1)			 ZLOCATION(para, var, flagv,  z, w0, i, j, k, OL,OC, LOC ,COOD); 
-	   }
-	if(u0>=0 && LOC[X] == 0) OC[X] -=1;
-	if(v0>=0 && LOC[Y] == 0) OC[Y] -=1;
-	if(w0>=0 && LOC[Z] == 0) OC[Z] -=1;
-
-	if(u0<0 && LOC[X]==1) OC[X] -=1;
-    if(v0<0 && LOC[Y]==1) OC[Y] -=1;
-    if(w0<0 && LOC[Z]==1) OC[Z] -=1;
-
- 
-    x_1 = (OL[X]- x[IX(OC[X],OC[Y],OC[Z])])/(x [IX(OC[X]+1,OC[Y],    OC[Z])]-x [IX(OC[X],OC[Y],OC[Z])]); 
-    y_1 = (OL[Y]-gy[IX(OC[X],OC[Y],OC[Z])])/(gy[IX(OC[X],  OC[Y]+1,  OC[Z])]-gy[IX(OC[X],OC[Y],OC[Z])]);
-    z_1 = (OL[Z]- z[IX(OC[X],OC[Y],OC[Z])])/(z [IX(OC[X],  OC[Y],  OC[Z]+1)]-z [IX(OC[X],OC[Y],OC[Z])]);
-
-	//printf("fraction is %f \t %f \t%f \n", x_1, y_1, z_1);
-             
-    /*-------------------------------------------------------------------------
-    | Interpolating for all variables
-    -------------------------------------------------------------------------*/
-    d[IX(i,j,k)] = interpolation(para, d0, x_1, y_1, z_1, OC[X],OC[Y],OC[Z]);
-	END_FOR
-
-  /*---------------------------------------------------------------------------
-  | define the b.c.
-  ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, d,BINDEX);
-
-		  }
       break;
-
+    case VY:
+      trace_vy(para, var, var_type, d, d0, BINDEX);
+      break;
   case VZ:
    {
 		  	/*---------------------------------------------------------------------------
@@ -314,7 +245,7 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     LOC[X] = 1; 
     LOC[Y] = 1; 
     LOC[Z] = 1;
-    //Initialize the 
+    //Initialize the numver of iterations
     it=1;
 
     // Trace back more if the any of the trace is still in process 
@@ -335,7 +266,7 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
         printf("Error: advection.c, can not track the location for VX(%d, %d,%d)",
                 i, j, k);
         printf("after %d iterations.\n", it);
-        exit(1);
+        return 1;
       }
     } // End of while() for backward tracing
 
@@ -350,6 +281,11 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     if(v0<0 && LOC[Y]==1) OC[Y] -=1;
     if(w0<0 && LOC[Z]==1) OC[Z] -=1;
 
+
+
+    /*-------------------------------------------------------------------------
+    | Interpolate
+    -------------------------------------------------------------------------*/
     x_1 = (OL[X]-gx[IX(OC[X],OC[Y],OC[Z])]) 
         / (gx[IX(OC[X]+1,OC[Y],OC[Z])]-gx[IX(OC[X],OC[Y],OC[Z])]); 
     y_1 = (OL[Y]-y[IX(OC[X],OC[Y],OC[Z])])
@@ -357,9 +293,6 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     z_1 = (OL[Z]-z[IX(OC[X],OC[Y],OC[Z])]) 
         / (z[IX(OC[X],OC[Y],OC[Z]+1)]-z[IX(OC[X],OC[Y],OC[Z])]);
 
-    /*-------------------------------------------------------------------------
-    | Interpolate
-    -------------------------------------------------------------------------*/
     d[IX(i,j,k)] = interpolation(para, d0, x_1, y_1, z_1, OC[X], OC[Y], OC[Z]);
 
   END_FOR // End of loop for all cells
@@ -367,10 +300,122 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-   set_bnd(para, var, var_type, d, BINDEX);
+  set_bnd(para, var, var_type, d, BINDEX);
 
+  return 0;
 } // End of trace_vx()
 
+/******************************************************************************
+  Trace the VY
+******************************************************************************/
+int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
+             int **BINDEX)
+{
+  int i, j, k;
+  int it;
+  int itmax = 20000; // Max number of iterations for backward tracing 
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL x_1, y_1, z_1;
+  REAL dt = para->mytime->dt; 
+  REAL u0, v0, w0;
+  REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
+  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; 
+  REAL *u = var[VX], *v = var[VY], *w = var[VZ];
+  REAL *flagv = var[FLAGV];
+  REAL Lx = para->geom->Lx, Ly = para->geom->Ly, Lz = para->geom->Lz; 
+  int  COOD[3], LOC[3];
+  REAL OL[3];
+  int  OC[3];
+
+  FOR_V_CELL
+    // Do not trace for boundary cells
+    if(flagv[IX(i,j,k)]>=0) continue;
+
+    /*-------------------------------------------------------------------------
+    | Step 1: Tracing Back
+    -------------------------------------------------------------------------*/
+    // Get velocities at the location of VY
+    u0 = 0.5
+       * ((u[IX(i,j,k)]+u[IX(i-1,j,  k)])*(y [IX(i,j+1,k)]-gy[IX(i,j,k)])
+         +(u[IX(i,j+1,k)]+u[IX(i-1,j+1,k)])*(gy[IX(i,j,  k)]-y[IX(i,j,k)]))
+       / (y[IX(i,j+1,k)]-y[IX(i,j,k)]);
+    v0 = v[IX(i,j,k)]; 
+    w0 = 0.5
+       * ((w[IX(i,j,k)]+w[IX(i,j,k-1)])*(y[IX(i,j+1,k)]-gy[IX(i,j,k)])
+         +(w[IX(i,j+1,k)]+w[IX(i,j+1,k-1)])*(gy[IX(i,j,k)]-y[IX(i,j,k)]))
+       / (y[IX(i,j+1,k)]-y[IX(i,j,k)]); 
+    // Find the location at previous time step
+    OL[X] = x[IX(i,j,k)] - u0*dt; 
+    OL[Y] = gy[IX(i,j,k)] - v0*dt;
+    OL[Z] = z[IX(i,j,k)] - w0*dt;
+    // Initialize the coordinates of previous step
+    OC[X] = i;
+    OC[Y] = j;
+    OC[Z] = k;
+    // Initialize the signs for track process
+    // Completed: 0; In process: 1
+    COOD[X] = 1; 
+    COOD[Y] = 1; 
+    COOD[Z] = 1;
+    // Initialize the signs for recording if the track back hits the boundary
+    // Hit the boundary: 0; Not hit the boundary: 1
+    LOC[X] = 1; 
+    LOC[Y] = 1; 
+    LOC[Z] = 1;
+    //Initialize the numver of iterations
+    it=1;
+
+    // Trace back more if the any of the trace is still in process 
+    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1)
+    {
+      it++;
+      if(COOD[X]==1 && LOC[X]==1)
+        XLOCATION(para, var, flagv, x, u0, i, j, k, OL, OC, LOC, COOD); 
+      if(COOD[Y]==1 && LOC[Y]==1)
+        YLOCATION(para, var, flagv, gy, v0, i, j, k, OL, OC, LOC, COOD); 
+      if(COOD[Z]==1 && LOC[Z]==1)
+          ZLOCATION(para, var, flagv, z, w0, i, j, k, OL, OC, LOC, COOD); 
+
+      if(it>itmax)
+      {
+        printf("Error: advection.c, can not track the location for VY(%d, %d,%d)",
+                i, j, k);
+        printf("after %d iterations.\n", it);
+        return 1;
+      }
+    } // End of while() loop
+
+    // Set the coordinates of previous location if it is as boundary
+    if(u0>=0 && LOC[X] == 0) OC[X] -=1; 
+    if(v0>=0 && LOC[Y] == 0) OC[Y] -=1;
+    if(w0>=0 && LOC[Z] == 0) OC[Z] -=1;
+
+    // Fixme: Do not understand here. Should it be
+    // if(u0<0 && LOC[X] = 0) OC[X] += 1;
+    if(u0<0 && LOC[X]==1) OC[X] -=1;
+    if(v0<0 && LOC[Y]==1) OC[Y] -=1;
+    if(w0<0 && LOC[Z]==1) OC[Z] -=1;
+            
+    /*-------------------------------------------------------------------------
+    | Interpolating for all variables
+    -------------------------------------------------------------------------*/
+    x_1 = (OL[X]-x[IX(OC[X],OC[Y],OC[Z])])
+        / (x[IX(OC[X]+1,OC[Y],OC[Z])]-x[IX(OC[X],OC[Y],OC[Z])]); 
+    y_1 = (OL[Y]-gy[IX(OC[X],OC[Y],OC[Z])])
+        / (gy[IX(OC[X],OC[Y]+1,OC[Z])]-gy[IX(OC[X],OC[Y],OC[Z])]);
+    z_1 = (OL[Z]-z[IX(OC[X],OC[Y],OC[Z])])
+        / (z[IX(OC[X],OC[Y],OC[Z]+1)]-z[IX(OC[X],OC[Y],OC[Z])]);
+    d[IX(i,j,k)] = interpolation(para, d0, x_1, y_1, z_1, OC[X],OC[Y],OC[Z]);
+  END_FOR // End of For() loop for each cell
+
+  /*---------------------------------------------------------------------------
+  | define the b.c.
+  ---------------------------------------------------------------------------*/
+  set_bnd(para, var, var_type, d,BINDEX);
+
+} // End of trace_vy()
 
 
 void XLOCATION(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, int i, int j, int k,  REAL *OL, int *OC, int *LOC , int *COOD)
