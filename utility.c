@@ -280,7 +280,7 @@ REAL check_min(PARA_DATA *para, REAL *psi, int ci,int cj,int ck)
 
  return tmp;
 
-}// End of check_residual( )
+}// End of check_min( )
 
 
 REAL check_max( PARA_DATA *para, REAL *psi, int ci,int cj,int ck)
@@ -302,7 +302,7 @@ REAL check_max( PARA_DATA *para, REAL *psi, int ci,int cj,int ck)
     
 return tmp;
 
-}// End of check_residual( )
+}// End of check_max( )
 
 
 REAL check_avg(PARA_DATA *para, REAL *psi)
