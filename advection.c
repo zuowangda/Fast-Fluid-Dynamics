@@ -10,27 +10,9 @@
 /******************************************************************************
 | advection
 ******************************************************************************/
-void advection(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
+void advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
                int **BINDEX)
 {
-  int i, j, k;
-  int itmax = 20000; // Max number of iterations for backward tracking 
-  int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL x_1, y_1, z_1;
-  REAL dt = para->mytime->dt; 
-  REAL u0, v0, w0;
-  REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; 
-  REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-  REAL Lx = para->geom->Lx, Ly = para->geom->Ly, Lz = para->geom->Lz; 
-  int  COOD[3], LOC[3];
-  REAL OL[3];
-  int  OC[3];
-
-
   switch (var_type)
   {
     case VX:
@@ -509,7 +491,6 @@ void XLOCATION(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, int i,
 	   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 	   REAL *u=var[VX];
 	   REAL dt=para->mytime->dt;
-	   REAL delta_t, ratio_k, const_bk;
 	   REAL tratio= para->prob->tratio;
 
 	   if(OL[X]==x[IX(OC[X],OC[Y],OC[Z])]) 

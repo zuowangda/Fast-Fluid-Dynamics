@@ -1,4 +1,4 @@
-void advection(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, int **BINDEX);
+void advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, int **BINDEX);
 
 void semi_Lagrangian(PARA_DATA *para, REAL **var, int var_type,
                      REAL *d, REAL *d0);

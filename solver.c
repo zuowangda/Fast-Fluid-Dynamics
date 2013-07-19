@@ -125,7 +125,7 @@ void temp_step(PARA_DATA *para, REAL **var,int **BINDEX)
 {
   REAL *T = var[TEMP], *T0 = var[TMP1];  	  
   
-  advection(para, var, TEMP, T0, T, BINDEX); 
+  advect(para, var, TEMP, T0, T, BINDEX); 
   diffusion(para, var, TEMP, T, T0, BINDEX);
 
 } // End of temp_step( )
@@ -137,7 +137,7 @@ void den_step(PARA_DATA *para, REAL **var,int **BINDEX)
 {
   REAL *den = var[DEN], *den0 = var[TMP1];
   	  
-  advection(para, var, DEN, den0, den,BINDEX); 	   	
+  advect(para, var, DEN, den0, den,BINDEX); 	   	
   diffusion(para, var, DEN, den, den0,BINDEX); 	
 
 } // End of den_step( )
@@ -151,9 +151,9 @@ void vel_step(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL *u0 = var[TMP1], *v0 = var[TMP2], *w0 = var[TMP3];
   //REAL *u1  = var[VXS],  *v1  = var[VYS],    *w1  = var[VZS];
 
-   advection(para, var, VX, u0, u, BINDEX);
-  advection(para, var, VY, v0, v, BINDEX); 	    
-  advection(para, var, VZ, w0, w, BINDEX); 
+  advect(para, var, VX, u0, u, BINDEX);
+  advect(para, var, VY, v0, v, BINDEX);
+  advect(para, var, VZ, w0, w, BINDEX); 
 
  
   diffusion(para, var, VX, u, u0, BINDEX);   
