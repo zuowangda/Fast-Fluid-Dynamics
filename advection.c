@@ -1,3 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename: ffd.c
+//
+// Task: Advection step
+//
+// Modification history:
+// 7/20/2013 by Wangda Zuo: re-constructed the code for release
+//
+///////////////////////////////////////////////////////////////////////////////
+
 #include <math.h>
 #include <stdio.h>
 #include "data_structure.h"
@@ -8,7 +19,7 @@
 #include "interpolation.h"
 
 /******************************************************************************
-| advection
+| Advect
 ******************************************************************************/
 void advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
                int **BINDEX)
@@ -30,7 +41,7 @@ void advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       break;
   }
 
-} // End of semi_Lagrangian( )
+} // End of advect( )
 
 
 /******************************************************************************
@@ -99,13 +110,13 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       it++;
       // If trace in X is in process and donot hit the boundary
       if(COOD[X]==1 && LOC[X]==1) 
-        XLOCATION(para, var, flagu, gx, u0, i, j, k, OL, OC, LOC, COOD); 
+        set_x_location(para, var, flagu, gx, u0, i, j, k, OL, OC, LOC, COOD); 
       // If trace in Y is in process and donot hit the boundary
       if(COOD[Y]==1 && LOC[Y]==1) 
-        YLOCATION(para, var, flagu, y, v0, i, j, k, OL, OC, LOC, COOD); 
+        set_y_location(para, var, flagu, y, v0, i, j, k, OL, OC, LOC, COOD); 
       // If trace in Z is in process and donot hit the boundary
       if(COOD[Z]==1 && LOC[Z]==1) 
-        ZLOCATION(para, var, flagu, z, w0, i, j, k, OL, OC, LOC, COOD); 
+        set_z_location(para, var, flagu, z, w0, i, j, k, OL, OC, LOC, COOD); 
 
       if(it>itmax)
       {
@@ -216,11 +227,11 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     {
       it++;
       if(COOD[X]==1 && LOC[X]==1)
-        XLOCATION(para, var, flagv, x, u0, i, j, k, OL, OC, LOC, COOD); 
+        set_x_location(para, var, flagv, x, u0, i, j, k, OL, OC, LOC, COOD); 
       if(COOD[Y]==1 && LOC[Y]==1)
-        YLOCATION(para, var, flagv, gy, v0, i, j, k, OL, OC, LOC, COOD); 
+        set_y_location(para, var, flagv, gy, v0, i, j, k, OL, OC, LOC, COOD); 
       if(COOD[Z]==1 && LOC[Z]==1)
-          ZLOCATION(para, var, flagv, z, w0, i, j, k, OL, OC, LOC, COOD); 
+          set_z_location(para, var, flagv, z, w0, i, j, k, OL, OC, LOC, COOD); 
 
       if(it>itmax)
       {
@@ -328,11 +339,11 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     {
       it++;
       if(COOD[X]==1 && LOC[X]==1)
-        XLOCATION(para, var, flagw, x, u0, i, j, k, OL, OC, LOC, COOD); 
+        set_x_location(para, var, flagw, x, u0, i, j, k, OL, OC, LOC, COOD); 
       if(COOD[Y]==1 && LOC[Y]==1)
-        YLOCATION(para, var, flagw, y, v0, i, j, k, OL, OC, LOC, COOD); 
+        set_y_location(para, var, flagw, y, v0, i, j, k, OL, OC, LOC, COOD); 
       if(COOD[Z]==1 && LOC[Z]==1)
-        ZLOCATION(para, var, flagw, gz, w0, i, j, k, OL, OC, LOC, COOD); 
+        set_z_location(para, var, flagw, gz, w0, i, j, k, OL, OC, LOC, COOD); 
 
       if(it>itmax)
              {
@@ -434,13 +445,13 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       it++;
       // If trace in X is in process and donot hit the boundary
       if(COOD[X]==1 && LOC[X]==1)
-        XLOCATION(para, var, flagp, x, u0, i, j, k, OL, OC, LOC, COOD);
+        set_x_location(para, var, flagp, x, u0, i, j, k, OL, OC, LOC, COOD);
       // If trace in Y is in process and donot hit the boundary
       if(COOD[Y]==1 && LOC[Y]==1)
-        YLOCATION(para, var, flagp, y, v0, i, j, k, OL, OC, LOC, COOD);
+        set_y_location(para, var, flagp, y, v0, i, j, k, OL, OC, LOC, COOD);
       // If trace in Z is in process and donot hit the boundary
       if(COOD[Z]==1 && LOC[Z]==1)
-        ZLOCATION(para, var, flagp, z, w0, i, j, k, OL, OC, LOC, COOD); 
+        set_z_location(para, var, flagp, z, w0, i, j, k, OL, OC, LOC, COOD); 
       if(it>itmax)
       {
         printf("Error: advection.c, can not track the location for Temperature(%d, %d,%d)",
@@ -483,138 +494,201 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   return 0;
 } // End of trace_scalar()
 
-
-void XLOCATION(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, int i, int j, int k,  REAL *OL, int *OC, int *LOC , int *COOD)
-	{
-	   int imax = para->geom->imax, jmax = para->geom->jmax;
-	   int kmax = para->geom->kmax;
-	   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-	   REAL *u=var[VX];
-	   REAL dt=para->mytime->dt;
-	   REAL tratio= para->prob->tratio;
-
-	   if(OL[X]==x[IX(OC[X],OC[Y],OC[Z])]) 
-	   {
-		   COOD[X]=0;
-	   }
-
-       else if(OL[X]<x[IX(OC[X],OC[Y],OC[Z])])
-	   {
-	     if(OC[X]>0) OC[X] -=1;
-		 if(OL[X]>=x[IX(OC[X],OC[Y],OC[Z])]) COOD[X]=0;   
-	     if(flag[IX(OC[X],OC[Y],OC[Z])]==1)	
-		  {
-              OL[X]=x[IX(OC[X]+1,OC[Y],OC[Z])]; 
-
-                LOC[X]=0;
-			    COOD[X]=0;
-			    OC[X] +=1; 
-		   }
-
-	     if(flag[IX(OC[X],OC[Y],OC[Z])]==0 ||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
-		  {
-			   OL[X]=x[IX(OC[X],OC[Y],OC[Z])];
-               LOC[X]=0;
-        	   COOD[X]=0;
-			   OC[X] +=1; 
-
-		  }
-	   }
-
-	   else
-	   {
-	       if(OC[X]<=imax) OC[X] +=1;
-		   if(OL[X] <=x[IX(OC[X],OC[Y],OC[Z])]) COOD[X]=0;
-           if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-              {  
-
-                OL[X]=x[IX(OC[X]-1,OC[Y],OC[Z])]; 
-
-                LOC[X]=0;
-				COOD[X]=0;
-				OC[X] -=1;				
-		      }
-
-	     if(flag[IX(OC[X],OC[Y],OC[Z])]==0 ||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
-		  {
-			   OL[X]=x[IX(OC[X],OC[Y],OC[Z])];
-               LOC[X]=0;
-        	   COOD[X]=0;
-			   OC[X] -=1; 
-		  }
-		}
-		//if(i==2 && j>9) printf("OLX=%f\tOCX=%d\tLOCX=%d\tCOODX=%d\n",OL[X],OC[X],LOC[X],COOD[X]);
-         
-
-      }
+/******************************************************************************
+| Find the location in X
+******************************************************************************/
+void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, 
+                    int i, int j, int k, REAL *OL, int *OC, int *LOC, int *COOD)
+{
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *u = var[VX];
+  REAL dt = para->mytime->dt;
+  REAL tratio = para->prob->tratio;
+      
+  /*---------------------------------------------------------------------------
+  | If the previous location is equal to current position
+  | stop the process (COOD[X] = 0) 
+  ---------------------------------------------------------------------------*/
+  if(OL[X]==x[IX(OC[X],OC[Y],OC[Z])]) 
+    COOD[X]=0;
+  /*--------------------------------------------------------------------------
+  | Otherwise, if previous location is on the west of the current position
+  ---------------------------------------------------------------------------*/
+  else if(OL[X]<x[IX(OC[X],OC[Y],OC[Z])])
+  {
+    // If donot reach the boundary yet
+    if(OC[X]>0) 
+      // Move to west 
+      OC[X] -=1;
+    // If the previous position is on the east of new location 
+    if(OL[X]>=x[IX(OC[X],OC[Y],OC[Z])]) 
+      // Stop the process 
+      COOD[X]=0; 
+    // If the new position is solid 
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
+    {
+      // Use the east cell for new location
+      OL[X] = x[IX(OC[X]+1,OC[Y],OC[Z])]; 
+      OC[X] +=1;
+      // Hit the boundary
+      LOC[X] = 0; 
+      // Stop the trace process
+      COOD[X] = 0; 
+    } // End of if() for solid
+    // If the new position is inlet or outlet
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)	  
+    {
+      // Use new position
+      OL[X] = x[IX(OC[X],OC[Y],OC[Z])];
+      // use east cell for coordinate
+      OC[X] += 1;
+      // Hit the boundary
+      LOC[X] = 0; 
+      // Stop the trace process
+      COOD[X]=0; 
+    } // End of if() for inlet or outlet
+  } // End of if() for previous position is on the west of new position 
+  /*--------------------------------------------------------------------------
+  | Otherwise, if previous location is on the east of the current positon
+  ---------------------------------------------------------------------------*/
+  else
+  {
+    // If not at the east boundary
+    if(OC[X]<=imax) 
+      // Move to east
+      OC[X] +=1;
+    // If the previous position is  on the west of new position
+    if(OL[X]<=x[IX(OC[X],OC[Y],OC[Z])]) 
+      // Stop the trace process
+      COOD[X]=0;
+    // If the cell is solid
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
+    {
+      // Use west cell
+      OL[X] = x[IX(OC[X]-1,OC[Y],OC[Z])]; 
+      OC[X] -= 1;
+      // Hit the boundary
+      LOC[X] = 0;
+      // Stop the trace process
+      COOD[X] = 0;
+    } // End of if() for solid
+    // If the new position is inlet or outlet 
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)
+    {
+      // Use the current cell for previous location
+      OL[X] = x[IX(OC[X],OC[Y],OC[Z])];
+      // Use the west cell for coordinate
+      OC[X] -=1; 
+      // Hit the boundary
+      LOC[X] = 0;
+      // Stop the trace process
+      COOD[X]=0;
+    } // End of if() for inlet or outlet
+  } // End of if() for previous position is on the east of new position
+} // End of set_x_location()
  
+/******************************************************************************
+| Find the location in Y
+******************************************************************************/
+void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0, 
+                    int i, int j, int k, REAL *OL, int *OC, int *LOC, int *COOD)
+{
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *v  =var[VY];
+  REAL dt = para->mytime->dt;
+  REAL tratio= para->prob->tratio;
+  /*---------------------------------------------------------------------------
+  | If the previous location is equal to current position,
+  | stop the process (COOD[X] = 0) 
+  ---------------------------------------------------------------------------*/
+  if(OL[Y]==y[IX(OC[X],OC[Y],OC[Z])]) 
+    COOD[Y]=0;
+  /*--------------------------------------------------------------------------
+  | Otherwise, if previous location is on the south of the current positon
+  ---------------------------------------------------------------------------*/
+  else if(OL[Y]<y[IX(OC[X],OC[Y],OC[Z])])
+  {
+    // If donot reach the boundary yet
+    if(OC[Y]>0) 
+      OC[Y] -=1;
 
+    // If the previous position is on the north of new location 
+    if(OL[Y]>=y[IX(OC[X],OC[Y],OC[Z])]) 
+      // Stop the process 
+      COOD[Y]=0;
 
+    // If the new position is solid 
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)	
+    {
+      // Use the north cell for new location
+      OL[Y] = y[IX(OC[X],OC[Y]+1,OC[Z])]; 
+      OC[Y] += 1; 
+      // Hit the boundary
+      LOC[Y]=0;
+      // Stop the trace process
+      COOD[Y]=0;
+    } // End of if() for solid
 
-void YLOCATION(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0, int i, int j, int k,  REAL *OL, int *OC, int *LOC , int *COOD)
-	{
-	   int imax = para->geom->imax, jmax = para->geom->jmax;
-       int kmax = para->geom->kmax;
-       int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-	   REAL *v=var[VY];
-	   REAL dt=para->mytime->dt;
-	   REAL delta_t, ratio_k, const_bk;
-	   REAL tratio= para->prob->tratio;
+    // If the new position is inlet or outlet
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
+    {
+      // Use new position
+      OL[Y]=y[IX(OC[X],OC[Y],OC[Z])];
+      // use north cell for coordinate
+      OC[Y] +=1; 
+      // Hit the boundary
+      LOC[Y]=0;
+      // Stop the trace process
+      COOD[Y]=0;
+    } // End of if() for inlet or outlet
+  } // End of if() for previous position is on the south of new position 
+  /*--------------------------------------------------------------------------
+  | Otherwise, if previous location is on the north of the current positon
+  ---------------------------------------------------------------------------*/
+  else
+  {
+    // If not at the north boundary
+    if(OC[Y]<=jmax) 
+      // Move to north
+      OC[Y] +=1;
 
+    // If the previous position is  on the south of new position
+    if(OL[Y]<=y[IX(OC[X],OC[Y],OC[Z])]) 
+      // Stop the trace process
+      COOD[Y] = 0;
 
-	   if(OL[Y]==y[IX(OC[X],OC[Y],OC[Z])]) 
-	   {
-		   COOD[Y]=0;
-	   }
-       else if(OL[Y]<y[IX(OC[X],OC[Y],OC[Z])])
-	   {
-	     if(OC[Y]>0) OC[Y] -=1;
-		 if(OL[Y]>=y[IX(OC[X],OC[Y],OC[Z])]) COOD[Y]=0;   
-	     if(flag[IX(OC[X],OC[Y],OC[Z])]==1)	
-		  {
-		          OL[Y]=y[IX(OC[X],OC[Y]+1,OC[Z])]; 
+    // If the cell is solid
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
+    {
+      // Use south cell
+      OL[Y] = y[IX(OC[X],OC[Y]-1,OC[Z])]; 
+      OC[Y] -= 1;
+      // Hit the boundary
+      LOC[Y] = 0;
+      // Stop the trace process
+      COOD[Y] = 0;
+    } // End of if() for solid
 
-                LOC[Y]=0;
-			    COOD[Y]=0;
-			    OC[Y] +=1; 
-		   }
+    // If the new position is inlet or outlet 
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
+    {
+      // Use the current cell for previous location
+      OL[Y] = y[IX(OC[X],OC[Y],OC[Z])];
+      // Use the south cell for coordinate
+      OC[Y] -= 1;
+      // Hit the boundary
+      LOC[Y]=0;
+      // Stop the trace process
+      COOD[Y]=0;
+    } // End of if() for inlet or outlet
+  } // End of if() for previous position is on the east of new position
+} // End of set_x_location()
 
-	     if(flag[IX(OC[X],OC[Y],OC[Z])]==0 ||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
-		  {
-			   OL[Y]=y[IX(OC[X],OC[Y],OC[Z])];
-               LOC[Y]=0;
-        	   COOD[Y]=0;
-			   OC[Y] +=1; 
-		  }
-	   }
-
-	   else
-	   {
-	       if(OC[Y]<=jmax) OC[Y] +=1;
-		   if(OL[Y] <=y[IX(OC[X],OC[Y],OC[Z])]) COOD[Y]=0;
-           if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-              {  
-
-                  OL[Y]=y[IX(OC[X],OC[Y]-1,OC[Z])]; 
-
-                LOC[Y]=0;
-				COOD[Y]=0;
-				OC[Y] -=1;				
-		      }
-
-	     if(flag[IX(OC[X],OC[Y],OC[Z])]==0 ||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
-		  {
-			   OL[Y]=y[IX(OC[X],OC[Y],OC[Z])];
-               LOC[Y]=0;
-        	   COOD[Y]=0;
-			   OC[Y] -=1; 
-		  }
-		}
-
-
- }
-
-void ZLOCATION(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0, int i, int j, int k,  REAL *OL, int *OC, int *LOC , int *COOD)
+void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0, int i, int j, int k,  REAL *OL, int *OC, int *LOC , int *COOD)
 	{
 	   int imax = para->geom->imax, jmax = para->geom->jmax;
        int kmax = para->geom->kmax;
