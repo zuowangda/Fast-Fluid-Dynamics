@@ -49,7 +49,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   if(para->solv->cosimulation == 1) 
   {
     // Exchange the intial consitions for cosimulation
-    read_cosimulaiton_data(para, var);
+    read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
   }
@@ -85,7 +85,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     if(para->solv->cosimulation == 1 && para->mytime->t >= t_cosim) 
     {
       //Exchange the data for cosimulation
-      read_cosimulaiton_data(para, var);
+      read_cosimulation_data(para, var);
       write_cosimulation_data(para, var);
 
       // set the next synchronization time

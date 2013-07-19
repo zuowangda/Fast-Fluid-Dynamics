@@ -3,9 +3,9 @@
 /******************************************************************************
   Read data that is written by other program
 ******************************************************************************/
-int read_cosimulaiton_data(PARA_DATA *para, REAL **var)
+int read_cosimulation_data(PARA_DATA *para, REAL **var)
 {
-  int i, j, k;
+  int j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
