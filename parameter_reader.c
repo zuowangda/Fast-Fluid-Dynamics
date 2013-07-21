@@ -158,6 +158,38 @@ int assign_parameter(PARA_DATA *para, char *string)
     }
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "inpu.parameter_file_format"))
+  {
+    sscanf(string, "%s%s", tmp, tmp2);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, tmp2);
+    if(!strcmp(tmp2, "SCI")) 
+      para->inpu->parameter_file_format = SCI;
+    else
+    {
+      sprintf(msg, "parameter_rader.c: %s is not valid input for %s", tmp2, tmp);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "inpu.parameter_file_name"))
+  {
+    sscanf(string, "%s%s", tmp, para->inpu->parameter_file_name);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, para->inpu->parameter_file_name);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "inpu.read_old_ffd_file"))
+  {
+    sscanf(string, "%s%d", tmp, &para->inpu->read_old_ffd_file);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->inpu->read_old_ffd_file);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "inpu.old_ffd_file_name"))
+  {
+    sscanf(string, "%s%s", tmp, para->inpu->old_ffd_file_name);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, para->inpu->old_ffd_file_name);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 
@@ -184,7 +216,7 @@ int read_parameter(PARA_DATA *para)
       fgets(string, 400, file_para);
       if(assign_parameter(para, string))
       {
-        ffd_log("parameter.c: can not read data in file input.ffd\n", FFD_ERROR);
+        ffd_log("parameter.c: Problems when reading data from file input.ffd\n", FFD_ERROR);
         return 1;
       }
   }

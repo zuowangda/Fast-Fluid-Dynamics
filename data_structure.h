@@ -204,10 +204,10 @@ typedef struct{
 } OUTP_DATA;
 
 typedef struct{
-  FILE_FORMAT parameter_file_format; /* Foramt of input parameter file       */
-  char parameter_file_name[50]; /* Name of input file if there is            */
-  int read_old_ffd_file;     /* 1: Read previous FFD file; 0: False          */
-  char old_ffd_file_name[50]; /* Name of previous FFD simulation data file   */
+  FILE_FORMAT parameter_file_format; // Foramt of extra parameter file
+  char parameter_file_name[50]; // Name of extra parameter file
+  int read_old_ffd_file; // 1: Read previous FFD file; 0: False
+  char old_ffd_file_name[50]; // Name of previous FFD simulation data file
 } INPU_DATA;
 
 typedef struct{
