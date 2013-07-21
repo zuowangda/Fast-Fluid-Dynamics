@@ -343,7 +343,7 @@ int main()
   para.bc     = &bc;
   para.solv   = &solv;
 
-  ffd_log("Fast Fluid Dynamics Simulation.", FFD_NEW);
+  ffd_log("Start Fast Fluid Dynamics Simulation.", FFD_NEW);
   if(initialize(&para)) exit(1);
   
   // Overwrite the mesh and simulation data using SCI generated file
@@ -387,7 +387,7 @@ int main()
   free_index(BINDEX);
 
   // End the simulation
-  if(para.outp->version==DEBUG || para.outp->version==DEMO) getchar();
+  if(para.outp->version==DEBUG || para.outp->version==DEMO) {}//getchar();
 
   exit (0);
 } // End of main( )
