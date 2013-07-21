@@ -15,6 +15,7 @@
 
 #include "data_structure.h"
 #include "ffd_data_reader.h"
+#include "utility.h"
 
 FILE *file_params;
 
@@ -29,10 +30,13 @@ int read_ffd_data(PARA_DATA *para, REAL **var)
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   char string[400];
+  char msg[50];
 
-  if( (file_params=fopen("unsteady.plt","r")) == NULL ) 			
+
+  if( (file_params=fopen(para->inpu->old_ffd_file_name,"r")) == NULL ) 			
   {
-    fprintf(stderr,"Error:can not open error file!\n");
+    sprintf(msg, "ffd_data_reader.c: Can not open %s.", para->inpu->old_ffd_file_name);
+    ffd_log("ffd_data_reader.c: Can not open %s.", FFD_ERROR);
     return 0;
   }
  
@@ -43,8 +47,9 @@ int read_ffd_data(PARA_DATA *para, REAL **var)
   END_FOR
     
   fclose(file_params);
-
-  return 1;
+   
+  ffd_log("ffd_data_reader.c: Successfully read previous ffd simulation data", FFD_NORMAL);
+  return 0;
 
 } // End of read_ffd_data()
 
