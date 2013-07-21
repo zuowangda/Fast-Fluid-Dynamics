@@ -15,6 +15,9 @@ static void post_display(void);
 void get_xy_UI(PARA_DATA *para, REAL **var, int k, int win_x, int win_y,
                int mouse_down[3], int mx,  int my, int *om);
 
+void key_func(PARA_DATA *para, REAL **var, unsigned char key, int x, int y);
+
+void mouse_func(PARA_DATA *para, int button, int state, int x, int y);
 
 void draw_xy_density(PARA_DATA *para, REAL **var, int k);
 

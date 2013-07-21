@@ -185,10 +185,15 @@ typedef struct{
   REAL Temp_ref; /* Reference temperature for visualizations                 */
   int plot_grid; /* number of plotting grids for visualization               */
   REAL v_length;    /* the ratio factor of the velocity length              */
-  int   i_N;         /* the number of grids plotted in x direction           */
-  int   j_N;         /* the number of grids plotted in y direction           */
-  int   winx;        /* the resolution of screen at x direction              */
-  int   winy;        /* the resolution of screen at y direction              */ 
+  int i_N; // Number of grids plotted in x direction
+  int j_N; // Number of grids plotted in y direction
+  int winx; // Resolution of screen at x direction
+  int winy; // Resolution of screen at y direction
+  int omx;
+  int omy;
+  int mx;
+  int my;
+  int mouse_down[3]; // Record for mouse action
   VERSION  version;  /* DEMO, DEBUG                                          */
   int screen; // Screen for display: 1 velocity; 2: temperature; 3: contaminant
 } OUTP_DATA;

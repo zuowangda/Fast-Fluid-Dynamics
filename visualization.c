@@ -179,6 +179,15 @@ static void key_func(PARA_DATA *para, REAL **var, unsigned char key, int x, int 
   }
 } // End of key_func()
 
+/******************************************************************************
+| GLUT mouse callback routines 
+******************************************************************************/
+void mouse_func(PARA_DATA *para, int button, int state, int x, int y)
+{
+  para->outp->omx = para->outp->mx = x;
+  para->outp->omy = para->outp->my = y; 
+  para->outp->mouse_down[button] = state == GLUT_DOWN;
+} // End of mouse_func()
 
 /******************************************************************************
 | Draw density distribution in X-Y plane
