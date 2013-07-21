@@ -4,6 +4,7 @@
 #include "utility.h"
 #include <math.h>
 
+FILE *file_log;
 /******************************************************************************
 | check the residual of equation
 ******************************************************************************/
@@ -29,6 +30,30 @@ REAL check_residual(PARA_DATA *para, REAL **var, REAL *x)
   return residual / (imax*jmax*kmax);
 
 }// End of check_residual( )
+
+void ffd_log(char *message, FFD_MSG_TYPE msg_type)
+{
+  if((file_log=fopen("log.ffd","a+")) == NULL)
+  {
+    fprintf(stderr,"Error:can not open error file!\n");
+    exit(1);
+  }
+
+  switch(msg_type)
+  {
+    case FFD_WARNING:
+      fprintf(file_log, "Waring: %s\n", message);
+      break;
+    case FFD_ERROR:
+      fprintf(file_log, "Error: %s\n", message);
+      break;
+    // Nomral log
+    default:
+      fprintf(file_log, "%s\n", message);
+  }
+  fclose(file_log);
+}; // End of ffd_log()
+
 
 void swap(PARA_DATA *para, REAL **var)
 {
