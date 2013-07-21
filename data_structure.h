@@ -103,6 +103,8 @@ typedef enum{DEMO, DEBUG, RUN} VERSION;
 
 typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
+typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
+
 typedef struct 
 {
   REAL  Lx;       /* domain size in x-direction                             */

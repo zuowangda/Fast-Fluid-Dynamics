@@ -342,6 +342,8 @@ int main()
   para.mytime = &mytime;
   para.bc     = &bc;
   para.solv   = &solv;
+
+  ffd_log("Fast Fluid Dynamics Simulation.", FFD_NEW);
   if(initialize(&para)) exit(1);
   
   // Overwrite the mesh and simulation data using SCI generated file

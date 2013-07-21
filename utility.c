@@ -31,9 +31,20 @@ REAL check_residual(PARA_DATA *para, REAL **var, REAL *x)
 
 }// End of check_residual( )
 
+/******************************************************************************
+| Write the log file
+******************************************************************************/
 void ffd_log(char *message, FFD_MSG_TYPE msg_type)
 {
-  if((file_log=fopen("log.ffd","a+")) == NULL)
+  if(msg_type==FFD_NEW)
+  {
+    if((file_log=fopen("log.ffd","w")) == NULL)
+      {
+        fprintf(stderr,"Error:can not open error file!\n");
+        exit(1);
+      }
+  }
+  else if((file_log=fopen("log.ffd","a+")) == NULL)
   {
     fprintf(stderr,"Error:can not open error file!\n");
     exit(1);
@@ -42,10 +53,10 @@ void ffd_log(char *message, FFD_MSG_TYPE msg_type)
   switch(msg_type)
   {
     case FFD_WARNING:
-      fprintf(file_log, "Waring: %s\n", message);
+      fprintf(file_log, "Waring in: %s\n", message);
       break;
     case FFD_ERROR:
-      fprintf(file_log, "Error: %s\n", message);
+      fprintf(file_log, "Error in %s\n", message);
       break;
     // Nomral log
     default:
