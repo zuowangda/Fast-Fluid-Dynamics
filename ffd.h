@@ -2,7 +2,7 @@
 //
 // Filename ffd.h
 //
-// Task: Header fiel of ffd.c
+// Task: Header file of ffd.c
 //
 // Modification history:
 // 7/20/2013 by Wangda Zuo: First implementation
