@@ -387,5 +387,6 @@ int main()
   // End the simulation
   if(para.outp->version==DEBUG || para.outp->version==DEMO) {}//getchar();
 
+  ffd_log("ffd.c: Exit successfully.", FFD_NORMAL);
   exit (0);
 } // End of main( )
