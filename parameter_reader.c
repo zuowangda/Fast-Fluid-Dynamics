@@ -62,6 +62,49 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->geom->kmax);
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "geom.index"))
+  {
+    sscanf(string, "%s%d", tmp, &para->geom->index);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->geom->index);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.dx"))
+  {
+    sscanf(string, "%s%f", tmp, &para->geom->dx);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->geom->dx);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.dy"))
+  {
+    sscanf(string, "%s%f", tmp, &para->geom->dy);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->geom->dy);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.dz"))
+  {
+    sscanf(string, "%s%f", tmp, &para->geom->dz);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->geom->dz);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.uniform"))
+  {
+    sscanf(string, "%s%d", tmp, &para->geom->uniform);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->geom->uniform);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.cal_mean"))
+  {
+    sscanf(string, "%s%d", tmp, &para->outp->cal_mean);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->outp->cal_mean);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.v_ref"))
+  {
+    sscanf(string, "%s%f", tmp, &para->outp->v_ref);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->outp->v_ref);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
 
 
 
@@ -82,6 +125,8 @@ int read_parameter(PARA_DATA *para)
     ffd_log("parameter_reader.c: Can not open the file input.ffd\n", FFD_ERROR);
     return 1;
   }
+
+  ffd_log("parameter_rader.c: Reading data from input.cfd", FFD_NORMAL);
 
   while(!feof(file_para))
   {

@@ -105,6 +105,7 @@ typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
 typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
 
+// Parameter for geometry and mesh
 typedef struct 
 {
   REAL  Lx; // Domain size in x-direction (meter)
@@ -114,10 +115,12 @@ typedef struct
   int   jmax; // Number of interior cells in y-direction
   int   kmax; // Number of interior cells in z-direction
   int   index; // Total number of boundary cells
-  REAL  dx;       /* length delta_x of one cell in x-direction              */
-  REAL  dy;       /* length delta_y of one cell in y-direction              */
-  REAL  dz;       /* length delta_z of one cell in z-direction              */
-  int   i1;
+  REAL  dx; // Length delta_x of one cell in x-direction for uniform grid only
+  REAL  dy; // Length delta_y of one cell in y-direction for uniform grid only
+  REAL  dz; // Length delta_z of one cell in z-direction for uniform grid only
+  int   uniform; // Only for generating grid by FFD. 1: uniform grid; 0: non-uniform grid 
+
+  int   i1; // Fixme: May be deleted
   int   i2;
   int   i3;
   int   i4;
@@ -132,7 +135,7 @@ typedef struct
   int   i13;
   int   i14;
 
-  REAL  x1;
+  REAL  x1; // Fixme: May be deleted
   REAL  x2; 
   REAL  x3;
   REAL  x4; 
@@ -147,7 +150,7 @@ typedef struct
   REAL  x13;
   REAL  x14; 
 
-  int   j1;
+  int   j1; // Fixme: May be deleted
   int   j2;
   int   j3;
   int   j4;
@@ -158,7 +161,7 @@ typedef struct
   int   j9;
   int   j10;
 
-  REAL  y1;
+  REAL  y1; // Fixme: May be deleted
   REAL  y2;
   REAL  y3;
   REAL  y4;
@@ -169,7 +172,7 @@ typedef struct
   REAL  y9;
   REAL  y10;
 
-  int   k1;
+  int   k1; // Fixme: May be deleted
   int   k2;
   int   k3;
   int   k4;
@@ -177,13 +180,12 @@ typedef struct
   REAL  z2;
   REAL  z3;
   REAL  z4;
-  int   x_strech; /* streched grid in x direction                           */
-  int   uniform;  /* 1: uniform grid; 0: non-uniform grid                   */
+
 } GEOM_DATA;
 
 typedef struct{
-  int cal_mean; /* 1: calculate mean value; 0: False                         */
-  REAL v_ref; /* Reference velocity for visualization                        */
+  int cal_mean; // 1: Calculate mean value; 0: False
+  REAL v_ref; // Reference velocity for visualization
   REAL Temp_ref; /* Reference temperature for visualizations                 */
   int plot_grid; /* number of plotting grids for visualization               */
   REAL v_length;    /* the ratio factor of the velocity length              */
