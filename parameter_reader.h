@@ -1,0 +1,13 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// Filename parameter_rader.h
+//
+// Task: Header file of parameter_reader.c
+//
+// Modification history:
+// 7/20/2013 by Wangda Zuo: First implementation
+//
+///////////////////////////////////////////////////////////////////////////////
+int assign_parameter(PARA_DATA *para, char *string);
+
+int read_parameter(PARA_DATA *para);
