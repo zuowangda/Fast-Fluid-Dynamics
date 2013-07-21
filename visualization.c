@@ -25,13 +25,39 @@ Place the stdlib.h line above the glut.h line in the code.
 #include "data_structure.h"
 #include "data_writer.h"
 #include "initialization.h"
+#include "solver.h"
+#include "timing.h"
 #include "utility.h"
+#include "visualization.h"
+
+/******************************************************************************
+|  GLUT display callback routines
+******************************************************************************/
+static void display_func(PARA_DATA *para, REAL **var)
+{
+  int k = (int) para->geom->kmax/2;
+  pre_2d_display(para);
+
+  switch(para->outp->screen)
+  {
+    case 1:
+      draw_xy_velocity(para, var, k); break;
+    case 2:
+      draw_xy_density(para, var, k); break;
+    case 3: 
+      draw_xy_temperature(para, var, k); break;
+  }
+
+  post_display ();
+} /** display_func() **/
 
 /******************************************************************************
 | OpenGL specific drawing routines for a 2D plane
 ******************************************************************************/
-static void pre_2d_display(int win_x, int win_y, int Lx, int Ly)
+static void pre_2d_display(PARA_DATA *para)
 {
+  int win_x=para->outp->winx, win_y=para->outp->winy;
+  int Lx=para->geom->Lx, Ly = para->geom->Ly;
   REAL Length = max(Lx, Ly);
 
   glViewport(0, 0, win_x, win_y);
@@ -191,6 +217,56 @@ void mouse_func(PARA_DATA *para, int button, int state, int x, int y)
   para->outp->omy = para->outp->my = y; 
   para->outp->mouse_down[button] = state == GLUT_DOWN;
 } // End of mouse_func()
+
+/******************************************************************************
+| GLUT motion callback routines  
+******************************************************************************/
+static void motion_func(PARA_DATA *para, int x, int y)
+{
+  para->outp->mx = x;
+  para->outp->my = y;
+} // End of motion_func()
+
+/******************************************************************************
+| GLUT reshape callback routines  
+******************************************************************************/
+static void reshape_func(PARA_DATA *para, int win_id, int width, int height )
+{
+  glutSetWindow(win_id);
+  glutReshapeWindow(width, height);
+
+  para->outp->winx = width;
+  para->outp->winy = height;
+} // End of reshape_func
+
+
+/******************************************************************************
+| GLUT idle callback routines  
+******************************************************************************/
+static void idle_func(PARA_DATA *para, REAL **var, int **BINDEX, int win_id)
+{
+  // Get the display in XY plane
+  get_xy_UI(para, var, (int)para->geom->kmax/2);
+
+  vel_step(para, var, BINDEX);
+  den_step(para, var, BINDEX);
+  temp_step(para, var, BINDEX);
+
+  if(para->outp->cal_mean == 1)
+    calcuate_time_averaged_variable(para, var);
+
+  // Update the visualization results after a few tiem steps 
+  // to save the time for visualization
+  if(para->mytime->t_step%para->outp->tstep_display==0)
+  {
+    glutSetWindow(win_id);
+    glutPostRedisplay( );
+  } 
+  
+  timing(para);
+} // End of idle_func()
+
+
 
 /******************************************************************************
 | Draw density distribution in X-Y plane

@@ -129,6 +129,7 @@ void set_default_parameter(PARA_DATA *para)
   para->outp->version    = DEBUG; // Running the debug version
   para->outp->i_N        = 1;
   para->outp->j_N        = 1;
+  para->outp->tstep_display = 10; // Update the display for every 10 time steps
 
 } // End of set_default_parameter
 

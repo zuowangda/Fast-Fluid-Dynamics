@@ -8,7 +8,9 @@
 // 7/10/2013 by Wangda Zuo: re-construct the code for release
 //
 ///////////////////////////////////////////////////////////////////////////////
-static void pre_2d_display(int win_x, int win_y, int Lx, int Ly);
+static void display_func(PARA_DATA *para, REAL **var);
+
+static void pre_2d_display(PARA_DATA *para);
 
 static void post_display(void);
 
