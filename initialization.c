@@ -123,7 +123,6 @@ void set_default_parameter(PARA_DATA *para)
   // Default values for Output
   para->outp->Temp_ref   = 0;//35.5f;//10.25f;
   para->outp->cal_mean   = 0;
-  para->outp->plot_grid  = para->geom->imax; 
   para->outp->v_length   = 0.5;  
   para->outp->winx       = 600;
   para->outp->winy       = 600;

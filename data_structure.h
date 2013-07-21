@@ -186,8 +186,7 @@ typedef struct
 typedef struct{
   int cal_mean; // 1: Calculate mean value; 0: False
   REAL v_ref; // Reference velocity for visualization
-  REAL Temp_ref; /* Reference temperature for visualizations                 */
-  int plot_grid; /* number of plotting grids for visualization               */
+  REAL Temp_ref; // Reference temperature for visualizations
   REAL v_length;    /* the ratio factor of the velocity length              */
   int i_N; // Number of grids plotted in x direction
   int j_N; // Number of grids plotted in y direction
