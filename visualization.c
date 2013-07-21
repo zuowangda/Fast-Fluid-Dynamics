@@ -24,6 +24,7 @@ Place the stdlib.h line above the glut.h line in the code.
 
 #include "data_structure.h"
 #include "data_writer.h"
+#include "initialization.h"
 #include "utility.h"
 
 /******************************************************************************
@@ -59,8 +60,7 @@ static void post_display(void)
 /******************************************************************************
   Relate  mouse movements to forces & sources in XY plane
 ******************************************************************************/
-void get_xy_UI(PARA_DATA *para, REAL **var, int k, int win_x, int win_y,
-               int mouse_down[3], int mx,  int my, int *om)
+void get_xy_UI(PARA_DATA *para, REAL **var, int k)
 {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -70,10 +70,13 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k, int win_x, int win_y,
   REAL *x = var[X], *y = var[Y];
   REAL x0, y0, x_click, y_click;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  int win_x = para->outp->winx, win_y = para->outp->winy;
+  int mx = para->outp->mx, my = para->outp->my;
+  int *mouse_down = para->outp->mouse_down;
 
   // Set initial value of source to 0
   for(i=0; i<imax+1; i++)
-    for(i=0; j<jmax+1; j++)
+    for(j=0; j<jmax+1; j++)
       u_s[IX(i,j,k)] = v_s[IX(i,j,k)] = d_s[IX(i,j,k)] = T_s[IX(i,j,k)] = 0.0;
 
   // If no mouse action, return
@@ -110,8 +113,8 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k, int win_x, int win_y,
   //if(mouse_down[0])   T_s[IX(i,j)] = 1.0;
   if(mouse_down[2]) 	d_s[IX(i,j,k)] = para->prob->source;
 
-  om[0] = mx;
-  om[1] = my;
+  para->outp->omx = mx;
+  para->outp->omy = my;
 
   return;
 } // End of get_xy_UI( )
@@ -119,9 +122,9 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k, int win_x, int win_y,
 /******************************************************************************
 | GLUT keyboard callback routines 
 ******************************************************************************/
-static void key_func(PARA_DATA *para, REAL **var, unsigned char key, int x, int y)
+void key_func(PARA_DATA *para, REAL **var, int **BINDEX, unsigned char key, 
+              int x, int y)
 {
-  int i,j;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -132,7 +135,7 @@ static void key_func(PARA_DATA *para, REAL **var, unsigned char key, int x, int 
     // Restart the simulation
     case 'c':
     case 'C': 
-      if(set_initial_data(&para, var)) exit(1);
+      if(set_initial_data(para, var, BINDEX)) exit(1);
       break;
     // Quit
     case 'q':
