@@ -22,12 +22,48 @@ FILE *file_log;
 ******************************************************************************/
 int assign_parameter(PARA_DATA *para, char *string)
 {
-  char tmp[400];
+  char tmp[400], msg[400];
 
-  if(!strcmp(string, "geom.Lx"))
-    sscanf(string, "%s,%f", tmp, &para->geom->Lx);
-  else if(!strcmp(string, "geom.Ly"))
-    sscanf(string, "%s,%f", tmp, &para->geom->Ly);
+  sscanf(string, "%s", tmp);
+
+  if(!strcmp(tmp, "geom.Lx"))
+  {
+    sscanf(string, "%s%f", tmp, &para->geom->Lx);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->geom->Lx);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.Ly"))
+  {
+    sscanf(string, "%s%f", tmp, &para->geom->Ly);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->geom->Ly);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.Lz"))
+  {
+    sscanf(string, "%s%f", tmp, &para->geom->Lz);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->geom->Lz);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.imax"))
+  {
+    sscanf(string, "%s%d", tmp, &para->geom->imax);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->geom->imax);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.jmax"))
+  {
+    sscanf(string, "%s%d", tmp, &para->geom->jmax);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->geom->jmax);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "geom.kmax"))
+  {
+    sscanf(string, "%s%d", tmp, &para->geom->kmax);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->geom->kmax);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+
 
   return 0;
 } // End of assign_parameter() 
@@ -50,10 +86,14 @@ int read_parameter(PARA_DATA *para)
   while(!feof(file_para))
   {
       fgets(string, 400, file_para);
-      if(!assign_parameter(para, string))
+      if(assign_parameter(para, string))
+      {
+        ffd_log("parameter.c: can not read data in file input.ffd\n", FFD_ERROR);
         return 1;
+      }
   }
 
+  fclose(file_para);
   return 0;
 } // End of read_parameter()
 

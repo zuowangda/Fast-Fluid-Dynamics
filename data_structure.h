@@ -107,13 +107,13 @@ typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
 
 typedef struct 
 {
-  REAL  Lx;       /* domain size in x-direction                             */
-  REAL  Ly;       /* domain size in y-direction                             */
-  REAL  Lz;       /* domain size in z-direction                             */
-  int   imax;     /* number of interior cells in x-direction                */
-  int   jmax;     /* number of interior cells in y-direction                */
-  int   kmax;     /* number of interior cells in z-direction                */
-  int   index;
+  REAL  Lx; // Domain size in x-direction (meter)
+  REAL  Ly; // Domain size in y-direction (meter)
+  REAL  Lz; // Domain size in z-direction (meter)
+  int   imax; // Number of interior cells in x-direction
+  int   jmax; // Number of interior cells in y-direction
+  int   kmax; // Number of interior cells in z-direction
+  int   index; // Total number of boundary cells
   REAL  dx;       /* length delta_x of one cell in x-direction              */
   REAL  dy;       /* length delta_y of one cell in y-direction              */
   REAL  dz;       /* length delta_z of one cell in z-direction              */
