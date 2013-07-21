@@ -192,13 +192,13 @@ typedef struct{
   int j_N; // Number of grids plotted in y direction
   int winx; // Resolution of screen at x direction in pixel
   int winy; // Resolution of screen at y direction in pixel
-  int omx;
-  int omy;
-  int mx;
-  int my;
-  int win_id; // Windows id 
-  int mouse_down[3]; // Record for mouse action
-  VERSION  version;  /* DEMO, DEBUG                                          */
+  int omx; // Internal
+  int omy; // Internal
+  int mx; // Internal
+  int my; // Internal
+  int win_id; // Internal: Windows id 
+  int mouse_down[3]; // Internal: Record for mouse action
+  VERSION version; // DEMO, DEBUG, RUN
   int screen; // Screen for display: 1 velocity; 2: temperature; 3: contaminant
   int tstep_display; // Number of time steps to update the visualziation
 } OUTP_DATA;
