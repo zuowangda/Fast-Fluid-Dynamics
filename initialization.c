@@ -71,7 +71,6 @@ void set_default_parameter(PARA_DATA *para)
 
   para->mytime->t  = 0.0;
   para->mytime->t_start = 0.0;
-  para->geom->x_strech = 0; // Uniform grid
   para->mytime->t_step = 0;
   para->mytime->t_start = clock();
 
