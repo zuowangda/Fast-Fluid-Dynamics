@@ -187,11 +187,11 @@ typedef struct{
   int cal_mean; // 1: Calculate mean value; 0: False
   REAL v_ref; // Reference velocity for visualization
   REAL Temp_ref; // Reference temperature for visualizations
-  REAL v_length;    /* the ratio factor of the velocity length              */
+  REAL v_length; // Change of velocity vector length in demo window
   int i_N; // Number of grids plotted in x direction
   int j_N; // Number of grids plotted in y direction
-  int winx; // Resolution of screen at x direction
-  int winy; // Resolution of screen at y direction
+  int winx; // Resolution of screen at x direction in pixel
+  int winy; // Resolution of screen at y direction in pixel
   int omx;
   int omy;
   int mx;

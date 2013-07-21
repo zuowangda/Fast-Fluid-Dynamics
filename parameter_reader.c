@@ -104,9 +104,42 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->outp->v_ref);
     ffd_log(msg, FFD_NORMAL);
   }
-
-
-
+  else if(!strcmp(tmp, "outp.Temp_ref"))
+  {
+    sscanf(string, "%s%f", tmp, &para->outp->Temp_ref);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->outp->Temp_ref);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.v_length"))
+  {
+    sscanf(string, "%s%f", tmp, &para->outp->v_length);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->outp->v_length);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.i_N"))
+  {
+    sscanf(string, "%s%d", tmp, &para->outp->i_N);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->outp->i_N);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.j_N"))
+  {
+    sscanf(string, "%s%d", tmp, &para->outp->j_N);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->outp->j_N);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.winx"))
+  {
+    sscanf(string, "%s%d", tmp, &para->outp->winx);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->outp->winx);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.winy"))
+  {
+    sscanf(string, "%s%d", tmp, &para->outp->winy);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->outp->winy);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 
