@@ -363,7 +363,6 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
       sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
             &FLTMP, &TMP);
-      printf("%s\n", string);
 
       // Reset X index
       if(SI==1)
@@ -389,7 +388,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       }
       else 
         EK = EK + SK;
-      printf("%d %d %d %d %d %d\n", SI, SJ, SK, EI, EJ, EK);
+
       // Assign value for each wall cell
       for(ii=SI; ii<=EI; ii++)
         for(ij=SJ; ij<=EJ; ij++)
@@ -408,7 +407,6 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
               // Set the cell to solid
               flagp[IX(ii,ij,ik)] = 1; 
               if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP; 
-              printf("%f\n", var[TEMPBC][IX(ii,ij,ik)]); // Fixme: Debug
               if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
             }
           } // End of assigning value for each wall cell
