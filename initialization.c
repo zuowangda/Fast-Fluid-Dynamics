@@ -16,6 +16,7 @@
 #include "data_structure.h"
 #include "initialization.h"
 #include "parameters.h"
+#include "sci_reader.h"
 
 /******************************************************************************
 | Initialize the parameters 
@@ -195,7 +196,7 @@ void free_index(int **BINDEX)
 /******************************************************************************
    Set initial values for simulation variables
 ******************************************************************************/
-int set_initial_data(PARA_DATA *para, REAL **var)
+int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
 {
   int i, size = (para->geom->imax + 2)*(para->geom->jmax+2)*(para->geom->kmax+2);
   
@@ -247,6 +248,15 @@ int set_initial_data(PARA_DATA *para, REAL **var)
     var[QFLUXBC][i]= 0.0;
     var[QFLUX][i]  = 0.0;
   }
+
+  // Read the configurations defined by SCI 
+  if(para->inpu->parameter_file_format == SCI) 
+  {
+    if(read_sci_input(para, var,BINDEX)) exit(1);
+    if(read_sci_zeroone(para, var,BINDEX))  exit(1);
+    mark_cell(para, var);
+  }
+
   return 0;
 } // set_initial_data()
 

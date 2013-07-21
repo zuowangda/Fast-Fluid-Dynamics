@@ -13,4 +13,4 @@ int initialize(PARA_DATA *para);
 void set_default_parameter(PARA_DATA *para);
 void free_data (REAL **var);
 void free_index(int **BINDEX);
-int set_initial_data (PARA_DATA *para, REAL **var);
+int set_initial_data (PARA_DATA *para, REAL **var, int **BINDEX);

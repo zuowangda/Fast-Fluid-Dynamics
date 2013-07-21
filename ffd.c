@@ -211,15 +211,8 @@ int main()
   if(allocate_data( )) exit(1);
 
   // Set the initial values for the simulation data
-  if(set_initial_data(&para, var)) exit(1);
+  if(set_initial_data(&para, var, BINDEX)) exit(1);
 
-  // Read the configurations defined by SCI 
-  if(para.inpu->parameter_file_format == SCI) 
-  {
-    if(read_sci_input(&para, var,BINDEX)) exit(1);
-    if(read_sci_zeroone(&para, var,BINDEX))  exit(1);
-    mark_cell(&para, var);
-  }
 
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);

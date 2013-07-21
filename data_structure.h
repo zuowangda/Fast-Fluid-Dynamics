@@ -189,7 +189,8 @@ typedef struct{
   int   j_N;         /* the number of grids plotted in y direction           */
   int   winx;        /* the resolution of screen at x direction              */
   int   winy;        /* the resolution of screen at y direction              */ 
-  VERSION  version;  /* DEMO, DEBUG                                          */     
+  VERSION  version;  /* DEMO, DEBUG                                          */
+  int screen; // Screen for display: 1 velocity; 2: temperature; 3: contaminant
 } OUTP_DATA;
 
 typedef struct{

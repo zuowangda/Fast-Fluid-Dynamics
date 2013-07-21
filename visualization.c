@@ -23,6 +23,8 @@ Place the stdlib.h line above the glut.h line in the code.
 #include <math.h>
 
 #include "data_structure.h"
+#include "data_writer.h"
+#include "utility.h"
 
 /******************************************************************************
 | OpenGL specific drawing routines for a 2D plane
@@ -113,6 +115,70 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k, int win_x, int win_y,
 
   return;
 } // End of get_xy_UI( )
+
+/******************************************************************************
+| GLUT keyboard callback routines 
+******************************************************************************/
+static void key_func(PARA_DATA *para, REAL **var, unsigned char key, int x, int y)
+{
+  int i,j;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
+  // Set control variable according to key input
+  switch ( key )
+  {
+    // Restart the simulation
+    case 'c':
+    case 'C': 
+      if(set_initial_data(&para, var)) exit(1);
+      break;
+    // Quit
+    case 'q':
+    case 'Q':
+      free_data(var);
+      exit(0);
+      break;
+    // Draw velocity
+    case '1':
+      para->outp->screen = 1; 
+      break;
+    // Draw temperature
+    case '2':
+      para->outp->screen = 2; 
+      break;
+    // Draw contaminant concentration
+    case '3':
+      para->outp->screen = 3; 
+      break;
+    // Start to calcualte mean value
+    case 'm':
+    case 'M':
+      para->outp->cal_mean = 1;
+      para->mytime->t_step = 0;
+      printf("start to calculate mean properties.\n");
+      break;
+    // Save the results
+    case 's':
+    case 'S':
+      if(para->outp->cal_mean == 1)
+        calcuate_time_averaged_variable(para, var);
+      write_tecplot_data(para, var, "result"); 
+      break;
+    // Reduce the drawed length of veloity
+    case 'k':
+    case 'K':
+      para->outp->v_length --;
+      break;
+    // Increase the drawed length of velocity
+    case 'l':
+    case 'L':
+      para->outp->v_length ++;
+      break;
+  }
+} // End of key_func()
+
 
 /******************************************************************************
 | Draw density distribution in X-Y plane

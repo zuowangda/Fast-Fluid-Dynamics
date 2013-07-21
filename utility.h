@@ -21,3 +21,5 @@ REAL check_min(PARA_DATA *para, REAL *psi, int ci,int cj,int ck);
 REAL check_avg(PARA_DATA *para, REAL *psi);
 REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX);
 void check_energy(PARA_DATA *para, REAL **var,int **BINDEX);
+
+void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var);

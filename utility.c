@@ -419,6 +419,21 @@ void check_energy(PARA_DATA *para, REAL **var,int **BINDEX)
 
 }
 
+/******************************************************************************
+| Calculate time averaged variables
+******************************************************************************/
+void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var)
+{
+  int i, j, k;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
-
+  FOR_ALL_CELL
+      var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / para->mytime->t_step;
+      var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / para->mytime->t_step;
+      var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / para->mytime->t_step;
+      var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / para->mytime->t_step;
+  END_FOR
+} // End of calcuate_time_averaged_variable()
 

@@ -100,12 +100,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   ---------------------------------------------------------------------------*/
   // Calculate mean value
   if(cal_mean == 1)
-    for(i=0; i<=size; i++)
-    {
-      u_mean[i] = u_mean[i] / t_step;
-      v_mean[i] = v_mean[i] / t_step;
-      w_mean[i] = w_mean[i] / t_step;
-    }
+    calcuate_time_averaged_variable(para, var);
 
     write_unsteady(para, var, "unsteady");
     write_tecplot_data(para, var, "result");
