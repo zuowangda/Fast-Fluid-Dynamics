@@ -16,6 +16,7 @@
 #include "data_structure.h"
 #include "initialization.h"
 #include "parameters.h"
+#include "parameter_reader.h"
 #include "sci_reader.h"
 
 /******************************************************************************
@@ -28,6 +29,8 @@ int initialize(PARA_DATA *para)
 
   // Overwrite the default values using user defined values
   define_parameter(para);
+  if(read_parameter(para)) return 1;
+
 
   // Fixme: We may delete these 3 lines
   para->geom->dx = para->geom->Lx / (para->geom->imax);
