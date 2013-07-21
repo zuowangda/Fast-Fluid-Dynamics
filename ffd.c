@@ -13,16 +13,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <glut.h>
 
-#include "data_structure.h"
-#include "solver.h"
+#include "data_structure.h" // This file must be the first included
+
+#include "boundary.h"
 #include "data_writer.h"
 #include "initialization.h"
-#include "boundary.h"
+#include "visualization.h"
+#include "ffd.h"
 #include "ffd_data_reader.h"
 #include "grid.h"
 #include "timing.h"
 #include "sci_reader.h"
+#include "solver.h"
+
+
 
 /* global variables */
 static REAL dt, diff, visc;
@@ -55,7 +61,7 @@ clock_t start, end;
 /******************************************************************************
 | allocate data
 ******************************************************************************/
-int allocate_data ( void )
+int allocate_data (void)
 {
   int size = (geom.imax+2) * (geom.jmax+2) * (geom.kmax+2);
   printf( "size=%d\n", size); 
@@ -182,6 +188,146 @@ int allocate_data ( void )
   return 0;
 } /** allocate_data() **/
 
+/******************************************************************************
+|  GLUT display callback routines
+******************************************************************************/
+static void display_func(void)
+{
+  ffd_display_func(&para, var);
+} // End of display_func()
+
+/******************************************************************************
+| GLUT keyboard callback routines 
+******************************************************************************/
+static void key_func(unsigned char key, int x, int y)
+{
+  ffd_key_func(&para, var, BINDEX, key, x, y);
+} // End of key_func()
+
+/******************************************************************************
+| GLUT idle callback routines  
+******************************************************************************/
+static void idle_func(void)
+{
+  ffd_idle_func(&para, var, BINDEX);
+} // End of idle_func()
+
+/******************************************************************************
+| GLUT motion callback routines  
+******************************************************************************/
+static void motion_func(int x, int y)
+{
+  ffd_motion_func(&para, x, y);
+} // End of motion_func()
+
+/******************************************************************************
+| GLUT mouse callback routines 
+******************************************************************************/
+static void mouse_func(int button, int state, int x, int y)
+{
+  ffd_mouse_func(&para, button, state, x, y);
+} // End of mouse_func()
+
+///******************************************************************************
+//|  open_glut_window --- open a glut compatible window and set callbacks
+//******************************************************************************/
+//static void open_glut_window()
+//{
+//  glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutInitWindowPosition(int x, int y);
+//  | x: Window X location in pixels. 
+//  | y: Window Y location in pixels.
+//  ---------------------------------------------------------------------------*/ 
+//  glutInitWindowPosition(0, 0);
+//
+//  /*---------------------------------------------------------------------------
+//  | Initialize the size of window 
+//  | void glutInitWindowSize(int width, int height);
+//  | width: Width in pixels; height: Height in pixels
+//  ---------------------------------------------------------------------------*/
+//  glutInitWindowSize(para.outp->winx, para.outp->winy);
+//  
+//
+//  para.outp->win_id = glutCreateWindow("FFD, Author: W. Zuo, Q. Chen");
+//
+//  /*---------------------------------------------------------------------------
+//  |void glClearColor(GLclampf red, GLclampf green, GLclampf blue,
+//  |                  GLclampf alpha)
+//  |set the color when you clear the screen, alpha is not useful here
+//  |white    :1.0, 1.0, 1.0, 0.0
+//  |black    :0.0, 0.0, 0.0, 0.0
+//  |most blue:0.0, 0.0, 1.0, 0.0
+//  |most red :1.0, 0.0, 0.0, 0.0 
+//  ---------------------------------------------------------------------------*/
+//  glClearColor(0.0, 0.0, 0.0, 1.0);
+//
+//  /*--------------------------------------------------------------------------
+//  | clear buffers within the viewport 
+//  ---------------------------------------------------------------------------*/
+//  glClear(GL_COLOR_BUFFER_BIT);
+//
+//  /*---------------------------------------------------------------------------
+//  | Performs a buffer swap on the layer in use for the current window
+//  ---------------------------------------------------------------------------*/
+//  glutSwapBuffers();
+//
+//  glClear(GL_COLOR_BUFFER_BIT);
+//  glutSwapBuffers();
+//
+//  pre_2d_display(&para);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutKeyboardFunc(void (*func)(unsigned char key, int x, int y));
+//  | sets the keyboard callback for the current window. 
+//  | When a user types into the window, each key press generating an ASCII 
+//  | character will generate a keyboard callback. 
+//	---------------------------------------------------------------------------*/
+//  glutKeyboardFunc(key_func);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutMouseFunc(void (*func)(int button, int state, int x, int y));
+//  | sets the mouse callback for the current window. 
+//  ---------------------------------------------------------------------------*/
+//	glutMouseFunc(mouse_func);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutMotionFunc(void (*func)(int x, int y));
+//  | The motion callback for a window is called when the mouse moves within 
+//  | the window while one or more mouse buttons are pressed
+//  ---------------------------------------------------------------------------*/
+//  glutMotionFunc(motion_func);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutReshapeFunc(void (*func)(int width, int height));
+//  | The reshape callback is triggered when a window is reshaped
+//  ---------------------------------------------------------------------------*/
+//  glutReshapeFunc(reshape_func);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutIdleFunc(void (*func)(void));
+//  | sets the global idle callback to be func so a GLUT program can perform 
+//  | background processing tasks or continuous animation when window system 
+//  | events are not being received
+//  ---------------------------------------------------------------------------*/
+//  glutIdleFunc(idle_func);
+//
+//  /*---------------------------------------------------------------------------
+//  | void glutDisplayFunc(void (*func)(void));
+//  | sets the display callback for the current window
+//  ---------------------------------------------------------------------------*/
+//  glutDisplayFunc (display_func);
+//} // End of open_glut_window()
+
+
+/******************************************************************************
+| GLUT reshape callback routines  
+******************************************************************************/
+static void reshape_func(int width, int height)
+{
+  ffd_reshape_func(&para, width, height);
+} // End of reshape_func()
 
 /******************************************************************************
    main --- main routine
@@ -217,6 +363,7 @@ int main()
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
+  printf("t_out:=%d\n", para.mytime->t_output);
   // Solve the problem
   FFD_solver(&para, var, BINDEX);
 

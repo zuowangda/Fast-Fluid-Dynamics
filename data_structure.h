@@ -193,6 +193,7 @@ typedef struct{
   int omy;
   int mx;
   int my;
+  int win_id; // Windows id 
   int mouse_down[3]; // Record for mouse action
   VERSION  version;  /* DEMO, DEBUG                                          */
   int screen; // Screen for display: 1 velocity; 2: temperature; 3: contaminant

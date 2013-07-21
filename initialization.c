@@ -253,8 +253,8 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   // Read the configurations defined by SCI 
   if(para->inpu->parameter_file_format == SCI) 
   {
-    if(read_sci_input(para, var,BINDEX)) exit(1);
-    if(read_sci_zeroone(para, var,BINDEX))  exit(1);
+    if(read_sci_input(para, var, BINDEX)) exit(1);
+    if(read_sci_zeroone(para, var, BINDEX))  exit(1);
     mark_cell(para, var);
   }
 

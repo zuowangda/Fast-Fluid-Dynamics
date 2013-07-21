@@ -31,30 +31,9 @@ Place the stdlib.h line above the glut.h line in the code.
 #include "visualization.h"
 
 /******************************************************************************
-|  GLUT display callback routines
-******************************************************************************/
-static void display_func(PARA_DATA *para, REAL **var)
-{
-  int k = (int) para->geom->kmax/2;
-  pre_2d_display(para);
-
-  switch(para->outp->screen)
-  {
-    case 1:
-      draw_xy_velocity(para, var, k); break;
-    case 2:
-      draw_xy_density(para, var, k); break;
-    case 3: 
-      draw_xy_temperature(para, var, k); break;
-  }
-
-  post_display ();
-} /** display_func() **/
-
-/******************************************************************************
 | OpenGL specific drawing routines for a 2D plane
 ******************************************************************************/
-static void pre_2d_display(PARA_DATA *para)
+void pre_2d_display(PARA_DATA *para)
 {
   int win_x=para->outp->winx, win_y=para->outp->winy;
   int Lx=para->geom->Lx, Ly = para->geom->Ly;
@@ -78,13 +57,157 @@ static void pre_2d_display(PARA_DATA *para)
 /******************************************************************************
 | Function after the display
 ******************************************************************************/  
-static void post_display(void)
+void post_display(void)
 {
   glutSwapBuffers ();
 } // End of post_display()
 
 /******************************************************************************
-  Relate  mouse movements to forces & sources in XY plane
+|  FFD routines for GLUT display callback routines
+******************************************************************************/
+void ffd_display_func(PARA_DATA *para, REAL **var)
+{
+  int k = (int) para->geom->kmax/2;
+  pre_2d_display(para);
+
+  switch(para->outp->screen)
+  {
+    case 1:
+      draw_xy_velocity(para, var, k); break;
+    case 2:
+      draw_xy_density(para, var, k); break;
+    case 3: 
+      draw_xy_temperature(para, var, k); break;
+  }
+
+  post_display ();
+} // End of ffd_display_func()
+
+/******************************************************************************
+| FFD routine for GLUT idle callback
+******************************************************************************/
+void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX)
+{
+  // Get the display in XY plane
+  get_xy_UI(para, var, (int)para->geom->kmax/2);
+
+  vel_step(para, var, BINDEX);
+  den_step(para, var, BINDEX);
+  temp_step(para, var, BINDEX);
+
+  if(para->outp->cal_mean == 1)
+    calcuate_time_averaged_variable(para, var);
+
+  // Update the visualization results after a few tiem steps 
+  // to save the time for visualization
+  if(para->mytime->t_step%para->outp->tstep_display==0)
+  {
+    glutSetWindow(para->outp->win_id);
+    glutPostRedisplay( );
+  } 
+  
+  timing(para);
+} // End of ffd_idle_func()
+
+/******************************************************************************
+| FFD routines for GLUT keyboard callback routines 
+******************************************************************************/
+void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, unsigned char key, 
+              int x, int y)
+{
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
+  // Set control variable according to key input
+  switch ( key )
+  {
+    // Restart the simulation
+    case 'c':
+    case 'C': 
+      if(set_initial_data(para, var, BINDEX)) exit(1);
+      break;
+    // Quit
+    case 'q':
+    case 'Q':
+      free_data(var);
+      exit(0);
+      break;
+    // Draw velocity
+    case '1':
+      para->outp->screen = 1; 
+      break;
+    // Draw temperature
+    case '2':
+      para->outp->screen = 2; 
+      break;
+    // Draw contaminant concentration
+    case '3':
+      para->outp->screen = 3; 
+      break;
+    // Start to calcualte mean value
+    case 'm':
+    case 'M':
+      para->outp->cal_mean = 1;
+      para->mytime->t_step = 0;
+      printf("start to calculate mean properties.\n");
+      break;
+    // Save the results
+    case 's':
+    case 'S':
+      if(para->outp->cal_mean == 1)
+        calcuate_time_averaged_variable(para, var);
+      write_tecplot_data(para, var, "result"); 
+      break;
+    // Reduce the drawed length of veloity
+    case 'k':
+    case 'K':
+      para->outp->v_length --;
+      break;
+    // Increase the drawed length of velocity
+    case 'l':
+    case 'L':
+      para->outp->v_length ++;
+      break;
+  }
+} // End of ffd_key_func()
+
+/******************************************************************************
+| FFD routines for GLUT mouse callback routines 
+******************************************************************************/
+void ffd_mouse_func(PARA_DATA *para, int button, int state, int x, int y)
+{
+  para->outp->omx = para->outp->mx = x;
+  para->outp->omy = para->outp->my = y; 
+  para->outp->mouse_down[button] = state == GLUT_DOWN;
+} // End of ffd_mouse_func()
+
+/******************************************************************************
+| FFD routines for GLUT motion callback routines
+******************************************************************************/
+void ffd_motion_func(PARA_DATA *para, int x, int y)
+{
+  para->outp->mx = x;
+  para->outp->my = y;
+} // End of ffd_motion_func()
+
+/******************************************************************************
+| FFD routine for GLUT reshape callback
+******************************************************************************/
+void ffd_reshape_func(PARA_DATA *para, int width, int height)
+{
+  glutSetWindow(para->outp->win_id);
+  glutReshapeWindow(width, height);
+
+  para->outp->winx = width;
+  para->outp->winy = height;
+} // End of ffd_reshape_func
+
+
+
+
+/******************************************************************************
+  Relate mouse movements to forces & sources in XY plane
 ******************************************************************************/
 void get_xy_UI(PARA_DATA *para, REAL **var, int k)
 {
@@ -144,127 +267,6 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k)
 
   return;
 } // End of get_xy_UI( )
-
-/******************************************************************************
-| GLUT keyboard callback routines 
-******************************************************************************/
-void key_func(PARA_DATA *para, REAL **var, int **BINDEX, unsigned char key, 
-              int x, int y)
-{
-  int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-
-  // Set control variable according to key input
-  switch ( key )
-  {
-    // Restart the simulation
-    case 'c':
-    case 'C': 
-      if(set_initial_data(para, var, BINDEX)) exit(1);
-      break;
-    // Quit
-    case 'q':
-    case 'Q':
-      free_data(var);
-      exit(0);
-      break;
-    // Draw velocity
-    case '1':
-      para->outp->screen = 1; 
-      break;
-    // Draw temperature
-    case '2':
-      para->outp->screen = 2; 
-      break;
-    // Draw contaminant concentration
-    case '3':
-      para->outp->screen = 3; 
-      break;
-    // Start to calcualte mean value
-    case 'm':
-    case 'M':
-      para->outp->cal_mean = 1;
-      para->mytime->t_step = 0;
-      printf("start to calculate mean properties.\n");
-      break;
-    // Save the results
-    case 's':
-    case 'S':
-      if(para->outp->cal_mean == 1)
-        calcuate_time_averaged_variable(para, var);
-      write_tecplot_data(para, var, "result"); 
-      break;
-    // Reduce the drawed length of veloity
-    case 'k':
-    case 'K':
-      para->outp->v_length --;
-      break;
-    // Increase the drawed length of velocity
-    case 'l':
-    case 'L':
-      para->outp->v_length ++;
-      break;
-  }
-} // End of key_func()
-
-/******************************************************************************
-| GLUT mouse callback routines 
-******************************************************************************/
-void mouse_func(PARA_DATA *para, int button, int state, int x, int y)
-{
-  para->outp->omx = para->outp->mx = x;
-  para->outp->omy = para->outp->my = y; 
-  para->outp->mouse_down[button] = state == GLUT_DOWN;
-} // End of mouse_func()
-
-/******************************************************************************
-| GLUT motion callback routines  
-******************************************************************************/
-static void motion_func(PARA_DATA *para, int x, int y)
-{
-  para->outp->mx = x;
-  para->outp->my = y;
-} // End of motion_func()
-
-/******************************************************************************
-| GLUT reshape callback routines  
-******************************************************************************/
-static void reshape_func(PARA_DATA *para, int win_id, int width, int height )
-{
-  glutSetWindow(win_id);
-  glutReshapeWindow(width, height);
-
-  para->outp->winx = width;
-  para->outp->winy = height;
-} // End of reshape_func
-
-
-/******************************************************************************
-| GLUT idle callback routines  
-******************************************************************************/
-static void idle_func(PARA_DATA *para, REAL **var, int **BINDEX, int win_id)
-{
-  // Get the display in XY plane
-  get_xy_UI(para, var, (int)para->geom->kmax/2);
-
-  vel_step(para, var, BINDEX);
-  den_step(para, var, BINDEX);
-  temp_step(para, var, BINDEX);
-
-  if(para->outp->cal_mean == 1)
-    calcuate_time_averaged_variable(para, var);
-
-  // Update the visualization results after a few tiem steps 
-  // to save the time for visualization
-  if(para->mytime->t_step%para->outp->tstep_display==0)
-  {
-    glutSetWindow(win_id);
-    glutPostRedisplay( );
-  } 
-  
-  timing(para);
-} // End of idle_func()
 
 
 
