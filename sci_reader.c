@@ -170,7 +170,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   /*---------------------------------------------------------------------------
   | Read the inlet boundary conditions
   ----------------------------------------------------------------------------*/
-  // Fixme: Get number of inlet boundaries
+  // Get number of inlet boundaries
   fgets(string, 400, file_params);
   sscanf(string,"%d",&NBIN); 
   index=0;
