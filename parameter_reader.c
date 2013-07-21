@@ -22,7 +22,7 @@ FILE *file_log;
 ******************************************************************************/
 int assign_parameter(PARA_DATA *para, char *string)
 {
-  char tmp[400], msg[400];
+  char tmp[400], tmp2[10], msg[400];
 
   sscanf(string, "%s", tmp);
 
@@ -138,6 +138,24 @@ int assign_parameter(PARA_DATA *para, char *string)
   {
     sscanf(string, "%s%d", tmp, &para->outp->winy);
     sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->outp->winy);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "outp.version"))
+  {
+    sscanf(string, "%s%s", tmp, tmp2);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, tmp2);
+    if(!strcmp(tmp2, "DEMO")) 
+      para->outp->version = DEMO;
+    else if(!strcmp(tmp2, "DEBUG")) 
+      para->outp->version = DEBUG;
+    else if(!strcmp(tmp2, "RUN")) 
+      para->outp->version = RUN;
+    else
+    {
+      sprintf(msg, "parameter_rader.c: %s is not valid input for %s", tmp2, tmp);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
     ffd_log(msg, FFD_NORMAL);
   }
 
