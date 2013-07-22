@@ -65,7 +65,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   int SI,SJ,SK,EI,EJ,EK,FLTMP;
   REAL TMP,MASS,U,V,W;
   int restart;
-  REAL density,nu,cp,gravx,gravy,gravz,beta,trefmax,spec;
+  REAL rho, nu, cond, gravx, gravy, gravz, beta, trefmax, Cp;
   REAL t_start,t_delta,t_total;
   int imax = para->geom->imax;
   int jmax = para->geom->jmax;
@@ -441,10 +441,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Read pysical properties
   fgets(string, 400, file_params);
-  sscanf(string,"%f %f %f %f %f %f %f %f %f", &density, &nu, &cp, 
-         &gravx, &gravy, &gravz, &beta, &trefmax, &spec);
+  sscanf(string,"%f %f %f %f %f %f %f %f %f", &rho, &nu, &cond, 
+         &gravx, &gravy, &gravz, &beta, &trefmax, &Cp);
 
-  para->prob->rho = density;
+  para->prob->rho = rho;
   sprintf(msg, "sci_reader.c: Overwrite with para->prob->rho=%f", para->prob->rho);
   ffd_log(msg, FFD_NORMAL);
 
@@ -452,7 +452,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   sprintf(msg, "sci_reader.c: Overwrite with para->prob->nu=%f", para->prob->nu);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->cond = cp;
+  para->prob->cond = cond;
   sprintf(msg, "sci_reader.c: Overwrite with para->prob->cond=%f", para->prob->cond);
   ffd_log(msg, FFD_NORMAL);
 
@@ -473,7 +473,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   ffd_log(msg, FFD_NORMAL);
 
   //para->prob->trefmax=trefmax;
-  para->prob->spec=spec;
+  para->prob->Cp = Cp; 
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->Cp=%f", para->prob->Cp);
+  ffd_log(msg, FFD_NORMAL);
 
   // Read simulation time settings
   fgets(string, 400, file_params);
