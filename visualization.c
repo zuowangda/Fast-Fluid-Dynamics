@@ -260,7 +260,8 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k)
   }
 
   //if(mouse_down[0])   T_s[IX(i,j)] = 1.0;
-  if(mouse_down[2]) 	d_s[IX(i,j,k)] = para->prob->source;
+  if(mouse_down[2]) 
+    d_s[IX(i,j,k)] = para->prob->source;
 
   para->outp->omx = mx;
   para->outp->omy = my;
