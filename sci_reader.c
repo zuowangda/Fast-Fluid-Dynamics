@@ -491,8 +491,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   sprintf(msg, "sci_reader.c: para->mytime->dt=%f", para->mytime->dt);
   ffd_log(msg, FFD_NORMAL);
 
-  para->mytime->step_totoal=t_total;
-  sprintf(msg, "sci_reader.c: para->mytime->step_totoal=%f", para->mytime->step_totoal);
+  para->mytime->step_total=t_total;
+  sprintf(msg, "sci_reader.c: para->mytime->step_total=%f", para->mytime->step_total);
   ffd_log(msg, FFD_NORMAL);
 
   temp = fgets(string, 400, file_params); //prandtl

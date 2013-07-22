@@ -243,7 +243,7 @@ typedef struct
   REAL   t;          /* current time                                        */
   REAL   t_steady;   /* necessary time for steady flow                      */
   REAL    dt_cosim;  // Time step for co-simulation data exchange 
-  int     step_totoal;   /* the interval of iteration step to output data       */
+  int     step_total;   /* the interval of iteration step to output data       */
   int     t_step;     /* current iteration step                              */
   clock_t t_start;    /* starting CPU time                                   */
   clock_t t_end;      /* ending CPU time                                     */
