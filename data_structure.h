@@ -223,8 +223,8 @@ typedef struct{
   REAL cond; // Conductivity
   //REAL trefmax; // T Reference max defined by SCI
   REAL spec;
-  REAL  force;    
-  REAL  source;  
+  REAL force; // Force to be added in demo window when left-click on mouse
+  REAL source;  
   int    Problem;  /* type of problem to specify flow-specific quantities    */
   int    readfile; /* Read old data file as initial value(1:yes, 0:no)       */
   int    moive;    /* output data for make animation file(1:yes, 0:no)       */

@@ -445,31 +445,31 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
          &gravx, &gravy, &gravz, &beta, &trefmax, &spec);
 
   para->prob->rho = density;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->rho=%f", para->prob->rho);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->rho=%f", para->prob->rho);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->nu = nu;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->nu=%f", para->prob->nu);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->nu=%f", para->prob->nu);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->cond = cp;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->cond=%f", para->prob->cond);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->cond=%f", para->prob->cond);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->gravx = gravx;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->gravx=%f", para->prob->gravx);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->gravx=%f", para->prob->gravx);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->gravy = gravy;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->gravy=%f", para->prob->gravy);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->gravy=%f", para->prob->gravy);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->gravz=gravz;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->gravz=%f", para->prob->gravz);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->gravz=%f", para->prob->gravz);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->beta = beta;
-  sprintf(msg, "sci_reader.c: Overwrite para->prob->beta=%f", para->prob->beta);
+  sprintf(msg, "sci_reader.c: Overwrite with para->prob->beta=%f", para->prob->beta);
   ffd_log(msg, FFD_NORMAL);
 
   //para->prob->trefmax=trefmax;
@@ -479,7 +479,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   fgets(string, 400, file_params);
   sscanf(string,"%f %f %f",&t_start,&t_delta,&t_total);
 
-  para->mytime->t_start=t_start;
+  para->mytime->t_start = t_start;
+
   para->mytime->dt=t_delta;
   para->mytime->t_output=t_total;
   

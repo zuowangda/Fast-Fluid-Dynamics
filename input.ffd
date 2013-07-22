@@ -37,7 +37,7 @@ geom.uniform 1 // Only for generating grid by FFD. 1: uniform grid; 0: non-unifo
 
 outp.cal_mean 1 // 1: Calculate mean value; 0: False
 outp.v_ref 0.1 // Reference velocity for visualization
-outp.Temp_ref 1 // Reference temperature for visualizations
+outp.Temp_ref 1.0 // Reference temperature for visualizations
 outp.v_length 1 // Change of velocity vector length in demo window
 outp.i_N 1 // Number of grids plotted in x direction
 outp.j_N 1 // Number of grids plotted in y direction
@@ -47,3 +47,4 @@ outp.version DEBUG // DEMO, DEBUG, RUN
 prob.diff 0.00001 // Diffusivity for contaminants
 prob.alpha 1.96e-5 // Thermal diffusivity
 prob.coeff_h 0.0004 // Convective heat transfer coefficient near the wall
+prob.force 1.0 // Force to be added in demo window when left-click on mouse

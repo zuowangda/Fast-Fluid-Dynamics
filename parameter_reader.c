@@ -244,7 +244,12 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->cond);
     ffd_log(msg, FFD_NORMAL);
   }
-
+  else if(!strcmp(tmp, "prob.force"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->force);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->force);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 
