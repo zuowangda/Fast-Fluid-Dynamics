@@ -1,1 +1,0 @@
-void define_parameter(PARA_DATA *para);
