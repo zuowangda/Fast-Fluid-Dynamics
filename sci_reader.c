@@ -175,6 +175,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   // Get number of inlet boundaries
   fgets(string, 400, file_params);
   sscanf(string,"%d",&NBIN); 
+
   index=0;
   // Setting inlet boundary
   if(NBIN != 0)
@@ -238,6 +239,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   fgets(string, 400, file_params);
   sscanf(string,"%d",&NBOUT); 
   para->bc->NBOUT=NBOUT;
+  sprintf(msg, "sci_reader.c: para->bc->NBOUT=%f", para->bc->NBOUT);
+  ffd_log(msg, FFD_NORMAL);
 
   if(NBOUT !=0)
   {
@@ -445,36 +448,36 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
          &gravx, &gravy, &gravz, &beta, &trefmax, &Cp);
 
   para->prob->rho = rho;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->rho=%f", para->prob->rho);
+  sprintf(msg, "sci_reader.c: para->prob->rho=%f", para->prob->rho);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->nu = nu;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->nu=%f", para->prob->nu);
+  sprintf(msg, "sci_reader.c: para->prob->nu=%f", para->prob->nu);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->cond = cond;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->cond=%f", para->prob->cond);
+  sprintf(msg, "sci_reader.c: para->prob->cond=%f", para->prob->cond);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->gravx = gravx;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->gravx=%f", para->prob->gravx);
+  sprintf(msg, "sci_reader.c: para->prob->gravx=%f", para->prob->gravx);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->gravy = gravy;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->gravy=%f", para->prob->gravy);
+  sprintf(msg, "sci_reader.c: para->prob->gravy=%f", para->prob->gravy);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->gravz=gravz;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->gravz=%f", para->prob->gravz);
+  sprintf(msg, "sci_reader.c: para->prob->gravz=%f", para->prob->gravz);
   ffd_log(msg, FFD_NORMAL);
 
   para->prob->beta = beta;
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->beta=%f", para->prob->beta);
+  sprintf(msg, "sci_reader.c: para->prob->beta=%f", para->prob->beta);
   ffd_log(msg, FFD_NORMAL);
 
   //para->prob->trefmax=trefmax;
   para->prob->Cp = Cp; 
-  sprintf(msg, "sci_reader.c: Overwrite with para->prob->Cp=%f", para->prob->Cp);
+  sprintf(msg, "sci_reader.c: para->prob->Cp=%f", para->prob->Cp);
   ffd_log(msg, FFD_NORMAL);
 
   // Read simulation time settings
@@ -483,9 +486,15 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
   para->mytime->t_start = t_start;
 
-  para->mytime->dt=t_delta;
-  para->mytime->t_output=t_total;
   
+  para->mytime->dt = t_delta;
+  sprintf(msg, "sci_reader.c: para->mytime->dt=%f", para->mytime->dt);
+  ffd_log(msg, FFD_NORMAL);
+
+  para->mytime->step_totoal=t_total;
+  sprintf(msg, "sci_reader.c: para->mytime->step_totoal=%f", para->mytime->step_totoal);
+  ffd_log(msg, FFD_NORMAL);
+
   temp = fgets(string, 400, file_params); //prandtl
   fclose(file_params);
 

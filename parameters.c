@@ -30,7 +30,7 @@ void define_parameter(PARA_DATA *para)
 
   para->mytime->dt = 0.1f; 
   para->mytime->t_steady = 100.0; 
-  para->mytime->t_output =1000 ;
+  para->mytime->step_totoal =1000 ;
   para->mytime->dt_cosim = 1.0;
   para->solv->nextstep = -1;
   para->inpu->read_old_ffd_file = 0; 

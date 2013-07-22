@@ -32,7 +32,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int size = (imax+2) * (jmax+2) * (kmax+2);
-  int t_step = 0, t_output = para->mytime->t_output;
+  int t_step = 0, step_totoal = para->mytime->step_totoal;
   REAL t_steady = para->mytime->t_steady;
   REAL dt = para->mytime->dt;
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
@@ -57,7 +57,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
-  while(para->mytime->t_step < t_output)
+  while(para->mytime->t_step < step_totoal)
   {
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);

@@ -63,7 +63,7 @@ void set_default_parameter(PARA_DATA *para)
   para->geom->Lz = 1.0;
 
   para->mytime->dt = 0.1; 
-  para->mytime->t_output = 1000;
+  para->mytime->step_totoal = 1000;
 
   para->mytime->t  = 0.0;
   para->mytime->t_start = 0.0;

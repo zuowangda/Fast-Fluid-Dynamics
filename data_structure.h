@@ -234,19 +234,16 @@ typedef struct{
 }PROB_DATA;
 
 typedef struct{
-  REAL  T_in;
-  REAL  T_bcBOX;
-  int   SpecialBC;/* type of special b.c.                                    */
-  int   NBOUT;
+  int   NBOUT; // Number of outlet boundaries, Provided by SCI
 }BC_DATA;
 
 typedef struct 
 {
-  REAL   dt;         /* time step size                                      */
+  REAL dt; // FFD simulation time step size
   REAL   t;          /* current time                                        */
   REAL   t_steady;   /* necessary time for steady flow                      */
   REAL    dt_cosim;  // Time step for co-simulation data exchange 
-  int     t_output;   /* the interval of iteration step to output data       */
+  int     step_totoal;   /* the interval of iteration step to output data       */
   int     t_step;     /* current iteration step                              */
   clock_t t_start;    /* starting CPU time                                   */
   clock_t t_end;      /* ending CPU time                                     */
