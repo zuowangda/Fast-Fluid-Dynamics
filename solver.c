@@ -32,7 +32,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int size = (imax+2) * (jmax+2) * (kmax+2);
-  int t_step = 0, step_total = para->mytime->step_total;
+  int step_current = 0, step_total = para->mytime->step_total;
   REAL t_steady = para->mytime->t_steady;
   REAL dt = para->mytime->dt;
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
@@ -57,7 +57,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
-  while(para->mytime->t_step < step_total)
+  while(para->mytime->step_current < step_total)
   {
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);
@@ -69,7 +69,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     if(para->mytime->t>t_steady && cal_mean==0)
     {
       cal_mean = 1;
-      t_step += 1;
+      step_current += 1;
       printf("start to calculate mean properties.\n");
     }   
 

@@ -27,7 +27,7 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->t_step;
+  int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
   REAL *d = var[DEN];
@@ -77,7 +77,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name)
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->t_step;
+  int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz =var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
@@ -297,7 +297,7 @@ int write_data2(PARA_DATA *para, REAL **var)
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->t_step;
+  int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz =var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
@@ -363,7 +363,7 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name)
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->t_step;
+  int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
   REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];

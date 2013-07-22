@@ -466,10 +466,10 @@ void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var)
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
   FOR_ALL_CELL
-      var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / para->mytime->t_step;
-      var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / para->mytime->t_step;
-      var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / para->mytime->t_step;
-      var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / para->mytime->t_step;
+      var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / para->mytime->step_current;
+      var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / para->mytime->step_current;
+      var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / para->mytime->step_current;
+      var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / para->mytime->step_current;
   END_FOR
 } // End of calcuate_time_averaged_variable()
 

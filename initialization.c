@@ -67,7 +67,7 @@ void set_default_parameter(PARA_DATA *para)
 
   para->mytime->t  = 0.0;
   para->mytime->t_start = 0.0;
-  para->mytime->t_step = 0;
+  para->mytime->step_current = 0;
   para->mytime->t_start = clock();
 
   para->prob->diff = 0.0000001; 
@@ -176,7 +176,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   int i, size = (para->geom->imax + 2)*(para->geom->jmax+2)*(para->geom->kmax+2);
   
   para->mytime->t = 0.0;
-  para->mytime->t_step = 0;
+  para->mytime->step_current = 0;
   para->outp->cal_mean = 0;
 
   for(i=0; i<size; i++) 

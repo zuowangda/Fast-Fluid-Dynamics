@@ -12,7 +12,7 @@ void timing(PARA_DATA *para)
   double cputime;
 
   para->mytime->t += para->mytime->dt;
-  para->mytime->t_step += 1;
+  para->mytime->step_current += 1;
   para->mytime->t_end = clock();
 
   cputime= ((double) (clock() - para->mytime->t_start) / CLOCKS_PER_SEC);
