@@ -250,6 +250,42 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->force);
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "prob.source"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->source);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->source);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.Cp"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->Cp);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->Cp);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.movie"))
+  {
+    sscanf(string, "%s%d", tmp, &para->prob->movie);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->prob->movie);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.tur_model"))
+  {
+    sscanf(string, "%s%s", tmp, tmp2);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, tmp2);
+    if(!strcmp(tmp2, "LAM")) 
+      para->prob->tur_model = LAM;
+    else if(!strcmp(tmp2, "CHEN")) 
+      para->prob->tur_model = CHEN;
+    else if(!strcmp(tmp2, "CONSTANT")) 
+      para->prob->tur_model = CONSTANT;
+    else
+    {
+      sprintf(msg, "parameter_rader.c: %s is not valid input for %s", tmp2, tmp);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 

@@ -222,14 +222,12 @@ typedef struct{
   REAL  beta; // Thermal expansion coefficient
   REAL cond; // Conductivity
   //REAL trefmax; // T Reference max defined by SCI
-  REAL spec;
-  REAL force; // Force to be added in demo window when left-click on mouse
-  REAL source;  
-  int    Problem;  /* type of problem to specify flow-specific quantities    */
-  int    readfile; /* Read old data file as initial value(1:yes, 0:no)       */
-  int    moive;    /* output data for make animation file(1:yes, 0:no)       */
-  int    output;   /* 0: have not been written; 1: done                      */ 
-  TUR_MODEL tur_model; /* LAM, CHEN, 100NU                                   */ 
+  REAL Cp; // Specific heat capacity
+  REAL force; // Force to be added in demo window for velocity when left-click on mouse
+  REAL source; // Source to be added in demo window for contaminants when right click on mouse 
+  int movie; // Output data for making animation (1:yes, 0:no)
+  int output;   // Internl: 0: have not been written; 1: done
+  TUR_MODEL tur_model; // LAM, CHEN, CONSTANT
   REAL  chen_a;   /* coefficeint of Chen's zero euqation turbulence model   */
   REAL  Prt;      /* turbulent Prandl number */
   REAL  Temp_opt;
