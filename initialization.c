@@ -15,7 +15,6 @@
 
 #include "data_structure.h"
 #include "initialization.h"
-#include "parameters.h"
 #include "parameter_reader.h"
 #include "sci_reader.h"
 
@@ -28,7 +27,6 @@ int initialize(PARA_DATA *para)
   set_default_parameter(para);
 
   // Overwrite the default values using user defined values
-  define_parameter(para);
   if(read_parameter(para)) return 1;
 
   // Fixme: We may delete these 3 lines
@@ -58,21 +56,11 @@ int initialize(PARA_DATA *para)
 ******************************************************************************/
 void set_default_parameter(PARA_DATA *para)
 {
-  para->geom->Lx = 1.0; 
-  para->geom->Ly = 1.0;
-  para->geom->Lz = 1.0;
-
-  para->mytime->dt = 0.1; 
-  para->mytime->step_total = 1000;
 
   para->mytime->t  = 0.0;
-  para->mytime->t_start = 0.0;
   para->mytime->step_current = 0;
   para->mytime->t_start = clock();
 
-  para->prob->diff = 0.0000001; 
-  para->prob->gravz = -9.8f;
-  para->prob->beta = 3.186e-3; // coefficient of thermal expansion
   para->prob->alpha = 2.376e-5; // Thermal diffusity
   para->prob->diff = 0.00001;
   para->prob->force = 1.0; 
@@ -81,8 +69,6 @@ void set_default_parameter(PARA_DATA *para)
   para->prob->chen_a = 0.03874; // Coeffcient of Chen's model
   para->prob->Prt = 0.9; // Turbulent Prandl number
   para->prob->rho = 1.0; //
-  para->prob->nu = 0.1; // Kinematic viscosity 
-  para->prob->cond = 0.001; //
   para->prob->tur_model = LAM; // No turbulence model
 
   para->solv->check_residual = 0; // Donot check residual */
@@ -90,7 +76,6 @@ void set_default_parameter(PARA_DATA *para)
   para->solv->interpolation = BILINEAR; // Bilinear interpolation
 
   // Default values for Input
-  para->inpu->parameter_file_format = FFD; // Use user defined data in FFD
   para->inpu->read_old_ffd_file = 0; // Do not read the old FFD data as initial value
 
   // Default values for Output
