@@ -286,6 +286,24 @@ int assign_parameter(PARA_DATA *para, char *string)
     }
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "prob.chen_a"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->chen_a);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->chen_a);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.Prt"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->Prt);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->Prt);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.Temp_Buoyancy"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->Temp_Buoyancy);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->Temp_Buoyancy);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 

@@ -67,7 +67,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
   REAL *Temp = var[TEMP];
   REAL dxe, dxw, dyn, dys, dzf, dzb, Dx, Dy, Dz;
   REAL dt = para->mytime->dt, beta = para->prob->beta;
-  REAL Temp_opt = para->prob->Temp_opt, gravx = para->prob->gravx, gravy = para->prob->gravy, gravz = para->prob->gravz;
+  REAL Temp_Buoyancy = para->prob->Temp_Buoyancy, gravx = para->prob->gravx, gravy = para->prob->gravy, gravz = para->prob->gravz;
   REAL kapa;
   REAL Fe,Fw,Fs,Fn,Ff,Fb;
 
@@ -100,7 +100,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
 		af[IX(i,j,k)]= kapa*Dx*Dy/dzf;
 		ab[IX(i,j,k)]= kapa*Dx*Dy/dzb;
 		ap0[IX(i,j,k)]= Dx*Dy*Dz/dt;
-		b[IX(i,j,k)]= psi0[IX(i,j,k)]*ap0[IX(i,j,k)]-beta*gravx*(Temp[IX(i,j,k)]-Temp_opt)*Dx*Dy*Dz+(pp[IX(i,j,k)]-pp[IX(i+1,j,k)])*Dy*Dz;
+		b[IX(i,j,k)]= psi0[IX(i,j,k)]*ap0[IX(i,j,k)]-beta*gravx*(Temp[IX(i,j,k)]-Temp_Buoyancy)*Dx*Dy*Dz+(pp[IX(i,j,k)]-pp[IX(i+1,j,k)])*Dy*Dz;
 
 		END_FOR
 
@@ -140,7 +140,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
 		af[IX(i,j,k)]= kapa*Dx*Dy/dzf;
 		ab[IX(i,j,k)]= kapa*Dx*Dy/dzb;
 		ap0[IX(i,j,k)]= Dx*Dy*Dz/dt;
-		b[IX(i,j,k)]= psi0[IX(i,j,k)]*ap0[IX(i,j,k)]-beta*gravy*(Temp[IX(i,j,k)]-Temp_opt)*Dx*Dy*Dz+(pp[IX(i,j,k)]-pp[IX(i ,j+1,k)])*Dx*Dz;
+		b[IX(i,j,k)]= psi0[IX(i,j,k)]*ap0[IX(i,j,k)]-beta*gravy*(Temp[IX(i,j,k)]-Temp_Buoyancy)*Dx*Dy*Dz+(pp[IX(i,j,k)]-pp[IX(i ,j+1,k)])*Dx*Dz;
 
 		END_FOR
 
@@ -180,7 +180,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
 		af[IX(i,j,k)]= kapa*Dx*Dy/dzf;
 		ab[IX(i,j,k)]= kapa*Dx*Dy/dzb;
 		ap0[IX(i,j,k)]= Dx*Dy*Dz/dt;
-		b[IX(i,j,k)]= psi0[IX(i,j,k)]*ap0[IX(i,j,k)]-beta*gravz*(Temp[IX(i,j,k)]-Temp_opt)*Dx*Dy*Dz+(pp[IX(i,j,k)]-pp[IX(i ,j,k+1)])*Dy*Dx;
+		b[IX(i,j,k)]= psi0[IX(i,j,k)]*ap0[IX(i,j,k)]-beta*gravz*(Temp[IX(i,j,k)]-Temp_Buoyancy)*Dx*Dy*Dz+(pp[IX(i,j,k)]-pp[IX(i ,j,k+1)])*Dy*Dx;
 
 		END_FOR
 

@@ -228,10 +228,10 @@ typedef struct{
   int movie; // Output data for making animation (1:yes, 0:no)
   int output;   // Internl: 0: have not been written; 1: done
   TUR_MODEL tur_model; // LAM, CHEN, CONSTANT
-  REAL  chen_a;   /* coefficeint of Chen's zero euqation turbulence model   */
-  REAL  Prt;      /* turbulent Prandl number */
-  REAL  Temp_opt;
-  REAL  tratio;
+  REAL chen_a; // Coefficeint of Chen's zero euqation turbulence model
+  REAL Prt; // Turbulent Prandl number
+  REAL Temp_Buoyancy; // Reference temperature for calucating buoyancy force
+  REAL tratio;
 }PROB_DATA;
 
 typedef struct{
