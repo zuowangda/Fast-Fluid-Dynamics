@@ -1,1 +1,0 @@
-REAL inlet(PARA_DATA *para, REAL x, REAL z);
