@@ -37,9 +37,6 @@ int initialize(PARA_DATA *para)
   para->geom->dy = para->geom->Ly / (para->geom->jmax);
   para->geom->dz = para->geom->Lz / (para->geom->kmax);
 
-  if(para->prob->nu == 0.0)
-    para->prob->nu = para->prob->mu / para->prob->rho;
-
   /*---------------------------------------------------------------------------
   | Output the help information 
   ---------------------------------------------------------------------------*/
@@ -85,9 +82,8 @@ void set_default_parameter(PARA_DATA *para)
 
   para->prob->chen_a = 0.03874; // Coeffcient of Chen's model
   para->prob->Prt = 0.9; // Turbulent Prandl number
- 	para->prob->mu = 0.01; // Turbulence viscosity if using constant value
   para->prob->rho = 1.0; //
-  para->prob->nu = 0.0; // Turbulence dynamic viscosity 
+  para->prob->nu = 0.1; // Turbulence dynamic viscosity 
   para->prob->tur_model = LAM; // No turbulence model
 
   para->solv->check_residual = 0; // Donot check residual */
