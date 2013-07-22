@@ -31,7 +31,6 @@ int initialize(PARA_DATA *para)
   define_parameter(para);
   if(read_parameter(para)) return 1;
 
-
   // Fixme: We may delete these 3 lines
   para->geom->dx = para->geom->Lx / (para->geom->imax);
   para->geom->dy = para->geom->Ly / (para->geom->jmax);
@@ -74,7 +73,6 @@ void set_default_parameter(PARA_DATA *para)
   para->prob->diff = 0.0000001; 
   para->prob->gravz = -9.8f;
   para->prob->beta = 3.186e-3; // coefficient of thermal expansion
-  para->prob->alpha_co = 1.0;
   para->prob->alpha = 2.376e-5; // Thermal diffusity
   para->prob->diff = 0.00001;
   para->prob->force = 1.0; 

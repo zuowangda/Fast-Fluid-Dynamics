@@ -211,12 +211,10 @@ typedef struct{
 } INPU_DATA;
 
 typedef struct{
-  //REAL  mu; // Physical viscosity
   REAL  nu; // Kinematic viscosity
-  REAL  rho;      /* density                                                */
-  REAL  diff;     /* diffusivity for particle density                       */
-  REAL  alpha;    /* thermal diffusity                                      */
-  REAL  alpha_co; /* proption coefficient of thermal diffusity at the wall  */
+  REAL  rho; // Density
+  REAL  diff; // Diffusivity for contaminants
+  REAL  alpha; // Thermal diffusity
   REAL  coeff_h;
   REAL  k;        /* thermal conductivity                                   */
   REAL  gravx;

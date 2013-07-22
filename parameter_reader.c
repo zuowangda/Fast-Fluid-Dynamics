@@ -190,6 +190,24 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%s", tmp, para->inpu->old_ffd_file_name);
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "prob.nu"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->nu);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->nu);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.rho"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->rho);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->rho);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.diff"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->diff);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->diff);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 

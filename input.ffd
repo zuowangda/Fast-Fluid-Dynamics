@@ -2,7 +2,7 @@
 // The are key input file parameters 
 //------------------------------------------------------------------------------
 
-inpu.parameter_file_format SCI // Foramt of extra parameter file
+inpu.parameter_file_format SCI // Foramt of extra parameter file: SCI
 inpu.parameter_file_name input.cfd // Name of extra parameter file
 
 inpu.old_ffd_file_name result.plt // Name of previous FFD simulation data file
@@ -20,7 +20,8 @@ geom.imax 10 // Number of interior cells in x-direction
 geom.jmax 10 // Number of interior cells in y-direction
 geom.kmax 10 // Number of interior cells in z-direction
 geom.index 600 // Total number of boundary cells
-
+prob.nu 0.01 // Kinematic viscosity
+prob.rho 1 // Density
 
 //------------------------------------------------------------------------------
 // The following parameters can only be defined in this input.cfd
@@ -39,3 +40,4 @@ outp.j_N 1 // Number of grids plotted in y direction
 outp.winx 600 // Resolution of screen at x direction in pixel
 outp.winy 600 // Resolution of screen at y direction in pixel
 outp.version DEBUG // DEMO, DEBUG, RUN
+prob.diff 0.00001 // Diffusivity for contaminants
