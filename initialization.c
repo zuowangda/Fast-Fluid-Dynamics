@@ -89,28 +89,6 @@ void set_default_parameter(PARA_DATA *para)
   para->solv->solver = GS; // Gauss-Seidel Solver
   para->solv->interpolation = BILINEAR; // Bilinear interpolation
 
-  // Default values for boundary conditions
-  para->bc->VX_bcE = 0.0;
-  para->bc->VX_bcW = 0.0;
-  para->bc->VX_bcN = 0.0;
-  para->bc->VX_bcS = 0.0;
-  para->bc->VX_bcF = 0.0;
-  para->bc->VX_bcB = 0.0;
-
-  para->bc->VY_bcN = 0.0;
-  para->bc->VY_bcS = 0.0;
-  para->bc->VY_bcE = 0.0;
-  para->bc->VY_bcW = 0.0;
-  para->bc->VY_bcF = 0.0;
-  para->bc->VY_bcB = 0.0;
-
-  para->bc->VZ_bcN = 0.0;
-  para->bc->VZ_bcS = 0.0;
-  para->bc->VZ_bcE = 0.0;
-  para->bc->VZ_bcW = 0.0;
-  para->bc->VZ_bcF = 0.0;
-  para->bc->VZ_bcB = 0.0;
-
   // Default values for Input
   para->inpu->parameter_file_format = FFD; // Use user defined data in FFD
   para->inpu->read_old_ffd_file = 0; // Do not read the old FFD data as initial value

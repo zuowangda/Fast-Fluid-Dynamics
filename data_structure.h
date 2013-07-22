@@ -231,54 +231,11 @@ typedef struct{
   REAL chen_a; // Coefficeint of Chen's zero euqation turbulence model
   REAL Prt; // Turbulent Prandl number
   REAL Temp_Buoyancy; // Reference temperature for calucating buoyancy force
-  REAL tratio;
 }PROB_DATA;
 
 typedef struct{
-  BCTYPE bcN;      /* type of nonthermal b.c. for north boundary             */
-  BCTYPE bcE;      /* type of nonthermal b.c. for east boundary              */
-  BCTYPE bcS;      /* type of nonthermal b.c. for south boundary             */
-  BCTYPE bcW;      /* type of nonthermal b.c. for west boundary              */
-  BCTYPE bcF;      /* type of nonthermal b.c. for front boundary             */
-  BCTYPE bcB;      /* type of nonthermal b.c. for back boundary              */
-  BCTTYPE bcTN;    /* type of thermal b.c. for north boundary                */ 
-  BCTTYPE bcTS;    /* type of thermal b.c. for south boundary                */
-  BCTTYPE bcTE;    /* type of thermal b.c. for east boundary                 */
-  BCTTYPE bcTW;    /* type of thermal b.c. for west boundary                 */
-  BCTTYPE bcTF;    /* type of thermal b.c. for front boundary                */
-  BCTTYPE bcTB;    /* type of thermal b.c. for back boundary                 */
-  REAL  T_bcN;    /* temperature at north boundary                           */
-  REAL  T_bcS;    /* temperature at south boundary                           */
-  REAL  T_bcW;    /* temperature at west boundary                            */
-  REAL  T_bcE;    /* temperature at east boundary                            */
-  REAL  T_bcT;    /* temperature at front boundary                           */
-  REAL  T_bcB;    /* temperature at back boundary                            */
   REAL  T_in;
   REAL  T_bcBOX;
-  REAL  Q_bcN;    /* heat flux trought north boundary                        */
-  REAL  Q_bcS;    /* heat flux trought south boundary                        */
-  REAL  Q_bcW;    /* heat flux trought west boundary                         */
-  REAL  Q_bcE;    /* heat flux trought east boundary                         */
-  REAL  Q_bcF;    /* heat flux trought front boundary                        */
-  REAL  Q_bcB;    /* heat flux trought back boundary                         */
-  REAL  VX_bcN;   /* vx at north boundary                                    */
-  REAL  VX_bcS;   /* vx at south boundary                                    */
-  REAL  VX_bcW;   /* vx at west boundary                                     */
-  REAL  VX_bcE;   /* vx at east boundary                                     */
-  REAL  VX_bcF;   /* vx at front boundary                                    */
-  REAL  VX_bcB;   /* vx at back boundary                                     */
-  REAL  VY_bcN;   /* vy at north boundary                                    */
-  REAL  VY_bcS;   /* vy at south boundary                                    */
-  REAL  VY_bcW;   /* vy at west boundary                                     */
-  REAL  VY_bcE;   /* vy at east boundary                                     */
-  REAL  VY_bcF;   /* vy at front boundary                                    */
-  REAL  VY_bcB;   /* vy at back boundary                                     */
-  REAL  VZ_bcN;   /* vz at north boundary                                    */
-  REAL  VZ_bcS;   /* vz at south boundary                                    */
-  REAL  VZ_bcW;   /* vz at west boundary                                     */
-  REAL  VZ_bcE;   /* vz at east boundary                                     */
-  REAL  VZ_bcF;   /* vz at front boundary                                    */
-  REAL  VZ_bcB;   /* vz at back boundary                                     */
   int   SpecialBC;/* type of special b.c.                                    */
   int   NBOUT;
 }BC_DATA;
