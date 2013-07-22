@@ -100,7 +100,7 @@ void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Update the visualization results after a few tiem steps 
   // to save the time for visualization
-  if(para->mytime->t_step%para->outp->tstep_display==0)
+  if(para->mytime->step_current%para->outp->tstep_display==0)
   {
     glutSetWindow(para->outp->win_id);
     glutPostRedisplay( );
@@ -149,7 +149,7 @@ void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, unsigned char key,
     case 'm':
     case 'M':
       para->outp->cal_mean = 1;
-      para->mytime->t_step = 0;
+      para->mytime->step_current = 0;
       printf("start to calculate mean properties.\n");
       break;
     // Save the results

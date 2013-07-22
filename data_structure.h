@@ -97,7 +97,7 @@ typedef enum{SEMI, LAX, UPWIND, UPWIND_NEW} ADVECTION;
 
 typedef enum{LAM, CHEN, CONSTANT} TUR_MODEL;
 
-typedef enum{BILINEAR, FSJ} INTERPOLATION;
+typedef enum{BILINEAR, FSJ, HYBRID} INTERPOLATION;
 
 typedef enum{DEMO, DEBUG, RUN} VERSION;
 
@@ -240,25 +240,23 @@ typedef struct{
 typedef struct 
 {
   REAL dt; // FFD simulation time step size
-  REAL   t;          /* current time                                        */
-  REAL   t_steady;   /* necessary time for steady flow                      */
-  REAL    dt_cosim;  // Time step for co-simulation data exchange 
-  int     step_total;   /* the interval of iteration step to output data       */
-  int     step_current;     /* current iteration step                              */
-  clock_t t_start;    /* starting CPU time                                   */
-  clock_t t_end;      /* ending CPU time                                     */
+  REAL t; // Internal: current time
+  REAL t_steady; // Necessary time for reaching the steady state from initial condition
+  REAL dt_cosim;  // Time step for co-simulation data exchange 
+  int step_total; // The interval of iteration step to output data
+  int step_current; // Internal: current iteration step
+  clock_t t_start; // Internal: clock time when simulation starts
+  clock_t t_end; // Internal: clock time when simulaiton ends
 }TIME_DATA;
 
 typedef struct 
 {
-  int   caseID;       /* 1: Pure Conduction with uniform grid                */
-  REAL   f_dif;      /* f_dif=0: explict scheme; f_dif=1: implict scheme    */
-  SOLVERTYPE solver;  /* GS, TDMA                                            */
-  int check_residual; /* 1: check, 0: donot check                            */
-  ADVECTION advection_solver; /* SEMI, LAX, UPWIND, UPWIND_NEW */  
-  INTERPOLATION interpolation; /* BILINEAR, FSJ */
-  int   nextstep;    // 1: yes; -1: no, wait
+  SOLVERTYPE solver;  // Solver type: GS, TDMA
+  int check_residual; // 1: check, 0: donot check
+  ADVECTION advection_solver; // Tyep of advection solver: SEMI, LAX, UPWIND, UPWIND_NEW 
+  INTERPOLATION interpolation; // Internploation in semi-Lagrangian method: BILINEAR, FSJ, HYBRID
   int cosimulation;  // 0: single; 1: cosimulation
+  int nextstep; // Internal: 1: yes; 0: no, wait
 }SOLV_DATA;
 
 typedef struct 

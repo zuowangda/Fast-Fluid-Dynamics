@@ -304,6 +304,84 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->Temp_Buoyancy);
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "mytime.t_steady"))
+  {
+    sscanf(string, "%s%f", tmp, &para->mytime->t_steady);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->mytime->t_steady);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "mytime.dt_cosim"))
+  {
+    sscanf(string, "%s%f", tmp, &para->mytime->dt_cosim);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->mytime->dt_cosim);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "solv.solver"))
+  {
+    sscanf(string, "%s%s", tmp, tmp2);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, tmp2);
+    if(!strcmp(tmp2, "GS")) 
+      para->solv->solver = GS;
+    else if(!strcmp(tmp2, "TDMA")) 
+      para->solv->solver = TDMA;
+    else
+    {
+      sprintf(msg, "parameter_rader.c: %s is not valid input for %s", tmp2, tmp);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "solv.check_residual"))
+  {
+    sscanf(string, "%s%d", tmp, &para->solv->check_residual);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->solv->check_residual);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "solv.advection_solver"))
+  {
+    sscanf(string, "%s%s", tmp, tmp2);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, tmp2);
+    if(!strcmp(tmp2, "SEMI")) 
+      para->solv->advection_solver = SEMI;
+    else if(!strcmp(tmp2, "LAX")) 
+      para->solv->advection_solver = LAX;
+    else if(!strcmp(tmp2, "UPWIND")) 
+      para->solv->advection_solver = UPWIND;
+    else if(!strcmp(tmp2, "UPWIND_NEW")) 
+      para->solv->advection_solver = UPWIND_NEW;
+    else
+    {
+      sprintf(msg, "parameter_rader.c: %s is not valid input for %s", tmp2, tmp);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "solv.interpolation"))
+  {
+    sscanf(string, "%s%s", tmp, tmp2);
+    sprintf(msg, "parameter_rader.c: %s=%s", tmp, tmp2);
+    if(!strcmp(tmp2, "BILINEAR")) 
+      para->solv->interpolation = BILINEAR;
+    else if(!strcmp(tmp2, "FSJ")) 
+      para->solv->interpolation = FSJ;
+    else if(!strcmp(tmp2, "HYBRID")) 
+      para->solv->interpolation = HYBRID;
+    else
+    {
+      sprintf(msg, "parameter_rader.c: %s is not valid input for %s", tmp2, tmp);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "solv.cosimulation"))
+  {
+    sscanf(string, "%s%f", tmp, &para->solv->cosimulation);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->solv->cosimulation);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   return 0;
 } // End of assign_parameter() 

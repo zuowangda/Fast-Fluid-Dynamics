@@ -24,17 +24,7 @@ REAL nu_t_chen_zero_equ(PARA_DATA *para, REAL **var, int i, int j, int k)
   lz1=0;
   lz2=0;
 
-  switch (para->solv->caseID)
-  {
-    case 4:
-    case 5:
-      if(j>=para->geom->j2)      lx = lx2; 
-      else if(j<=para->geom->j1) lx = lx1;
-      else                       lx = lx1 < lx2 ? lx1 : lx2;
-      break;
-    default:
-      lx = lx1 < lx2 ? lx1 : lx2;
-  }
+  lx = lx1 < lx2 ? lx1 : lx2;
 
   ly1 = y[IX(i,j,k)] - y[IX(i,0,k)];
   ly2 = y[IX(i,jmax,k)] - y[IX(i,j,k)];
