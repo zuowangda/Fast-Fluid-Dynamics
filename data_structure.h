@@ -215,14 +215,13 @@ typedef struct{
   REAL  rho; // Density
   REAL  diff; // Diffusivity for contaminants
   REAL  alpha; // Thermal diffusity
-  REAL  coeff_h;
-  REAL  k;        /* thermal conductivity                                   */
-  REAL  gravx;
-  REAL  gravy;
-  REAL  gravz;        /* gravity                                                */
-  REAL  beta;     /* coefficient of thermal expansion                       */
-  REAL cond;
-  REAL trefmax;
+  REAL  coeff_h; // Convective heat transfer coefficient near the wall
+  REAL  gravx; // Gravity in x direction
+  REAL  gravy; // Gravity in y direction
+  REAL  gravz; // Gravity in z direction
+  REAL  beta; // Thermal expansion coefficient
+  REAL cond; // Conductivity
+  //REAL trefmax; // T Reference max defined by SCI
   REAL spec;
   REAL  force;    
   REAL  source;  

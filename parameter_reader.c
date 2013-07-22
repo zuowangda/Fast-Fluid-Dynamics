@@ -208,6 +208,43 @@ int assign_parameter(PARA_DATA *para, char *string)
     sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->diff);
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "prob.alpha"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->alpha);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->alpha);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.coeff_h"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->coeff_h);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->coeff_h);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.gravx"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->gravx);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->gravx);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.gravy"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->gravy);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->gravy);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.gravz"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->gravz);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->gravz);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "prob.cond"))
+  {
+    sscanf(string, "%s%f", tmp, &para->prob->cond);
+    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->prob->cond);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
 
   return 0;
 } // End of assign_parameter() 

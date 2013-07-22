@@ -81,7 +81,8 @@ void set_default_parameter(PARA_DATA *para)
   para->prob->chen_a = 0.03874; // Coeffcient of Chen's model
   para->prob->Prt = 0.9; // Turbulent Prandl number
   para->prob->rho = 1.0; //
-  para->prob->nu = 0.1; // Turbulence dynamic viscosity 
+  para->prob->nu = 0.1; // Kinematic viscosity 
+  para->prob->cond = 0.001; //
   para->prob->tur_model = LAM; // No turbulence model
 
   para->solv->check_residual = 0; // Donot check residual */

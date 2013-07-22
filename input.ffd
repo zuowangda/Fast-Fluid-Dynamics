@@ -22,6 +22,10 @@ geom.kmax 10 // Number of interior cells in z-direction
 geom.index 600 // Total number of boundary cells
 prob.nu 0.01 // Kinematic viscosity
 prob.rho 1 // Density
+prob.gravx 0 // Gravity in x direction
+prob.gravy 0 // Gravity in y direction
+prob.gravz -9.8 // Gravity in z direction
+prob.cond; // Conductivity
 
 //------------------------------------------------------------------------------
 // The following parameters can only be defined in this input.cfd
@@ -41,3 +45,5 @@ outp.winx 600 // Resolution of screen at x direction in pixel
 outp.winy 600 // Resolution of screen at y direction in pixel
 outp.version DEBUG // DEMO, DEBUG, RUN
 prob.diff 0.00001 // Diffusivity for contaminants
+prob.alpha 1.96e-5 // Thermal diffusivity
+prob.coeff_h 0.0004 // Convective heat transfer coefficient near the wall

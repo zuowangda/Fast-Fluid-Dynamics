@@ -16,6 +16,7 @@
 
 #include "data_structure.h"
 #include "ffd_data_reader.h"
+#include "utility.h"
 
 FILE *file_params;
 
@@ -74,6 +75,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   char *temp, string[400];
   REAL *delx,*dely,*delz;
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  char msg[100], tmp[50];
 
   // Open the parameter file
   if((file_params=fopen(para->inpu->parameter_file_name,"r")) == NULL )
@@ -442,14 +444,35 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   sscanf(string,"%f %f %f %f %f %f %f %f %f", &density, &nu, &cp, 
          &gravx, &gravy, &gravz, &beta, &trefmax, &spec);
 
-  para->prob->rho=density;
-  para->prob->nu=nu;
-  para->prob->cond=cp;
-  para->prob->gravx=gravx;
-  para->prob->gravy=gravy;
+  para->prob->rho = density;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->rho=%f", para->prob->rho);
+  ffd_log(msg, FFD_NORMAL);
+
+  para->prob->nu = nu;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->nu=%f", para->prob->nu);
+  ffd_log(msg, FFD_NORMAL);
+
+  para->prob->cond = cp;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->cond=%f", para->prob->cond);
+  ffd_log(msg, FFD_NORMAL);
+
+  para->prob->gravx = gravx;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->gravx=%f", para->prob->gravx);
+  ffd_log(msg, FFD_NORMAL);
+
+  para->prob->gravy = gravy;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->gravy=%f", para->prob->gravy);
+  ffd_log(msg, FFD_NORMAL);
+
   para->prob->gravz=gravz;
-  para->prob->beta=beta;
-  para->prob->trefmax=trefmax;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->gravz=%f", para->prob->gravz);
+  ffd_log(msg, FFD_NORMAL);
+
+  para->prob->beta = beta;
+  sprintf(msg, "sci_reader.c: Overwrite para->prob->beta=%f", para->prob->beta);
+  ffd_log(msg, FFD_NORMAL);
+
+  //para->prob->trefmax=trefmax;
   para->prob->spec=spec;
 
   // Read simulation time settings
