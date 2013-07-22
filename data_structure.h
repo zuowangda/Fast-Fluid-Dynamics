@@ -211,7 +211,6 @@ typedef struct{
 } INPU_DATA;
 
 typedef struct{
-  REAL  RE;       /* Reynolds number Re                                     */
   REAL  mu;       /* physical viscosity                                     */
   REAL  nu;       /* kinematic viscosity                                    */
   REAL  rho;      /* density                                                */
