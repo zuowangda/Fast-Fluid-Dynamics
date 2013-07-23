@@ -378,8 +378,8 @@ int assign_parameter(PARA_DATA *para, char *string)
   }
   else if(!strcmp(tmp, "solv.cosimulation"))
   {
-    sscanf(string, "%s%f", tmp, &para->solv->cosimulation);
-    sprintf(msg, "parameter_rader.c: %s=%f", tmp, para->solv->cosimulation);
+    sscanf(string, "%s%d", tmp, &para->solv->cosimulation);
+    sprintf(msg, "parameter_rader.c: %s=%d", tmp, para->solv->cosimulation);
     ffd_log(msg, FFD_NORMAL);
   }
 
