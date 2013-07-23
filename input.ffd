@@ -25,7 +25,7 @@ prob.rho 1 // Density
 prob.gravx 0 // Gravity in x direction
 prob.gravy 0 // Gravity in y direction
 prob.gravz -9.8 // Gravity in z direction
-prob.cond; // Conductivity
+prob.cond 0.026240 // Conductivity
 prob.Cp 1005.0 // Specific heat capacity
 
 //------------------------------------------------------------------------------
@@ -64,4 +64,4 @@ solv.solver GS // Solver type: GS, TDMA
 solv.check_residual 0 // 1: check, 0: donot check
 solv.advection_solver SEMI // Tyep of advection solver: SEMI, LAX, UPWIND, UPWIND_NEW 
 solv.interpolation BILINEAR // Internploation in semi-Lagrangian method: BILINEAR, FSJ, HYBRID
-solv.cosimulation 0 // 0: single; 1: cosimulation
+solv.cosimulation 1 // 0: single; 1: cosimulation
