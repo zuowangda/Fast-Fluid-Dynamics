@@ -6,69 +6,91 @@
 #include "data_structure.h"
 #include "utility.h"
 #include "resource.h"
-
-
-typedef struct {
-  double number0;
-  double number1;
-  int command;
-} ReceivedDataFormat;
-
-typedef struct {
-  int feedback;
-} FFDCommand;
-
-typedef struct {
-  double number0;
-  double number1;
-  int command;
-}SentDataFormat;
-
-typedef struct {
-  int feedback;
-}DymolaFeedback;
+#include "cosimulation.h"
 
 //Global Variables:
-ReceivedDataFormat received;
-DymolaFeedback dymolaFeedback;
+ReceivedData received;
+ReceivedCommand command_received;
+
+
 
 //const char fFDRecvDataCh1[] = "FFDRecvDataCh1";         //Ch1: Dymola to FFD   Need define it in caption
-TCHAR others_receive_command[] = TEXT("DymolaRecvFeedbackCh1");    
+TCHAR command_window_other[] = TEXT("DymolaRecvFeedbackCh1");    
 //const char fFDRecvFeedbackCh2[] = "FFDRecvFeedbackCh2"; //Ch2: FFD to Dymola   Need define it in caption
-TCHAR dymolaRecvDataCh2[] = TEXT("DymolaRecvDataCh2");
+TCHAR data_window_other[] = TEXT("DymolaRecvDataCh2");
+
+
 
 /******************************************************************************
-| Send commands to the other programs
+| Receive the command from the other program
 ******************************************************************************/
-void send_command(FFDCommand ffd_command){
-  HWND hSendWindow;
-  HWND hRecvWindow;
-  COPYDATASTRUCT sendFeedback;
+BOOL CALLBACK receive_command(HWND hwndDlg, UINT message, WPARAM wParam, 
+                              LPARAM lParam) 
+{
+  PCOPYDATASTRUCT pcds; 
 
-  // Get handel of two windows
-  hSendWindow = GetConsoleWindow ();        
-  if (hSendWindow == NULL)
-    ffd_log("cosimulation.c: self handel not found", FFD_ERROR);
+  // Hide message window
+  ShowWindow(hwndDlg, SW_HIDE);
 
-  // Check if the other program is ready (created relative console window) 
-  // for receiving the message
-  hRecvWindow = FindWindow(NULL, others_receive_command);
-
-  // Continue to check the status if the other program is ready
-  while(hRecvWindow == NULL){
-    // Wait
-    Sleep(500);
-    // Check it again
-    hRecvWindow = FindWindow(NULL, others_receive_command);
+  switch(message)
+  {
+    case WM_CLOSE:
+      EndDialog(hwndDlg, 0);
+      break;
+    case WM_COPYDATA:
+      pcds = (PCOPYDATASTRUCT)lParam;
+      // If the size matches, copy the data
+      if (pcds->cbData == sizeof(command_received))
+      {
+        memcpy_s(&command_received, sizeof(command_received), pcds->lpData, pcds->cbData);
+        EndDialog(hwndDlg, 0);
+      }
   }
+  return FALSE;
 
-  // Set the command
-  sendFeedback.cbData = sizeof(ffd_command);            //set data to "package"
-  sendFeedback.lpData = &ffd_command;
+} // End of receive_command()
 
-  // Send the command
-  SendMessage(hRecvWindow, WM_COPYDATA, (WPARAM)hSendWindow, (LPARAM)&sendFeedback); //send data
+/******************************************************************************
+  Read the data send from the other program
+******************************************************************************/
+int read_cosimulation_data(PARA_DATA *para, REAL **var)
+{
+  int j, k;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL feak[1];
+
+  // Receive data from other program
+  receive_data();
+
+  ffd_log("cosimulation.c: Sccessfully read data from the cosimulation program", 
+           FFD_NORMAL);
+  return 0;
 }
+
+/******************************************************************************
+| Receive data from the other program
+******************************************************************************/
+void receive_data()
+{
+  SentCommand command_sent;
+  char msg[500];
+
+  // Receive the data through the message
+  DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DATA), NULL, receive_data_dialog);
+  
+  sprintf(msg, "cosimulation.c: Received data: %d, %f, %f ", 
+          received.command, received.number0, received.number1);
+  ffd_log(msg, FFD_NORMAL);
+
+  // Send feedback for successfully receive
+  command_sent.feedback = 1;
+  send_command(command_sent);
+
+} // End of receive_data()
+
+
 
 /******************************************************************************
 | Receive data from Windows message
@@ -98,96 +120,80 @@ BOOL CALLBACK receive_data_dialog(HWND hwndDlg, UINT message,
   return FALSE;
 } //End of receive_data_dialog()
 
-/******************************************************************************
-| Receive data from the other program
-******************************************************************************/
-void receive_data(){
-  FFDCommand ffd_feed_back;
-  char msg[500];
 
-  // Receive the data through the message
-  DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DATA), NULL, receive_data_dialog);
-  
-  sprintf(msg, "cosimulation.c: Received data: %d, %f, %f ", 
-          received.command, received.number0, received.number1);
-  ffd_log(msg, FFD_NORMAL);
-
-  // Send feedback for successfully receive
-  ffd_feed_back.feedback = 1;
-  send_command(ffd_feed_back);
-
-} // End of receive_data()
 
 /******************************************************************************
-  Read the data send from the other program
+| Send commands to the other programs
 ******************************************************************************/
-int read_cosimulation_data(PARA_DATA *para, REAL **var)
-{
-  int j, k;
-  int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL feak[1];
+void send_command(SentCommand command_sent){
+  HWND hSendWindow;
+  HWND hRecvWindow;
+  COPYDATASTRUCT data_package;
 
-  // Receive data from other program
-  receive_data();
+  // Get handel of two windows
+  hSendWindow = GetConsoleWindow ();        
+  if (hSendWindow == NULL)
+    ffd_log("cosimulation.c: self handel not found", FFD_ERROR);
 
-  ffd_log("cosimulation.c: Sccessfully read data from the cosimulation program", FFD_NORMAL);
-  return 0;
-}
+  // Check if the other program is ready (created relative console window) 
+  // for receiving the message
+  hRecvWindow = FindWindow(NULL, command_window_other);
 
-/******************************************************************************
-|
-******************************************************************************/
-BOOL CALLBACK RecvDymolaFeedbackDialogCh2(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam) {
-  PCOPYDATASTRUCT pcds; 
-  ShowWindow(hwndDlg, SW_HIDE);
-
-  switch (message){
-
-  case WM_CLOSE:
-      EndDialog(hwndDlg, 0);
-      break;
-
-    case WM_COPYDATA:
-      pcds = (PCOPYDATASTRUCT)lParam;
-      // If the size matches
-      if (pcds->cbData == sizeof(dymolaFeedback)){
-        memcpy_s(&dymolaFeedback, sizeof(dymolaFeedback), pcds->lpData, pcds->cbData);
-        EndDialog(hwndDlg, 0);
-      }
+  // Continue to check the status if the other program is ready
+  while(hRecvWindow == NULL){
+    // Wait
+    Sleep(500);
+    // Check it again
+    hRecvWindow = FindWindow(NULL, command_window_other);
   }
-  return FALSE;
+
+  // Set the command to a package
+  data_package.cbData = sizeof(command_sent);
+  data_package.lpData = &command_sent;
+
+  // Send the command
+  SendMessage(hRecvWindow, WM_COPYDATA, (WPARAM)hSendWindow, (LPARAM)&data_package);
 }
 
-int send_data(SentDataFormat fFDSend){
+/******************************************************************************
+| Send data to the other program
+******************************************************************************/
+int send_data(SentData data_sent){
   HWND hSendWindow;
   HWND hRecvWindow ;
-  COPYDATASTRUCT sendData;
+  COPYDATASTRUCT data_package;
 
-  hSendWindow = GetConsoleWindow ();        //get handel of two windows
+  //get handel of two windows
+  hSendWindow = GetConsoleWindow ();        
   if (hSendWindow == NULL) {
-    printf("%s\n", "self handel not found");  
+    ffd_log("cosimulation.c: Self handel not found", FFD_ERROR);
     system("pause"); 
   }
 
-  hRecvWindow = FindWindow(NULL, dymolaRecvDataCh2);
+  // Get the window handle of the other program
+  hRecvWindow = FindWindow(NULL, data_window_other);
   while(hRecvWindow == NULL){
-    Sleep(500);                                     //*******set waiting time
-    hRecvWindow = FindWindow(NULL, dymolaRecvDataCh2);
+    // Wait
+    Sleep(500);
+    // Check again
+    hRecvWindow = FindWindow(NULL, data_window_other);
   }
-  sendData.cbData = sizeof(fFDSend);            //set data to "package"
-  sendData.lpData = &fFDSend;
-  SendMessage(hRecvWindow, WM_COPYDATA, (WPARAM)hSendWindow, (LPARAM)&sendData); //send data
 
-  //run recvfeedback close dialog
-  DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_FEEDBACK), NULL, RecvDymolaFeedbackDialogCh2);
-  if(dymolaFeedback.feedback==1){
-    return 1;
-  }else {
+  // Set data to a package
+  data_package.cbData = sizeof(data_sent);
+  data_package.lpData = &data_sent;
+
+  // Send the package
+  SendMessage(hRecvWindow, WM_COPYDATA, (WPARAM)hSendWindow, (LPARAM)&data_package);
+
+  // Check if the data package have been received
+  DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_FEEDBACK), NULL, receive_command);
+
+  if(command_received.feedback==1)
     return 0;
-  }
-}
+  else
+    return 1;
+} // End of send_data()
 
 
 /******************************************************************************
@@ -199,19 +205,17 @@ int write_cosimulation_data(PARA_DATA *para, REAL **var)
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int check;
-  SentDataFormat fFDSend1;
+  SentData data_sent;
   
-      //prepare data to send
-  fFDSend1.number0 = 888.666;
-  fFDSend1.number1 = 666.888;
-  fFDSend1.command = 123456;
+  //prepare data to send
+  data_sent.number0 = 888.666;
+  data_sent.number1 = 666.888;
+  data_sent.command = 11111;
 
-  check = send_data(fFDSend1);
-  if (check==0){
-    ffd_log("No feedback from the other program", FFD_ERROR);
-  }
-
+  if (!send_data(data_sent))
+    ffd_log("cosimulation.c: Successfully sent data to the other program", FFD_NORMAL);
+  else
+    ffd_log("cosimulation.c: No feedback from the other program", FFD_ERROR);
 
   return 0;
 }
