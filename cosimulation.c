@@ -16,13 +16,13 @@ typedef struct {
 
 typedef struct {
   int feedback;
-} FFDFeedback;
+} FFDCommand;
 
 typedef struct {
   double number0;
   double number1;
   int command;
-}FFDSend;
+}SentDataFormat;
 
 typedef struct {
   int feedback;
@@ -33,31 +33,40 @@ ReceivedDataFormat received;
 DymolaFeedback dymolaFeedback;
 
 //const char fFDRecvDataCh1[] = "FFDRecvDataCh1";         //Ch1: Dymola to FFD   Need define it in caption
-TCHAR dymolaRecvFeedbackCh1[] = TEXT("DymolaRecvFeedbackCh1");    
+TCHAR others_receive_command[] = TEXT("DymolaRecvFeedbackCh1");    
 //const char fFDRecvFeedbackCh2[] = "FFDRecvFeedbackCh2"; //Ch2: FFD to Dymola   Need define it in caption
 TCHAR dymolaRecvDataCh2[] = TEXT("DymolaRecvDataCh2");
 
-//******CHANNEL ONE DYMOLA TO FFD
-
-
-
-void sendFeedbackToDymolaCh1(FFDFeedback fFDFeedback){
+/******************************************************************************
+| Send commands to the other programs
+******************************************************************************/
+void send_command(FFDCommand ffd_command){
   HWND hSendWindow;
   HWND hRecvWindow;
   COPYDATASTRUCT sendFeedback;
 
-  hSendWindow = GetConsoleWindow ();        //get handel of two windows
-  if (hSendWindow == NULL) {
-    printf("%s\n", "self handel not found");  
+  // Get handel of two windows
+  hSendWindow = GetConsoleWindow ();        
+  if (hSendWindow == NULL)
+    ffd_log("cosimulation.c: self handel not found", FFD_ERROR);
+
+  // Check if the other program is ready (created relative console window) 
+  // for receiving the message
+  hRecvWindow = FindWindow(NULL, others_receive_command);
+
+  // Continue to check the status if the other program is ready
+  while(hRecvWindow == NULL){
+    // Wait
+    Sleep(500);
+    // Check it again
+    hRecvWindow = FindWindow(NULL, others_receive_command);
   }
 
-  hRecvWindow = FindWindow(NULL, dymolaRecvFeedbackCh1);
-  while(hRecvWindow == NULL){
-    Sleep(500);                                     //*******set waiting time
-    hRecvWindow = FindWindow(NULL, dymolaRecvFeedbackCh1);
-  }
-  sendFeedback.cbData = sizeof(fFDFeedback);            //set data to "package"
-  sendFeedback.lpData = &fFDFeedback;
+  // Set the command
+  sendFeedback.cbData = sizeof(ffd_command);            //set data to "package"
+  sendFeedback.lpData = &ffd_command;
+
+  // Send the command
   SendMessage(hRecvWindow, WM_COPYDATA, (WPARAM)hSendWindow, (LPARAM)&sendFeedback); //send data
 }
 
@@ -87,13 +96,13 @@ BOOL CALLBACK receive_data_dialog(HWND hwndDlg, UINT message,
   }
 
   return FALSE;
-}
+} //End of receive_data_dialog()
 
 /******************************************************************************
 | Receive data from the other program
 ******************************************************************************/
 void receive_data(){
-  FFDFeedback ffd_feed_back;
+  FFDCommand ffd_feed_back;
   char msg[500];
 
   // Receive the data through the message
@@ -105,7 +114,7 @@ void receive_data(){
 
   // Send feedback for successfully receive
   ffd_feed_back.feedback = 1;
-  sendFeedbackToDymolaCh1(ffd_feed_back);
+  send_command(ffd_feed_back);
 
 } // End of receive_data()
 
@@ -151,7 +160,7 @@ BOOL CALLBACK RecvDymolaFeedbackDialogCh2(HWND hwndDlg, UINT message, WPARAM wPa
   return FALSE;
 }
 
-int sendDataToDymolaCh2(FFDSend fFDSend){
+int send_data(SentDataFormat fFDSend){
   HWND hSendWindow;
   HWND hRecvWindow ;
   COPYDATASTRUCT sendData;
@@ -191,15 +200,14 @@ int write_cosimulation_data(PARA_DATA *para, REAL **var)
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   int check;
-  FFDSend fFDSend1;
-
+  SentDataFormat fFDSend1;
   
       //prepare data to send
   fFDSend1.number0 = 888.666;
   fFDSend1.number1 = 666.888;
   fFDSend1.command = 123456;
 
-  check = sendDataToDymolaCh2(fFDSend1);
+  check = send_data(fFDSend1);
   if (check==0){
     ffd_log("No feedback from the other program", FFD_ERROR);
   }
