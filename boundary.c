@@ -5,6 +5,7 @@
 // Task: Define the boundary conditions
 //
 // Modification history:
+// 
 // 7/10/2013 by Wangda Zuo: re-constructed the code for release
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,7 +16,6 @@
 
 #include "data_structure.h"
 #include "boundary.h"
-#include "inlet_profile.h"
 #include "geometry.h"
 
 /******************************************************************************
@@ -215,7 +215,7 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL axy, ayz, azx; // Area of surfaces
   REAL coeff_h=para->prob->coeff_h;
 
-  REAL coeq = 0.001; // Fixme: Chekc why times 0.001 for heat flux
+  REAL coeq = 0.001; // Fixme: Check why times 0.001 for heat flux
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
