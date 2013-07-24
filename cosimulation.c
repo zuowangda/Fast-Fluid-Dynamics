@@ -167,7 +167,7 @@ int send_data(SentData data_sent){
   hSendWindow = GetConsoleWindow ();        
   if (hSendWindow == NULL) {
     ffd_log("cosimulation.c: Self handel not found", FFD_ERROR);
-    system("pause"); 
+    return 1;
   }
 
   // Get the window handle of the other program
