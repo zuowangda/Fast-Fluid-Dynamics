@@ -6,7 +6,7 @@
 #include "data_structure.h"
 #include "utility.h" 
 #define BUF_SIZE 256
-#define BUF_DATA_SIZE (10*sizeof(double))
+#define BUF_DATA_SIZE 2560
 
 TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
 TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
@@ -66,8 +66,8 @@ int write_to_shared_memory(ffdSharedData *ffdData)
 int read_from_shared_memory(otherSharedData *otherData)
 {
   HANDLE DataMapFile;
-  LPCTSTR DataBuf;
   char msg[100];
+  otherSharedData *data;
 
   /*---------------------------------------------------------------------------
   | Open the named file mapping objects
@@ -88,22 +88,28 @@ int read_from_shared_memory(otherSharedData *otherData)
   /*---------------------------------------------------------------------------
   | Mps a view of a file mapping into the address space of a calling process
   ---------------------------------------------------------------------------*/
-  DataBuf = (LPTSTR) MapViewOfFile(DataMapFile,   // handle to map object
+  data = (otherSharedData *) MapViewOfFile(DataMapFile,   // handle to map object
                       FILE_MAP_ALL_ACCESS, // read/write permission
                       0,
                       0,
                       BUF_DATA_SIZE);
 
-  if(DataBuf == NULL)
+  if(data == NULL)
   {
     sprintf(msg, "cosimulation.c: Could not map view of other data file. Error code %d", GetLastError());
     CloseHandle(DataMapFile);
     return 1;
   }
-  // Copy a block of memory from dataBuf to otherData
-  CopyMemory(otherData, (PVOID)DataBuf, sizeof(otherSharedData));
 
-  UnmapViewOfFile(DataBuf);
+  otherData->arr[0] = data->arr[0];
+  otherData->arr[1] = data->arr[1];
+  otherData->arr[2] = data->arr[2];
+  otherData->command = data->command;
+  otherData->number = data->number;
+  printf("%s\n", data->message);
+  strcpy(otherData->message, data->message);
+
+  UnmapViewOfFile(data);
   CloseHandle(DataMapFile);
 
   return 0;

@@ -108,7 +108,7 @@ typedef struct {
   REAL number;
   int command;
   REAL arr[3];
-  char message[20];
+  char message[30];
 }otherSharedData;
 
 // Parameter for geometry and mesh

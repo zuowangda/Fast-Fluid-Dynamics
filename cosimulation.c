@@ -29,6 +29,13 @@ int read_cosimulation_data(PARA_DATA *para, REAL **var)
     for(k=0; k<=kmax+1; k++)
       var[TEMPBC][IX(imax+1,j,k)]= feak[0];
 
+   printf("Modelica data\n");
+   printf("number=%f\n", data.number);
+   printf("arr[0]=%f, arr[1]=%f, arr[2]=%f\n", data.arr[0], data.arr[1], data.arr[2]);
+   printf("command=%d\n",data.command);
+   printf("message=%s\n",data.message); 
+   getchar();
+
   /*-------------------------------------------------------------------------
   | The above code is to be modified by the users
   -------------------------------------------------------------------------*/
