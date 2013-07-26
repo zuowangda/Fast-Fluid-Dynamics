@@ -8,11 +8,6 @@
 #define BUF_SIZE 256
 #define BUF_DATA_SIZE (10*sizeof(double))
 
-//TCHAR szName[]=TEXT("Global\\MyFileMappingObject");
-TCHAR szName[]=TEXT("MyFileMappingObject");
-
-TCHAR szMsg[]=TEXT("Message from first process.");
-
 TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
 TCHAR modelicaDataName[] = TEXT("ModelicaDataMappingObject");
 
@@ -60,6 +55,6 @@ int write_to_shared_memory( )
   }
   // Copy a block of memory from ffdData to ffdDaraBuf
   CopyMemory((PVOID)ffdDataBuf, ffdData, (10 * sizeof(double)));
-  getchar();
+
   return 0;
-}
+} // End of write_to_shared_memory()
