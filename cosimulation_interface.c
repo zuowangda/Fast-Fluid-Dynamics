@@ -4,11 +4,13 @@
 #include <tchar.h>
 
 #include "data_structure.h"
+#include "utility.h" 
 #define BUF_SIZE 256
 #define BUF_DATA_SIZE (10*sizeof(double))
 
 //TCHAR szName[]=TEXT("Global\\MyFileMappingObject");
 TCHAR szName[]=TEXT("MyFileMappingObject");
+
 TCHAR szMsg[]=TEXT("Message from first process.");
 
 TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
@@ -16,98 +18,48 @@ TCHAR modelicaDataName[] = TEXT("ModelicaDataMappingObject");
 
 double ffdData[10];
 double modelicaData[10];
+
+
 /******************************************************************************
- Allocate memory for data sharing 
+ Write shared data to the shared memory 
 ******************************************************************************/
-int createSharedData( )
+int write_to_shared_memory( )
 {
-  int i;
-  for(i=0; i<10; i++)
-    ffdData[i] = (double) i;
+  char msg[100];
+
   /*---------------------------------------------------------------------------
-  | Create a named file mapping object for a specified file
+  | Open the named file mapping objects
   ---------------------------------------------------------------------------*/
-  hMapFile = CreateFileMapping(
-                INVALID_HANDLE_VALUE,    // use paging file
-                NULL,                    // default security
-                PAGE_READWRITE,          // read/write access
-                0,                       // maximum object size (high-order DWORD)
-                BUF_SIZE,                // maximum object size (low-order DWORD)
-                szName);                 // name of mapping object
-  ffdDataMapFile = CreateFileMapping(
-                INVALID_HANDLE_VALUE,    // use paging file
-                NULL,                    // default security
-                PAGE_READWRITE,          // read/write access
-                0,                       // maximum object size (high-order DWORD)
-                BUF_DATA_SIZE,                // maximum object size (low-order DWORD)
-                ffdDataName);                 // name of mapping object
-  // Send warning if can not create shared memory
-  if(hMapFile==NULL)
-  {
-    _tprintf(TEXT("Could not create file mapping object (%d).\n"),
-            GetLastError());
-    return 1;
-  }
+  ffdDataMapFile = OpenFileMapping(
+                    FILE_MAP_ALL_ACCESS,    // read/write access
+                     FALSE,           // do not inherit the name
+                     ffdDataName);    // name of mapping object for FFD data
+
+  // Send warning if can not open shared memory
   if(ffdDataMapFile==NULL)
   {
-    _tprintf(TEXT("Could not create file mapping object (%d).\n"),
-            GetLastError());
+    sprintf(msg, "cosimulation.c: Could not open FFD data file mapping object. Error code %d", GetLastError());
+    ffd_log("cosimulation.c: Could not open FFD daat file mapping object.", FFD_ERROR);
     return 1;
   }
-
-
+ 
   /*---------------------------------------------------------------------------
   | Mps a view of a file mapping into the address space of a calling process
   ---------------------------------------------------------------------------*/
-  pBuf = (LPTSTR) MapViewOfFile(hMapFile,   // handle to map object
-                      FILE_MAP_ALL_ACCESS, // read/write permission
-                      0,
-                      0,
-                      BUF_SIZE);
   ffdDataBuf = (LPTSTR) MapViewOfFile(ffdDataMapFile,   // handle to map object
                       FILE_MAP_ALL_ACCESS, // read/write permission
                       0,
                       0,
                       BUF_DATA_SIZE);
 
-  //modelicaDataBuf = (LPTSTR) MapViewOfFile(modelicaDataMapFile,   // handle to map object
-  //                    FILE_MAP_ALL_ACCESS, // read/write permission
-  //                    0,
-  //                    0,
-  //                    BUF_DATA_SIZE);
-  if(pBuf == NULL)
-  {
-    _tprintf(TEXT("Could not map view of file (%d).\n"),
-            GetLastError());
-
-      CloseHandle(hMapFile);
-
-    return 1;
-  }
   if(ffdDataBuf == NULL)
   {
-    _tprintf(TEXT("Could not map view of file (%d).\n"),
-            GetLastError());
-
-      CloseHandle(ffdDataMapFile);
-
+    sprintf(msg, "cosimulation.c: Could not map view of FFD data file. Error code %d", GetLastError());
+    CloseHandle(ffdDataMapFile);
     return 1;
   }
-  // Copy a block of memory from szMsg to pBuf
-  CopyMemory((PVOID)pBuf, szMsg, (_tcslen(szMsg) * sizeof(TCHAR)));
+  // Copy a block of memory from ffdData to ffdDaraBuf
   CopyMemory((PVOID)ffdDataBuf, ffdData, (10 * sizeof(double)));
   getchar();
-
-   //UnmapViewOfFile(pBuf);
-   
-   //CloseHandle(hMapFile);
-
-   return 0;
-}
-
-int freeSharedData()
-{
-     UnmapViewOfFile(pBuf);
-     CloseHandle(hMapFile);
-     return 0;
+  return 0;
 }
