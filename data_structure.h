@@ -13,8 +13,6 @@
 #include <windows.h>
 #include <conio.h>
 
-
-
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
 #define FOR_ALL_CELL for(k=0; k<=kmax+1; k++) { for(j=0; j<=jmax+1; j++) { for(i=0; i<=imax+1; i++) {
@@ -99,6 +97,22 @@ typedef enum{DEMO, DEBUG, RUN} VERSION;
 typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
 typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
+
+typedef struct {
+  double number0;
+  double number1;
+  int command;
+  double arr[3];
+  char message[20];
+}ffdSharedData;
+
+typedef struct {
+  double number0;
+  double number1;
+  int command;
+  double arr[3];
+  char message[20];
+}otherSharedData;
 
 // Parameter for geometry and mesh
 typedef struct 
