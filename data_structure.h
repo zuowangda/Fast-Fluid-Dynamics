@@ -13,12 +13,7 @@
 #include <windows.h>
 #include <conio.h>
 
-HANDLE hMapFile;
-LPCTSTR pBuf;
-HANDLE ffdDataMapFile;
-LPCTSTR ffdDataBuf;
-HANDLE modelicaDataMapFile;
-LPCTSTR modelicaDataBuf;
+
 
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
