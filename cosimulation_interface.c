@@ -11,8 +11,7 @@
 TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
 TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
 
-HANDLE DataMapFile;
-LPCTSTR DataBuf;
+
 
 double ffdData[10];
 double otherData[10];
@@ -23,6 +22,8 @@ double otherData[10];
 ******************************************************************************/
 int write_to_shared_memory( )
 {
+  HANDLE DataMapFile;
+  LPCTSTR DataBuf;
   char msg[100];
 
   /*---------------------------------------------------------------------------
@@ -59,6 +60,9 @@ int write_to_shared_memory( )
   // Copy a block of memory from ffdData to ffdDaraBuf
   CopyMemory((PVOID)DataBuf, ffdData, (10 * sizeof(double)));
 
+  UnmapViewOfFile(DataBuf);
+  CloseHandle(DataMapFile);
+
   return 0;
 } // End of write_to_shared_memory()
 
@@ -67,6 +71,8 @@ int write_to_shared_memory( )
 ******************************************************************************/
 int read_from_shared_memory( )
 {
+  HANDLE DataMapFile;
+  LPCTSTR DataBuf;
   char msg[100];
 
   /*---------------------------------------------------------------------------
@@ -102,6 +108,9 @@ int read_from_shared_memory( )
   }
   // Copy a block of memory from dataBuf to otherData
   CopyMemory(otherData, (PVOID)DataBuf,(10 * sizeof(double)));
+
+  UnmapViewOfFile(DataBuf);
+  CloseHandle(DataMapFile);
 
   return 0;
 } // End of read_from_shared_memory()
