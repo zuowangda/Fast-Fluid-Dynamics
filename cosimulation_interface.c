@@ -11,16 +11,10 @@
 TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
 TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
 
-
-
-double ffdData[10];
-double otherData[10];
-
-
 /******************************************************************************
  Write shared data to the shared memory 
 ******************************************************************************/
-int write_to_shared_memory( )
+int write_to_shared_memory(double *ffdData)
 {
   HANDLE DataMapFile;
   LPCTSTR DataBuf;
@@ -69,7 +63,7 @@ int write_to_shared_memory( )
 /******************************************************************************
  Read shared data from the shared memory 
 ******************************************************************************/
-int read_from_shared_memory( )
+int read_from_shared_memory(double *otherData)
 {
   HANDLE DataMapFile;
   LPCTSTR DataBuf;
