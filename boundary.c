@@ -15,7 +15,6 @@
 
 #include "data_structure.h"
 #include "boundary.h"
-#include "inlet_profile.h"
 #include "geometry.h"
 
 /******************************************************************************
