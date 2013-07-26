@@ -51,6 +51,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     // Exchange the intial consitions for cosimulation
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
+    getchar();
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
   }
 

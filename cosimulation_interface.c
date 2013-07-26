@@ -51,7 +51,7 @@ int write_to_shared_memory(ffdSharedData *ffdData)
     CloseHandle(DataMapFile);
     return 1;
   }
-  // Copy a block of memory from ffdData to ffdDaraBuf
+  // Copy a block of memory from ffdData to ffdDataBuf
   CopyMemory((PVOID)DataBuf, ffdData, sizeof(ffdSharedData));
 
   UnmapViewOfFile(DataBuf);
@@ -78,11 +78,12 @@ int read_from_shared_memory(otherSharedData *otherData)
                     otherDataName);    // name of mapping object for FFD data
 
   // Send warning if can not open shared memory
-  if(DataMapFile==NULL)
+  while(DataMapFile==NULL)
   {
-    sprintf(msg, "cosimulation.c: Could not open other data file mapping object. Error code %d", GetLastError());
-    ffd_log("cosimulation.c: Could not open other data file mapping object.", FFD_ERROR);
-    return 1;
+    DataMapFile = OpenFileMapping(
+                    FILE_MAP_ALL_ACCESS,    // read/write access
+                    FALSE,           // do not inherit the name
+                    otherDataName);    // name of mapping object for FFD data
   }
  
   /*---------------------------------------------------------------------------
@@ -94,11 +95,14 @@ int read_from_shared_memory(otherSharedData *otherData)
                       0,
                       BUF_DATA_SIZE);
 
-  if(data == NULL)
+  if(data == NULL || data->command == -1)
   {
-    sprintf(msg, "cosimulation.c: Could not map view of other data file. Error code %d", GetLastError());
-    CloseHandle(DataMapFile);
-    return 1;
+    Sleep(100);
+    data = (otherSharedData *) MapViewOfFile(DataMapFile,   // handle to map object
+                      FILE_MAP_ALL_ACCESS, // read/write permission
+                      0,
+                      0,
+                      BUF_DATA_SIZE);
   }
 
   otherData->arr[0] = data->arr[0];

@@ -34,7 +34,6 @@ int read_cosimulation_data(PARA_DATA *para, REAL **var)
    printf("arr[0]=%f, arr[1]=%f, arr[2]=%f\n", data.arr[0], data.arr[1], data.arr[2]);
    printf("command=%d\n",data.command);
    printf("message=%s\n",data.message); 
-   getchar();
 
   /*-------------------------------------------------------------------------
   | The above code is to be modified by the users
