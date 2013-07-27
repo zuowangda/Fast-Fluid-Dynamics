@@ -25,7 +25,7 @@ prob.rho 1 // Density
 prob.gravx 0 // Gravity in x direction
 prob.gravy 0 // Gravity in y direction
 prob.gravz -9.8 // Gravity in z direction
-prob.cond; // Conductivity
+prob.cond 0.026240 // Conductivity
 prob.Cp 1005.0 // Specific heat capacity
 
 //------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ prob.Prt 0.9 // Turbulent Prandl number
 prob.Temp_Buoyancy 20.0 // Reference temperature for calucating bouyance force
 
 mytime.t_steady 100.0 //Necessary time for reaching the steady state from initial condition
-mytime.dt_cosim 10.0  // Time step for co-simulation data exchange 
+mytime.dt_cosim 0.1  // Time step for co-simulation data exchange 
 
 solv.solver GS // Solver type: GS, TDMA
 solv.check_residual 0 // 1: check, 0: donot check

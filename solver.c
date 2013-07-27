@@ -51,8 +51,13 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     // Exchange the intial consitions for cosimulation
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
+<<<<<<< HEAD
     getchar();
+=======
+    printf("Synchronize data at t=%f\n", para->mytime->t);
+>>>>>>> 907fa865c8861cf27dc2c3d437bea1ca2f0c90d9
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
+
   }
 
   /*---------------------------------------------------------------------------
@@ -88,7 +93,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
       //Exchange the data for cosimulation
       read_cosimulation_data(para, var);
       write_cosimulation_data(para, var);
-
+      printf("Synchronize data at t=%f\n", para->mytime->t);
       // set the next synchronization time
       t_cosim += para->mytime->dt_cosim;
     }

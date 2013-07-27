@@ -275,3 +275,23 @@ typedef struct
   BC_DATA    *bc;
   SOLV_DATA  *solv;
 }PARA_DATA;
+
+typedef struct {
+  double number0;
+  double number1;
+  int command;
+} ReceivedData;
+
+typedef struct {
+  int feedback;
+} SentCommand;
+
+typedef struct {
+  double number0;
+  double number1;
+  int command;
+}SentData;
+
+typedef struct {
+  int feedback;
+}ReceivedCommand;
