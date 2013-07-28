@@ -51,6 +51,7 @@ int write_to_shared_memory(ffdSharedData *ffdData)
     CloseHandle(DataMapFile);
     return 1;
   }
+
   // Copy a block of memory from ffdData to ffdDataBuf
   CopyMemory((PVOID)DataBuf, ffdData, sizeof(ffdSharedData));
 
@@ -61,13 +62,18 @@ int write_to_shared_memory(ffdSharedData *ffdData)
 } // End of write_to_shared_memory()
 
 /******************************************************************************
- Read shared data from the shared memory 
+| Read shared data from the shared memory 
+| Data status indicated by status
+| -1: feak data
+|  0: data has been read by the other program
+|  1: data waiting for the other program to read
 ******************************************************************************/
 int read_from_shared_memory(otherSharedData *otherData)
 {
   HANDLE DataMapFile;
   char msg[100];
   otherSharedData *data;
+  int i, imax = 1000;
 
   /*---------------------------------------------------------------------------
   | Open the named file mapping objects
@@ -77,13 +83,22 @@ int read_from_shared_memory(otherSharedData *otherData)
                     FALSE,           // do not inherit the name
                     otherDataName);    // name of mapping object for FFD data
 
-  // Send warning if can not open shared memory
-  while(DataMapFile==NULL)
+  // open the map
+  i = 0;
+  while(DataMapFile==NULL && i<imax)
   {
     DataMapFile = OpenFileMapping(
                     FILE_MAP_ALL_ACCESS,    // read/write access
                     FALSE,           // do not inherit the name
                     otherDataName);    // name of mapping object for FFD data
+    i++;
+  }
+
+  if(DataMapFile==NULL && i>=imax)
+  {
+    sprintf(msg, "cosimulation.c: fail to open file map after %d times", i);
+    ffd_log(msg, FFD_ERROR);
+    exit(1);
   }
  
   /*---------------------------------------------------------------------------
@@ -95,7 +110,7 @@ int read_from_shared_memory(otherSharedData *otherData)
                       0,
                       BUF_DATA_SIZE);
 
-  if(data == NULL || data->command == -1)
+  if(data == NULL)
   {
     Sleep(100);
     data = (otherSharedData *) MapViewOfFile(DataMapFile,   // handle to map object
@@ -105,13 +120,21 @@ int read_from_shared_memory(otherSharedData *otherData)
                       BUF_DATA_SIZE);
   }
 
+  while(data->status<1)
+    Sleep(1000);
+
   otherData->arr[0] = data->arr[0];
   otherData->arr[1] = data->arr[1];
   otherData->arr[2] = data->arr[2];
-  otherData->command = data->command;
-  otherData->number = data->number;
-  printf("%s\n", data->message);
+  otherData->t = data->t;
+  //printf("%s\n", data->message);
   strcpy(otherData->message, data->message);
+
+  // Change the sign to indicate that the data has been read
+  data->status = 0;
+
+  // Copy a block of memory from Data to ffdDataBuf
+  //CopyMemory((PVOID)data, otherData, sizeof(otherSharedData));
 
   UnmapViewOfFile(data);
   CloseHandle(DataMapFile);

@@ -99,14 +99,15 @@ typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
 
 typedef struct {
+  REAL t;
+  int status;
   REAL number[3];
-  int command;
   char message[20];
 }ffdSharedData;
 
 typedef struct {
-  REAL number;
-  int command;
+  REAL t;
+  int status;
   REAL arr[3];
   char message[30];
 }otherSharedData;

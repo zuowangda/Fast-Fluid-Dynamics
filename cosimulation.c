@@ -22,7 +22,7 @@ int read_cosimulation_data(PARA_DATA *para, REAL **var)
   else
     ffd_log("cosimulation.c: read data from shared memory.", FFD_NORMAL);
 
-  feak[0] = data.number;
+  feak[0] = data.arr[0];
 
   /*--------------------------------------------------------------------------
   | The following code is to be modified by the users
@@ -31,11 +31,11 @@ int read_cosimulation_data(PARA_DATA *para, REAL **var)
     for(k=0; k<=kmax+1; k++)
       var[TEMPBC][IX(imax+1,j,k)]= feak[0];
 
-   printf("Modelica data\n");
-   printf("number=%f\n", data.number);
-   printf("arr[0]=%f, arr[1]=%f, arr[2]=%f\n", data.arr[0], data.arr[1], data.arr[2]);
-   printf("command=%d\n",data.command);
-   printf("message=%s\n",data.message); 
+   
+  printf("\ntime=%f, status=%d\n", data.t, data.status);
+  printf("arr[0]=%f, arr[1]=%f, arr[2]=%f\n", data.arr[0], data.arr[1], data.arr[2]);
+
+   //printf("message=%s\n",data.message); 
 
   return 0;
 } // End of read_cosimulation_data()
@@ -59,8 +59,11 @@ int write_cosimulation_data(PARA_DATA *para, REAL **var)
   --------------------------------------------------------------------------*/
   for(i=0; i<3; i++)
     data.number[i] = var[VX][IX(1,1,1)] + i;
-  data.command = 0;
-  strcpy( data.message, "This is FFD data\0");
+
+  data.status = 1;
+  data.t = para->mytime->t;
+
+  strcpy(data.message, "This is FFD data\0");
 
   if(write_to_shared_memory(&data))
     exit(1);
