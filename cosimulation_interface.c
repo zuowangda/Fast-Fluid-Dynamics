@@ -120,13 +120,14 @@ int read_from_shared_memory(otherSharedData *otherData)
                       BUF_DATA_SIZE);
   }
 
-  while(data->status<1)
-    Sleep(1000);
+  while(data->status<1) 
+    Sleep(100);
 
   otherData->arr[0] = data->arr[0];
   otherData->arr[1] = data->arr[1];
   otherData->arr[2] = data->arr[2];
   otherData->t = data->t;
+  otherData->status= data->status;
   //printf("%s\n", data->message);
   strcpy(otherData->message, data->message);
 
