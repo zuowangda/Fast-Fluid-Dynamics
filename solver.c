@@ -52,7 +52,7 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     // Exchange the intial consitions for cosimulation
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
-    getchar();
+    //getchar();
     printf("Synchronize data at t=%f\n", para->mytime->t);
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
 
@@ -161,7 +161,7 @@ void vel_step(PARA_DATA *para, REAL **var,int **BINDEX)
    diffusion(para, var, VZ, w, w0, BINDEX); 
 
 
- if(para->bc->NBOUT!=0) mass_conservation(para, var,BINDEX);
+ if(para->bc->nb_outlet!=0) mass_conservation(para, var,BINDEX);
   projection(para, var,BINDEX);
 
 } // End of vel_step( )

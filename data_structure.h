@@ -98,19 +98,23 @@ typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
 typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
 
-typedef struct {
+typedef struct 
+{
   REAL t;
   int status;
   REAL number[3];
   char message[20];
 }ffdSharedData;
 
-typedef struct {
+typedef struct 
+{
   REAL t;
   int status;
   REAL arr[3];
   char message[30];
 }otherSharedData;
+
+
 
 // Parameter for geometry and mesh
 typedef struct 
@@ -187,7 +191,6 @@ typedef struct
   REAL  z2;
   REAL  z3;
   REAL  z4;
-
 } GEOM_DATA;
 
 typedef struct{
@@ -241,7 +244,11 @@ typedef struct{
 }PROB_DATA;
 
 typedef struct{
-  int   NBOUT; // Number of outlet boundaries, Provided by SCI
+  int nb_outlet; // Number of outlet boundaries, Provided by SCI
+  int no_bc; // Number of boundaries
+  char** bcname;
+  char ffdbcid[100]; // BC id stored in FFD
+  char otherbcid[100]; // BC id for the other program
 }BC_DATA;
 
 typedef struct 

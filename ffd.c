@@ -178,9 +178,9 @@ int allocate_data (void)
       !dens || !dens_s || !temp || !temp_s || !temp_mean || 
       !tmp1 || !tmp2 || !tmp3 ||
       !ap || !ae || !aw || !as || !an || !ab || !af || !b || !gx || !gy || !gz || !ap0 || !pp || !flagp ||
-      ! flagu || ! flagv || ! flagw || ! locmin || ! locmax ||
-      ! vxbc ||! vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
-      !xindex ||! yindex ||! zindex) 
+      !flagu || !flagv || !flagw || !locmin || !locmax ||
+      !vxbc || !vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
+      !xindex || !yindex || !zindex || !bcid) 
   {
     fprintf( stderr, "cannot allocate data\n" );
     return 1;

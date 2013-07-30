@@ -61,7 +61,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   int IWWALL,IEWALL,ISWALL,INWALL,IBWALL,ITWALL;
-  int NBIN, NBOUT, NBL, NW;
+  int NBIN, nb_outlet, NBL, NW;
   int SI,SJ,SK,EI,EJ,EK,FLTMP;
   REAL TMP,MASS,U,V,W;
   int restart;
@@ -171,6 +171,12 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   sscanf(string,"%d%d%d%d%d%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
 
   /*---------------------------------------------------------------------------
+  | Read total number of boundary conditions
+  ----------------------------------------------------------------------------*/
+  fgets(string, 400, file_params);
+  sscanf(string,"%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
+
+  /*---------------------------------------------------------------------------
   | Read the inlet boundary conditions
   ----------------------------------------------------------------------------*/
   // Get number of inlet boundaries
@@ -238,14 +244,14 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   | Read the outlet boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&NBOUT); 
-  para->bc->NBOUT=NBOUT;
-  sprintf(msg, "sci_reader.c: para->bc->NBOUT=%f", para->bc->NBOUT);
+  sscanf(string,"%d",&nb_outlet); 
+  para->bc->nb_outlet=nb_outlet;
+  sprintf(msg, "sci_reader.c: para->bc->nb_outlet=%f", para->bc->nb_outlet);
   ffd_log(msg, FFD_NORMAL);
 
-  if(NBOUT !=0)
+  if(nb_outlet !=0)
   {
-    for(i=1;i<=NBOUT;i++)
+    for(i=1;i<=nb_outlet;i++)
     {
       fgets(string, 400, file_params);
       sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
