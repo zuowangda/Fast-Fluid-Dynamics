@@ -61,12 +61,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   int IWWALL,IEWALL,ISWALL,INWALL,IBWALL,ITWALL;
-  int nb_inlet, nb_outlet, NBL, NW;
   int SI,SJ,SK,EI,EJ,EK,FLTMP;
   REAL TMP,MASS,U,V,W;
   int restart;
-  REAL rho, nu, cond, gravx, gravy, gravz, beta, trefmax, Cp;
-  REAL t_start,t_delta,t_total;
+  REAL trefmax;
   char name[100];
   int imax = para->geom->imax;
   int jmax = para->geom->jmax;
@@ -206,7 +204,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       strcpy(para->bc->bcname[bcnameid], name);
       sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);
-
+      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
+              U, V, W, TMP, MASS);
+      ffd_log(msg, FFD_NORMAL);
       if(EI==0)
       { 
         if(SI==1) SI = 0;
@@ -275,6 +275,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       strcpy(para->bc->bcname[bcnameid], name);
       sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);      
+      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
+              U, V, W, TMP, MASS);
+      ffd_log(msg, FFD_NORMAL);
 
       if(EI==0)
       { 
@@ -343,6 +346,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       strcpy(para->bc->bcname[bcnameid], name);
       sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);      
+      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
+              U, V, W, FLTMP, TMP, MASS);
+      ffd_log(msg, FFD_NORMAL);
 
       if(SI==1)
       {   
@@ -392,19 +398,29 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   | Read the wall boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&NW); 
+  sscanf(string,"%d", &para->bc->nb_wall); 
+  sprintf(msg, "sci_reader.c: para->bc->nb_wall=%d", para->bc->nb_wall);
+  ffd_log(msg, FFD_NORMAL);
 
-  if(NW !=0)
+  if(para->bc->nb_wall!=0)
   {
     // Read wall conditions for each wall
-    for(i=1;i<=NW;i++)
+    for(i=1;i<=para->bc->nb_wall;i++)
     {
       fgets(string, 400, file_params);
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
+      sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
             &FLTMP, &TMP);
+      bcnameid++;
+      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->bcname[bcnameid], name);
+      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      ffd_log(msg, FFD_NORMAL);
+      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
+              U, V, W, FLTMP, TMP, MASS);
+      ffd_log(msg, FFD_NORMAL);
 
       // Reset X index
       if(SI==1)
@@ -444,6 +460,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
               BINDEX[2][index] = ik;
               // Define the thermal boundary property
               BINDEX[3][index] = FLTMP;
+              BINDEX[4][index] = bcnameid;
               index++;  
 
               // Set the cell to solid
@@ -481,55 +498,50 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Read pysical properties
   fgets(string, 400, file_params);
-  sscanf(string,"%f %f %f %f %f %f %f %f %f", &rho, &nu, &cond, 
-         &gravx, &gravy, &gravz, &beta, &trefmax, &Cp);
+  sscanf(string,"%f %f %f %f %f %f %f %f %f", &para->prob->rho, 
+         &para->prob->nu, &para->prob->cond, 
+         &para->prob->gravx, &para->prob->gravy, &para->prob->gravz, 
+         &para->prob->beta, &trefmax, &para->prob->Cp);
 
-  para->prob->rho = rho;
   sprintf(msg, "sci_reader.c: para->prob->rho=%f", para->prob->rho);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->nu = nu;
   sprintf(msg, "sci_reader.c: para->prob->nu=%f", para->prob->nu);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->cond = cond;
   sprintf(msg, "sci_reader.c: para->prob->cond=%f", para->prob->cond);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->gravx = gravx;
   sprintf(msg, "sci_reader.c: para->prob->gravx=%f", para->prob->gravx);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->gravy = gravy;
   sprintf(msg, "sci_reader.c: para->prob->gravy=%f", para->prob->gravy);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->gravz=gravz;
   sprintf(msg, "sci_reader.c: para->prob->gravz=%f", para->prob->gravz);
   ffd_log(msg, FFD_NORMAL);
 
-  para->prob->beta = beta;
   sprintf(msg, "sci_reader.c: para->prob->beta=%f", para->prob->beta);
   ffd_log(msg, FFD_NORMAL);
 
   //para->prob->trefmax=trefmax;
-  para->prob->Cp = Cp; 
   sprintf(msg, "sci_reader.c: para->prob->Cp=%f", para->prob->Cp);
   ffd_log(msg, FFD_NORMAL);
 
   // Read simulation time settings
   fgets(string, 400, file_params);
-  sscanf(string,"%f %f %f",&t_start,&t_delta,&t_total);
+  sscanf(string,"%f %f %f", &para->mytime->t_start, &para->mytime->dt,
+    &para->mytime->step_total);
 
-  para->mytime->t_start = t_start;
+  sprintf(msg, "sci_reader.c: para->mytime->t_start=%f", 
+          para->mytime->t_start);
+  ffd_log(msg, FFD_NORMAL);
 
-  
-  para->mytime->dt = t_delta;
   sprintf(msg, "sci_reader.c: para->mytime->dt=%f", para->mytime->dt);
   ffd_log(msg, FFD_NORMAL);
 
-  para->mytime->step_total=t_total;
-  sprintf(msg, "sci_reader.c: para->mytime->step_total=%d", para->mytime->step_total);
+  sprintf(msg, "sci_reader.c: para->mytime->step_total=%d", 
+          para->mytime->step_total);
   ffd_log(msg, FFD_NORMAL);
 
   temp = fgets(string, 400, file_params); //prandtl

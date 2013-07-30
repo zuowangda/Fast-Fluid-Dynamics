@@ -247,6 +247,7 @@ typedef struct{
   int nb_inlet; // Number of inlet boundaries, provided by SCI
   int nb_outlet; // Number of outlet boundaries, provided by SCI
   int nb_block; // Number of internal block boundaries, provided by SCI
+  int nb_wall; // Number of wall boundaries, provided by SCI
   int nb_bc; // Number of boundaries, provided by SCI
   char** bcname;
   char ffdbcid[100]; // BC id stored in FFD
