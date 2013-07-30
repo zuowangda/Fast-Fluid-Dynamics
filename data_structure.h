@@ -244,8 +244,10 @@ typedef struct{
 }PROB_DATA;
 
 typedef struct{
-  int nb_outlet; // Number of outlet boundaries, Provided by SCI
-  int no_bc; // Number of boundaries
+  int nb_inlet; // Number of inlet boundaries, provided by SCI
+  int nb_outlet; // Number of outlet boundaries, provided by SCI
+  int nb_block; // Number of internal block boundaries, provided by SCI
+  int nb_bc; // Number of boundaries, provided by SCI
   char** bcname;
   char ffdbcid[100]; // BC id stored in FFD
   char otherbcid[100]; // BC id for the other program

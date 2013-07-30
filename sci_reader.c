@@ -61,13 +61,13 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   int IWWALL,IEWALL,ISWALL,INWALL,IBWALL,ITWALL;
-  int NBIN, nb_outlet, NBL, NW;
+  int nb_inlet, nb_outlet, NBL, NW;
   int SI,SJ,SK,EI,EJ,EK,FLTMP;
   REAL TMP,MASS,U,V,W;
   int restart;
   REAL rho, nu, cond, gravx, gravy, gravz, beta, trefmax, Cp;
   REAL t_start,t_delta,t_total;
-  char *name[100];
+  char name[100];
   int imax = para->geom->imax;
   int jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -77,6 +77,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   REAL *delx,*dely,*delz;
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
   char msg[100], tmp[50];
+  int bcnameid = -1;
 
   // Open the parameter file
   if((file_params=fopen(para->inpu->parameter_file_name,"r")) == NULL )
@@ -174,25 +175,38 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   | Read total number of boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
+  sscanf(string,"%d", &para->bc->nb_bc); 
+  sprintf(msg, "sci_reader.c: para->bc->nb_bc=%d", para->bc->nb_bc);
+  ffd_log(msg, FFD_NORMAL);
 
+  // Allocate the memory for bC name array
+  para->bc->bcname = (char**)malloc(para->bc->nb_bc * sizeof(char*));
+  
   /*---------------------------------------------------------------------------
   | Read the inlet boundary conditions
   ----------------------------------------------------------------------------*/
   // Get number of inlet boundaries
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&NBIN); 
+  sscanf(string,"%d",&para->bc->nb_inlet); 
+  sprintf(msg, "sci_reader.c: para->bc->nb_inlet=%d", para->bc->nb_inlet);
+  ffd_log(msg, FFD_NORMAL);
 
   index=0;
   // Setting inlet boundary
-  if(NBIN != 0)
+  if(para->bc->nb_inlet != 0)
   {
     // Loop for each inlet boundary
-    for(i=1;i<=NBIN;i++)
+    for(i=1;i<=para->bc->nb_inlet;i++)
     {
       fgets(string, 400, file_params);
       sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", name, &SI, &SJ, &SK, &EI, &EJ, &EK,
                                               &TMP, &MASS, &U, &V, &W);
+      bcnameid ++; // starts from -1, thus the first id will be 0
+      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->bcname[bcnameid], name);
+      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      ffd_log(msg, FFD_NORMAL);
+
       if(EI==0)
       { 
         if(SI==1) SI = 0;
@@ -225,6 +239,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
             BINDEX[0][index] = ii;
             BINDEX[1][index] = ij;
             BINDEX[2][index] = ik;
+            BINDEX[4][index] = bcnameid;
             index++;
             
             var[TEMPBC][IX(ii,ij,ik)] = TMP;
@@ -244,17 +259,22 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   | Read the outlet boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&nb_outlet); 
-  para->bc->nb_outlet=nb_outlet;
-  sprintf(msg, "sci_reader.c: para->bc->nb_outlet=%f", para->bc->nb_outlet);
+  sscanf(string,"%d",&para->bc->nb_outlet); 
+  sprintf(msg, "sci_reader.c: para->bc->nb_outlet=%d", para->bc->nb_outlet);
   ffd_log(msg, FFD_NORMAL);
 
-  if(nb_outlet !=0)
+  if(para->bc->nb_outlet!=0)
   {
-    for(i=1;i<=nb_outlet;i++)
+    for(i=1;i<=para->bc->nb_outlet;i++)
     {
       fgets(string, 400, file_params);
-      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f",&SI,&SJ,&SK ,&EI,&EJ ,&EK ,&TMP ,&MASS ,&U ,&V ,&W );
+      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", &name, &SI, &SJ, &SK, &EI, 
+             &EJ, &EK, &TMP, &MASS, &U, &V, &W);
+      bcnameid++;
+      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->bcname[bcnameid], name);
+      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      ffd_log(msg, FFD_NORMAL);      
 
       if(EI==0)
       { 
@@ -267,36 +287,36 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
       if(EJ==0)
       { 
         if(SJ==1) SJ=0;
-        EI=SI+EI-1;
-        EJ=SJ+EJ;
-        EK=SK+EK-1;
+        EI = SI+EI-1;
+        EJ = SJ+EJ;
+        EK = SK+EK-1;
       }
 
-    if(EK==0)
-    { 
-      if(SK==1) SK=0;
-      EI=SI+EI-1;
-      EJ=SJ+EJ-1;
-      EK=SK+EK;
-    }
-    // Assign the outlet boundary condition for each cell
-    for(ii=SI; ii<=EI ;ii++)
-      for(ij=SJ; ij<=EJ ;ij++)
-        for(ik=SK; ik<=EK; ik++)
-        {
-          BINDEX[0][index]=ii;
-          BINDEX[1][index]=ij;
-          BINDEX[2][index]=ik;
-          index++;
+      if(EK==0)
+      { 
+        if(SK==1) SK = 0;
+        EI = SI+EI-1;
+        EJ = SJ+EJ-1;
+        EK = SK+EK;
+      }
+      // Assign the outlet boundary condition for each cell
+      for(ii=SI; ii<=EI ;ii++)
+        for(ij=SJ; ij<=EJ ;ij++)
+          for(ik=SK; ik<=EK; ik++)
+          {
+            BINDEX[0][index] = ii;
+            BINDEX[1][index] = ij;
+            BINDEX[2][index] = ik;
+            BINDEX[4][index] = bcnameid;
+            index++;
 
-          // Fixme: Why assign TMP, U, V, W for oulet B.C?
-          var[TEMPBC][IX(ii,ij,ik)]=TMP;
-          var[VXBC][IX(ii,ij,ik)]=U ; 
-          var[VYBC][IX(ii,ij,ik)]=V ; 
-          var[VZBC][IX(ii,ij,ik)]=W ;
-          flagp[IX(ii,ij,ik)]=2;
-        } // End of assigning the outlet B.C. for each cell 
-
+            // Fixme: Why assign TMP, U, V, W for oulet B.C?
+            var[TEMPBC][IX(ii,ij,ik)] = TMP;
+            var[VXBC][IX(ii,ij,ik)] = U; 
+            var[VYBC][IX(ii,ij,ik)] = V; 
+            var[VZBC][IX(ii,ij,ik)] = W;
+            flagp[IX(ii,ij,ik)] = 2;
+          } // End of assigning the outlet B.C. for each cell 
     } // End of loop for each outlet boundary
   } // End of setting outlet boundary
 
@@ -304,17 +324,26 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   | Read the internal solid block boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&NBL); 
-  if(NBL !=0)
+  sscanf(string, "%d", &para->bc->nb_block); 
+  sprintf(msg, "sci_reader.c: para->bc->nb_block=%d", para->bc->nb_block);
+  ffd_log(msg, FFD_NORMAL);
+
+  if(para->bc->nb_block!=0)
   {
-    for(i=1; i<=NBL; i++)
+    for(i=1; i<=para->bc->nb_block; i++)
     {
       fgets(string, 400, file_params);
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
+      sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
                                         &FLTMP, &TMP);
+      bcnameid++;
+      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->bcname[bcnameid], name);
+      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      ffd_log(msg, FFD_NORMAL);      
+
       if(SI==1)
       {   
         SI=0;
@@ -346,10 +375,11 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
         for(ij=SJ ;ij<=EJ ;ij++)
           for(ik=SK ;ik<=EK ;ik++)
           {
-            BINDEX[0][index]=ii;
-            BINDEX[1][index]=ij;
-            BINDEX[2][index]=ik;
-            BINDEX[3][index]=FLTMP;
+            BINDEX[0][index] = ii;
+            BINDEX[1][index] = ij;
+            BINDEX[2][index] = ik;
+            BINDEX[3][index] = FLTMP;
+            BINDEX[4][index] = bcnameid;
             index++;
             if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP;
             if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
