@@ -32,7 +32,7 @@ void set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BINDEX)
     case VZ:
       set_bnd_vel(para, var, VZ, psi, BINDEX); break;
     case TEMP:
-      set_bnd_temp(para, var, TEMP, psi,BINDEX); break; 
+      set_bnd_temp(para, var, TEMP, psi, BINDEX); break; 
   }
 } // End of set_bnd() 
 

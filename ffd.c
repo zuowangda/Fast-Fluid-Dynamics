@@ -37,7 +37,7 @@ static int screen;
 
 REAL **var;
 int  **BINDEX;
-int  *xindex,*yindex,*zindex,*fltemp;
+int  *xindex, *yindex, *zindex, *fltemp, *bcid;
 REAL *x, *y, *z, *gx, *gy, *gz;
 REAL *u, *v, *w, *u_s, *v_s, *w_s, *u_mean, *v_mean, *w_mean;
 REAL *dens, *dens_s, *temp, *temp_s, *temp_mean, *p, *my_div, *pp;
@@ -164,13 +164,14 @@ int allocate_data (void)
   yindex = (int *) malloc ( size*sizeof(int) );
   zindex = (int *) malloc ( size*sizeof(int) );
   fltemp = (int *) malloc ( size*sizeof(int) );
-  BINDEX = (int **) malloc ( 4*sizeof(int*) );
+  bcid   = (int *) malloc ( size*sizeof(int) );
+  BINDEX = (int **) malloc ( 5*sizeof(int*) );
 
-  BINDEX[0] = xindex;
-  BINDEX[1] = yindex;
-  BINDEX[2] = zindex;
-  BINDEX[3] = fltemp;
-
+  BINDEX[0] = xindex; // i of global coordinate in IX(i,j,k)
+  BINDEX[1] = yindex; // j of global coordinate in IX(i,j,k)
+  BINDEX[2] = zindex; // k of global coordinate in IX(i,j,k)
+  BINDEX[3] = fltemp; // fixed temperature or fixed heat flux
+  BINDEX[4] = bcid;   // id of boundary
 
   if( !x || !y || !z || !u || !v || !w || !u_s || !v_s || !w_s || 
       !u_mean || !v_mean || !w_mean || 

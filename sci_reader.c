@@ -67,6 +67,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   int restart;
   REAL rho, nu, cond, gravx, gravy, gravz, beta, trefmax, Cp;
   REAL t_start,t_delta,t_total;
+  char *name[100];
   int imax = para->geom->imax;
   int jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -184,7 +185,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     for(i=1;i<=NBIN;i++)
     {
       fgets(string, 400, file_params);
-      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f", &SI, &SJ, &SK, &EI, &EJ, &EK,
+      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", name, &SI, &SJ, &SK, &EI, &EJ, &EK,
                                               &TMP, &MASS, &U, &V, &W);
       if(EI==0)
       { 
