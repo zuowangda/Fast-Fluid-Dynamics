@@ -366,6 +366,7 @@ int main()
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
+
   // Solve the problem
   if(para.outp->version==DEMO) /* show visulization */
   {

@@ -46,7 +46,6 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL t_cosim;
   char msg[100];
 
-
   if(para->solv->cosimulation == 1) 
   {
     // Exchange the intial consitions for cosimulation
@@ -111,9 +110,6 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
     write_tecplot_data(para, var, "result");
 
     para->prob->output = 1;
-    
-    //if(para->solv->cosimulation == 1) 
-    //getchar();
 
 } // End of FFD_solver( ) 
 

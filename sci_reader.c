@@ -78,7 +78,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Open the parameter file
   if((file_params=fopen(para->inpu->parameter_file_name,"r")) == NULL )
-  {
+  { 
     fprintf(stderr,"Error:can not open the file \"%s\"\n.", para->inpu->parameter_file_name);
     return 1;
   }
