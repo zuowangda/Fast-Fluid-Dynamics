@@ -24,6 +24,8 @@
 #include "boundary.h"
 #include "utility.h"
 #include "cosimulation.h"
+#include "cosimulation_interface.h"
+
 /******************************************************************************
 | FFD Solver
 ******************************************************************************/
@@ -49,12 +51,12 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   if(para->solv->cosimulation == 1) 
   {
     // Exchange the intial consitions for cosimulation
+    create_mapping();
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
     //getchar();
     printf("Synchronize data at t=%f\n", para->mytime->t);
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
-
   }
 
   /*---------------------------------------------------------------------------
@@ -106,10 +108,12 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   if(cal_mean == 1)
     calcuate_time_averaged_variable(para, var);
 
-    write_unsteady(para, var, "unsteady");
-    write_tecplot_data(para, var, "result");
+  if(para->solv->cosimulation==1)
+    close_mapping();
 
-    para->prob->output = 1;
+  write_unsteady(para, var, "unsteady");
+  write_tecplot_data(para, var, "result");
+  para->prob->output = 1;
 
 } // End of FFD_solver( ) 
 
