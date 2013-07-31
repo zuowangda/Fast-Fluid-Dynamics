@@ -63,7 +63,6 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   int IWWALL,IEWALL,ISWALL,INWALL,IBWALL,ITWALL;
   int SI,SJ,SK,EI,EJ,EK,FLTMP;
   REAL TMP,MASS,U,V,W;
-  int restart;
   REAL trefmax;
   char name[100];
   int imax = para->geom->imax;
@@ -74,7 +73,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   char *temp, string[400];
   REAL *delx,*dely,*delz;
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-  char msg[100], tmp[50];
+  char msg[200], tmp[50];
   int bcnameid = -1;
 
   // Open the parameter file
@@ -83,6 +82,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     fprintf(stderr,"Error:can not open the file \"%s\"\n.", para->inpu->parameter_file_name);
     return 1;
   }
+
+  sprintf(msg, "sci_reader.c: Start to read sci input file %s", para->inpu->parameter_file_name);
+  ffd_log(msg, FFD_NORMAL);
 
   // Ingore the first and second lines
   temp = fgets(string, 400, file_params);
@@ -472,6 +474,30 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     } // End of assigning value for each wall surface
   } // End of assigning value for wall boundary 
 
+  /*---------------------------------------------------------------------------
+  | Read the boundary conditions for contanmiant source
+  | Fixme: The data is ignored in current version
+  ----------------------------------------------------------------------------*/
+  fgets(string, 400, file_params);
+  sscanf(string,"%d", &para->bc->nb_source); 
+  sprintf(msg, "sci_reader.c: para->bc->nb_source=%d", para->bc->nb_source);
+  ffd_log(msg, FFD_NORMAL);
+
+  if(para->bc->nb_source!=0)
+  {
+    sscanf(string,"%s%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
+           &MASS);
+    bcnameid++;
+    para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
+    strcpy(para->bc->bcname[bcnameid], name);
+    sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+    ffd_log(msg, FFD_NORMAL);
+    sprintf(msg, "sci_reader.c: Xi_dot=%f", MASS);
+    ffd_log(msg, FFD_NORMAL);
+
+    // Fixme:Need to add code to assign the BC value as other part does
+  }
+
   para->geom->index=index;
 
   // Discard the unused data
@@ -488,8 +514,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Read setting for restarting the old FFD simulation
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&restart);
-  para->inpu->read_old_ffd_file=restart;
+  sscanf(string,"%d",&para->inpu->read_old_ffd_file);
+  sprintf(msg, "sci_reader.c: para->inpu->read_old_ffd_file=%d", para->inpu->read_old_ffd_file);
+  ffd_log(msg, FFD_NORMAL);
 
   // Discard the unused data
   temp = fgets(string, 400, file_params); //print frequency
@@ -530,7 +557,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Read simulation time settings
   fgets(string, 400, file_params);
-  sscanf(string,"%f %f %f", &para->mytime->t_start, &para->mytime->dt,
+  sscanf(string,"%f %f %d", &para->mytime->t_start, &para->mytime->dt,
     &para->mytime->step_total);
 
   sprintf(msg, "sci_reader.c: para->mytime->t_start=%f", 
@@ -550,8 +577,11 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   free(delx);
   free(dely);
   free(delz);
+  
+  sprintf(msg, "sci_reader.c: End of reading sci input file %s", para->inpu->parameter_file_name);
+  ffd_log(msg, FFD_NORMAL);
   return 0;
-} // End of read_dara()
+} // End of read_sci_input()
 
 
 int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX)
@@ -565,12 +595,16 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX)
   int index = para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  char msg[100];
 
-  if( (file_params=fopen("zeroone.dat","r")) == NULL ) 			
+  if( (file_params=fopen("zeroone.dat","r")) == NULL )
   {
-    fprintf(stderr,"Error:can not open error file!\n");
+    ffd_log("sci_reader.c:can not open file zeroone.dat!\n", FFD_ERROR);
     return 1;
   }
+
+  sprintf(msg, "sci_reader.c: start to read zeroone.dat.");
+  ffd_log(msg, FFD_NORMAL);
 
   for(k=1;k<=kmax;k++)
     for(j=1;j<=jmax;j++)
@@ -585,8 +619,6 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX)
           BINDEX[1][index]=j;
           BINDEX[2][index]=k;
           index++;
-
-            
         }
         delcount++;
         
@@ -597,11 +629,14 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX)
 				}
 		  }
 
-    fclose(file_params);
-		  para->geom->index=index;
-	
-		  return 0;
-}
+  fclose(file_params);
+  para->geom->index=index;
+
+  sprintf(msg, "sci_reader.c: end of reading zeroone.dat.");
+  ffd_log(msg, FFD_NORMAL);
+
+  return 0;
+} // End of read_sci_zeroone()
 
 void mark_cell(PARA_DATA *para, REAL **var)
 {
@@ -631,9 +666,6 @@ if (  flagp[IX(i-1,j,k)]>=0 && flagp[IX(i+1,j,k)]>=0 &&
 	  flagp[IX(i,j,k-1)]>=0 &&  flagp[IX(i,j,k+1)]>=0 )
 	  flagp[IX(i,j,k)]=1;
 END_FOR
-
- 
-
 
  FOR_ALL_CELL
 	   if(flagp[IX(i,j,k)]==1) 
