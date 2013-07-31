@@ -9,8 +9,12 @@
 #define FFD_DATA_SIZE 2560
 #define OTHER_DATA_SIZE 2560
 
-TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
-TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
+int mapping_nb = 0;
+
+//TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
+char ffdDataName[50] = "FFDDataMappingObject";
+//TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
+char otherDataName[50] = "ModelicaDataMappingObject";
 
 HANDLE ffdDataMapFile;
 HANDLE otherDataMapFile;
@@ -18,118 +22,137 @@ ffdSharedData *ffdDataBuf;
 otherSharedData *otherDataBuf;
 
 /******************************************************************************
-| Creat mapping to the shared memory for data exchange
+| Creat the shared memory for data exchange
 ******************************************************************************/
-int create_mapping()
+int create_shared_memory(char *ffd_memory_name, char *other_memory_name)
 {
-  int i=0, imax=10000;
-  char msg[200];
+  char msg[300];
 
+  mapping_nb++;
+
+  sprintf(ffdDataName, "FFDDataMappingObject%d", mapping_nb);
+  sprintf(otherDataName, "ModelicaDataMappingObject%d", mapping_nb);
+
+  
   /*---------------------------------------------------------------------------
-  | Open the FFD file mapping object
+  | Create named file mapping objects for specified files
   ---------------------------------------------------------------------------*/
-  ffdDataMapFile = OpenFileMapping(
-                    FILE_MAP_ALL_ACCESS,    // read/write access
-                    FALSE,           // do not inherit the name
-                    ffdDataName);    // name of mapping object for FFD data
+  ffdDataMapFile = CreateFileMapping(
+                INVALID_HANDLE_VALUE,    // use paging file
+                NULL,                    // default security
+                PAGE_READWRITE,          // read/write access
+                0,                       // maximum object size (high-order DWORD)
+                FFD_DATA_SIZE,                // maximum object size (low-order DWORD)
+                ffdDataName);                 // name of mapping object
+  otherDataMapFile = CreateFileMapping(
+                INVALID_HANDLE_VALUE,    // use paging file
+                NULL,                    // default security
+                PAGE_READWRITE,          // read/write access
+                0,                       // maximum object size (high-order DWORD)
+                OTHER_DATA_SIZE,                // maximum object size (low-order DWORD)
+                otherDataName);                 // name of mapping object
 
-  while(i<imax && ffdDataMapFile==NULL)
-  {
-    ffdDataMapFile = OpenFileMapping(
-                    FILE_MAP_ALL_ACCESS,    // read/write access
-                    FALSE,           // do not inherit the name
-                    ffdDataName);    // name of mapping object for FFD data
-    i++;
-  }
-
-  // Send warning if can not open shared memory
+  // Send warning if can not create shared memory
   if(ffdDataMapFile==NULL)
   {
-    sprintf(msg, "cosimulation.c: Could not open FFD data file mapping object. Error code %d", GetLastError());
-    ffd_log("cosimulation.c: Could not open FFD data file mapping object.", FFD_ERROR);
+    printf("Could not create file mapping object %s (%d).\n", 
+            ffdDataName, GetLastError());
+    sprintf(msg, 
+            "cosimulation.c: failed to create file mapping object %s (%d).", 
+            ffdDataName, GetLastError());
+    ffd_log(msg, FFD_ERROR);
     return GetLastError();
+  }
+  else
+  {
+    sprintf(msg, 
+            "cosimulation.c: created file mapping object %s.", 
+            ffdDataName);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  if(otherDataMapFile==NULL)
+  {
+    printf("Could not create file mapping object %s (%d).\n", 
+            otherDataName, GetLastError());
+    sprintf(msg, 
+            "cosimulation.c: failed to create file mapping object %s (%d).", 
+            otherDataName, GetLastError());
+    ffd_log(msg, FFD_ERROR);
+    return GetLastError();
+  }
+  else
+  {
+    sprintf(msg, 
+            "cosimulation.c: created file mapping object %s.", 
+            otherDataName);
+    ffd_log(msg, FFD_NORMAL);
   }
 
   /*---------------------------------------------------------------------------
-  | Maps a view of the FFD file mapping into the address space 
+  | Map a view of a file into the address space of a calling process
   ---------------------------------------------------------------------------*/
   ffdDataBuf = (ffdSharedData *) MapViewOfFile(ffdDataMapFile,   // handle to map object
                       FILE_MAP_ALL_ACCESS, // read/write permission
                       0,
                       0,
                       FFD_DATA_SIZE);
-  i = 0;
-  while(ffdDataBuf==NULL && i<imax)
-  {
-    ffdDataBuf = (ffdSharedData *) MapViewOfFile(ffdDataMapFile,   // handle to map object
-                    FILE_MAP_ALL_ACCESS, // read/write permission
-                    0,
-                    0,
-                    FFD_DATA_SIZE);
-    i++;
-  }
-
-  if(ffdDataBuf==NULL)
-  {
-    sprintf(msg, "cosimulation.c: Could not map view of FFD data file. Error code %d", GetLastError());
-    CloseHandle(ffdDataMapFile);
-    return GetLastError();
-  }
-
-  /*---------------------------------------------------------------------------
-  | Open the Other file mapping object
-  ---------------------------------------------------------------------------*/
-  otherDataMapFile = OpenFileMapping(
-                      FILE_MAP_ALL_ACCESS,    // read/write access
-                      FALSE,           // do not inherit the name
-                      otherDataName);    // name of mapping object for FFD data
-  i = 0;
-  while(i<imax && otherDataMapFile==NULL)
-  {
-    otherDataMapFile = OpenFileMapping(
-                        FILE_MAP_ALL_ACCESS,    // read/write access
-                        FALSE,           // do not inherit the name
-                        otherDataName);    // name of mapping object for FFD data
-    i++;
-  }
-
-  // Send warning if can not open shared memory
-  if(otherDataMapFile==NULL)
-  {
-    sprintf(msg, "cosimulation.c: Could not open Other data file mapping object. Error code %d", GetLastError());
-    ffd_log("cosimulation.c: Could not open Other data file mapping object.", FFD_ERROR);
-    return GetLastError();
-  }
-
-  /*---------------------------------------------------------------------------
-  | Maps a view of the Other file mapping into the address space 
-  ---------------------------------------------------------------------------*/
   otherDataBuf = (otherSharedData *) MapViewOfFile(otherDataMapFile,   // handle to map object
                       FILE_MAP_ALL_ACCESS, // read/write permission
                       0,
                       0,
                       OTHER_DATA_SIZE);
-  i = 0;
-  while(otherDataBuf==NULL && i<imax)
-  {
-    otherDataBuf = (otherSharedData *) MapViewOfFile(otherDataMapFile,   // handle to map object
-                    FILE_MAP_ALL_ACCESS, // read/write permission
-                    0,
-                    0,
-                    OTHER_DATA_SIZE);
-    i++;
-  }
 
-  if(otherDataBuf==NULL)
+  if(ffdDataBuf == NULL)
   {
-    sprintf(msg, "cosimulation.c: Could not map view of Other data file. Error code %d", GetLastError());
+    printf("Could not map view of file %s (%d).\n",
+            ffdDataName, GetLastError());
+    sprintf(msg, 
+            "cosimulation.c: failed to map view of the FFD data file %s (%d).", 
+            ffdDataName, GetLastError());
+    ffd_log(msg, FFD_ERROR);
     CloseHandle(ffdDataMapFile);
     return GetLastError();
   }
+  else
+  {
+    sprintf(msg, 
+            "cosimulation.c: mapped file mapping object %s.", 
+            ffdDataName);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
+
+  if(otherDataBuf == NULL) 
+  {
+    printf("Could not map view of file %s (%d).\n",
+            otherDataName, GetLastError());
+    sprintf(msg, 
+            "cosimulation.c: failed to map view of the other data file%s (%d).", 
+            otherDataName, GetLastError());
+    ffd_log(msg, FFD_ERROR);
+    CloseHandle(otherDataMapFile);
+    return GetLastError();
+  }
+  else
+  {
+    sprintf(msg, 
+            "cosimulation.c: mapped file mapping object %s.", 
+            otherDataName);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  // Set the status to -1
+  ffdDataBuf->status = -1;
+  otherDataBuf->status = -1;
+
+  // Update the memory names for the other program
+  strcpy(ffd_memory_name, ffdDataName); 
+  strcpy(other_memory_name, otherDataName);
+
+  ffd_log("cosimulation_interface.c: Updated the names of shared memory for the other program.", FFD_NORMAL);
   return 0;
-
-} // End of create_mapping()
+} // End of create_shared_memory()
 
 /******************************************************************************
  Write shared data to the shared memory 

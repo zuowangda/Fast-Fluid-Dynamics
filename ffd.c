@@ -27,7 +27,7 @@
 #include "sci_reader.h"
 #include "solver.h"
 #include "utility.h"
-
+#include "cosimulation_interface.h"
 
 /* global variables */
 static REAL dt, diff, visc;
@@ -333,10 +333,12 @@ static void reshape_func(int width, int height)
 /******************************************************************************
    ffd --- main routine
 ******************************************************************************/
-DWORD WINAPI ffd(PVOID p)
+DWORD WINAPI ffd(char *ffd_memory_name, char* other_memory_name)
 { 
-  ULONG workerID = (ULONG)(ULONG_PTR)p;
-  printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+  //ULONG workerID;
+  //
+  //workerID = (ULONG)(ULONG_PTR)p;
+  //printf("Entered WorkerThreadProc with tid %lu\n", workerID);
 
   // Initialize the parameters
   para.geom = &geom;
@@ -369,6 +371,8 @@ DWORD WINAPI ffd(PVOID p)
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
+  if(para.solv->cosimulation==1)
+    create_shared_memory(ffd_memory_name, other_memory_name);
 
   // Solve the problem
   if(para.outp->version==DEMO) /* show visulization */
