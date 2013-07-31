@@ -9,9 +9,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-__declspec(dllexport)
-extern int ffd_dll();
-
 DWORD WINAPI ffd(PVOID p);
 
 int allocate_data (void);

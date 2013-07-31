@@ -26,7 +26,7 @@
 #include "timing.h"
 #include "sci_reader.h"
 #include "solver.h"
-
+#include "utility.h"
 
 
 /* global variables */
@@ -329,16 +329,6 @@ static void reshape_func(int width, int height)
   ffd_reshape_func(&para, width, height);
 } // End of reshape_func()
 
-/******************************************************************************
-| DLL interface to launch a separated thread for FFD. 
-| Called by the the other program
-******************************************************************************/
-int ffd_dll()
-{
-  DWORD dummy;
-  HANDLE workerThreadHandle = CreateThread(NULL, 0, ffd, (PVOID)99, 0, &dummy);
-  return 0;
-} // End of ffd_dll()
 
 /******************************************************************************
    ffd --- main routine
