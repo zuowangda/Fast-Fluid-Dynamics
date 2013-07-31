@@ -23,7 +23,6 @@
 #include "visualization.h"
 #include "ffd.h"
 #include "ffd_data_reader.h"
-#include "grid.h"
 #include "timing.h"
 #include "sci_reader.h"
 #include "solver.h"
