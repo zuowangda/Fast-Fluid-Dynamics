@@ -330,10 +330,24 @@ static void reshape_func(int width, int height)
 } // End of reshape_func()
 
 /******************************************************************************
-   main --- main routine
+| DLL interface to launch a separated thread for FFD. 
+| Called by the the other program
 ******************************************************************************/
-int main()
+int ffd_dll()
+{
+  DWORD dummy;
+  HANDLE workerThreadHandle = CreateThread(NULL, 0, ffd, (PVOID)99, 0, &dummy);
+  return 0;
+} // End of ffd_dll()
+
+/******************************************************************************
+   ffd --- main routine
+******************************************************************************/
+DWORD WINAPI ffd(PVOID p)
 { 
+  ULONG workerID = (ULONG)(ULONG_PTR)p;
+  printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+
   // Initialize the parameters
   para.geom = &geom;
   para.inpu = &inpu;
@@ -390,4 +404,4 @@ int main()
 
   ffd_log("ffd.c: Exit successfully.", FFD_NORMAL);
   exit (0);
-} // End of main( )
+} // End of ffd( )
