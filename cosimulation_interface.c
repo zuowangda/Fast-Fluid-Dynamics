@@ -74,6 +74,8 @@ int read_from_shared_memory(otherSharedData *otherData)
   char msg[100];
   otherSharedData *data;
   int i, imax = 1000;
+    
+  printf("Fixme: try to open map\n");
 
   /*---------------------------------------------------------------------------
   | Open the named file mapping objects
