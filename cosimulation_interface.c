@@ -182,8 +182,10 @@ int read_from_shared_memory(otherSharedData *otherData)
 
   // Wait for data to be updated by the other program
   while(otherDataBuf->status<1) 
+  {
     Sleep(1000);
-
+    printf("Waiting for data from the other program\n");
+  }
   otherData->arr[0] = otherDataBuf->arr[0];
   otherData->arr[1] = otherDataBuf->arr[1];
   otherData->arr[2] = otherDataBuf->arr[2];

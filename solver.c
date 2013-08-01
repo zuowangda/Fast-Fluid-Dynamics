@@ -46,16 +46,17 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
   REAL t_cosim;
-  char msg[100];
+  char msg[300];
 
   if(para->solv->cosimulation == 1) 
   {
     // Exchange the intial consitions for cosimulation
-    //create_mapping();
+    
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
     //getchar();
-    printf("Synchronize data at t=%f\n", para->mytime->t);
+    sprintf(msg, "solver.c: Synchronized data at t=%f\n", para->mytime->t);
+    ffd_log(msg, FFD_NORMAL);
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
   }
 
