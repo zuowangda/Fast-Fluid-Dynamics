@@ -27,7 +27,7 @@
 #include "sci_reader.h"
 #include "solver.h"
 #include "utility.h"
-
+#include "cosimulation_interface.h"
 
 /* global variables */
 static REAL dt, diff, visc;
@@ -333,10 +333,11 @@ static void reshape_func(int width, int height)
 /******************************************************************************
    ffd --- main routine
 ******************************************************************************/
-DWORD WINAPI ffd(PVOID p)
+DWORD WINAPI ffd(char *ffdDatNam, char *modDatNam)
 { 
-  ULONG workerID = (ULONG)(ULONG_PTR)p;
-  printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+  //ULONG workerID = (ULONG)(ULONG_PTR)p;
+  //printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+  char msg[300];
 
   // Initialize the parameters
   para.geom = &geom;
@@ -347,28 +348,55 @@ DWORD WINAPI ffd(PVOID p)
   para.bc     = &bc;
   para.solv   = &solv;
 
-  ffd_log("Start Fast Fluid Dynamics Simulation.", FFD_NEW);
+  ffd_log("Start Fast Fluid Dynamics Simulation.", FFD_NORMAL);
   if(initialize(&para)) exit(1);
   
   // Overwrite the mesh and simulation data using SCI generated file
   if(para.inpu->parameter_file_format == SCI) 
   {
-    if(read_sci_max(&para, var)) exit(1);
+    if(read_sci_max(&para, var)) 
+    {
+      ffd_log("ffd.c: failed to read SCI file", FFD_ERROR);
+      exit(1);
+    }
+    else
+      ffd_log("ffd.c: read SCI file", FFD_NORMAL);
   }
-
-  if(para.outp->version == DEBUG) 
-    printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
   
   // Allocate memory for the variables
-  if(allocate_data( )) exit(1);
+  if(allocate_data( )) 
+  {
+    ffd_log("ffd.c: failed to allocate memory", FFD_ERROR);
+    exit(1);
+  }
+  else
+    ffd_log("ffd.c: allocated memory", FFD_NORMAL);
 
   // Set the initial values for the simulation data
-  if(set_initial_data(&para, var, BINDEX)) exit(1);
-
+  if(set_initial_data(&para, var, BINDEX)) 
+  {
+    ffd_log("ffd.c: failed to set inital value", FFD_ERROR);
+    exit(1);
+  }
+  else
+    ffd_log("ffd.c: set inital value", FFD_NORMAL);
 
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
+  if(para.solv->cosimulation==1) 
+    if(create_mapping(ffdDatNam, modDatNam)>0)
+    {
+        sprintf(msg, 
+                "ffd.c: failed to create mapping for %s and %s", ffdDatNam, modDatNam);
+        ffd_log(msg, FFD_ERROR);
+    }
+    else
+    {
+      sprintf(msg, 
+              "ffd.c: created mapping for %s and %s", ffdDatNam, modDatNam);
+      ffd_log(msg, FFD_NORMAL);
+    }
 
   // Solve the problem
   if(para.outp->version==DEMO) /* show visulization */

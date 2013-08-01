@@ -51,7 +51,6 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   if(para->solv->cosimulation == 1) 
   {
     // Exchange the intial consitions for cosimulation
-    create_mapping();
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
     //getchar();

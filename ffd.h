@@ -9,7 +9,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-DWORD WINAPI ffd(PVOID p);
+DWORD WINAPI ffd(char *ffdDatNam, char *modDatNam);
 
 int allocate_data (void);
 

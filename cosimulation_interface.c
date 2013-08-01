@@ -9,8 +9,8 @@
 #define FFD_DATA_SIZE 2560
 #define OTHER_DATA_SIZE 2560
 
-TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
-TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
+//TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
+//TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
 
 HANDLE ffdDataMapFile;
 HANDLE otherDataMapFile;
@@ -20,9 +20,9 @@ otherSharedData *otherDataBuf;
 /******************************************************************************
 | Creat mapping to the shared memory for data exchange
 ******************************************************************************/
-int create_mapping()
+int create_mapping(char *ffdDatNam, char *othDatNam)
 {
-  int i=0, imax=10000;
+  int i = 0, imax = 10;
   char msg[200];
 
   /*---------------------------------------------------------------------------
@@ -31,23 +31,33 @@ int create_mapping()
   ffdDataMapFile = OpenFileMapping(
                     FILE_MAP_ALL_ACCESS,    // read/write access
                     FALSE,           // do not inherit the name
-                    ffdDataName);    // name of mapping object for FFD data
+                    ffdDatNam);    // name of mapping object for FFD data
 
-  while(i<imax && ffdDataMapFile==NULL)
+  while(ffdDataMapFile==NULL && i<imax)
   {
+    Sleep(1);
     ffdDataMapFile = OpenFileMapping(
                     FILE_MAP_ALL_ACCESS,    // read/write access
                     FALSE,           // do not inherit the name
-                    ffdDataName);    // name of mapping object for FFD data
+                    ffdDatNam);    // name of mapping object for FFD data
     i++;
   }
 
   // Send warning if can not open shared memory
   if(ffdDataMapFile==NULL)
   {
-    sprintf(msg, "cosimulation.c: Could not open FFD data file mapping object. Error code %d", GetLastError());
-    ffd_log("cosimulation.c: Could not open FFD data file mapping object.", FFD_ERROR);
+    sprintf(msg, 
+            "cosimulation.c: Could not open FFD data file mapping object %s (%d)", 
+            ffdDatNam, GetLastError());
+    ffd_log(msg, FFD_ERROR);
     return GetLastError();
+  }
+  else 
+  {
+    sprintf(msg, 
+            "cosimulation.c: Opened FFD data file mapping object %s", 
+            ffdDatNam);
+    ffd_log(msg, FFD_NORMAL);
   }
 
   /*---------------------------------------------------------------------------
@@ -58,16 +68,6 @@ int create_mapping()
                       0,
                       0,
                       FFD_DATA_SIZE);
-  i = 0;
-  while(ffdDataBuf==NULL && i<imax)
-  {
-    ffdDataBuf = (ffdSharedData *) MapViewOfFile(ffdDataMapFile,   // handle to map object
-                    FILE_MAP_ALL_ACCESS, // read/write permission
-                    0,
-                    0,
-                    FFD_DATA_SIZE);
-    i++;
-  }
 
   if(ffdDataBuf==NULL)
   {
@@ -82,16 +82,7 @@ int create_mapping()
   otherDataMapFile = OpenFileMapping(
                       FILE_MAP_ALL_ACCESS,    // read/write access
                       FALSE,           // do not inherit the name
-                      otherDataName);    // name of mapping object for FFD data
-  i = 0;
-  while(i<imax && otherDataMapFile==NULL)
-  {
-    otherDataMapFile = OpenFileMapping(
-                        FILE_MAP_ALL_ACCESS,    // read/write access
-                        FALSE,           // do not inherit the name
-                        otherDataName);    // name of mapping object for FFD data
-    i++;
-  }
+                      othDatNam);    // name of mapping object for FFD data
 
   // Send warning if can not open shared memory
   if(otherDataMapFile==NULL)
@@ -109,16 +100,6 @@ int create_mapping()
                       0,
                       0,
                       OTHER_DATA_SIZE);
-  i = 0;
-  while(otherDataBuf==NULL && i<imax)
-  {
-    otherDataBuf = (otherSharedData *) MapViewOfFile(otherDataMapFile,   // handle to map object
-                    FILE_MAP_ALL_ACCESS, // read/write permission
-                    0,
-                    0,
-                    OTHER_DATA_SIZE);
-    i++;
-  }
 
   if(otherDataBuf==NULL)
   {

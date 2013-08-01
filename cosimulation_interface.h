@@ -1,4 +1,4 @@
-int create_mapping();
+int create_mapping(char *ffdDatNam, char *modDatNam);
 
 int close_mapping();
 
