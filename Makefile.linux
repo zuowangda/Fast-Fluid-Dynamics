@@ -1,0 +1,49 @@
+#######################################################
+# LINUX OPERATING SYSTEMS
+#######################################################
+SHELL = /bin/sh
+ARCH = $(shell getconf LONG_BIT)
+# Makefile to compile FFD DLL
+# Michael Wetter (MWetter@lbl.gov) August 2, 2013
+
+
+# Directory where executable will be copied to
+#fixme BINDIR = ../../Library/linux$(ARCH)
+BINDIR = .
+
+#######################################################
+## Compilation flags
+CC = cc
+
+CC_FLAGS_32 = -Wall -I/usr/include/python2.7 -lpython2.7 -lm -m32
+CC_FLAGS_64 = -Wall -I/usr/include/python2.7 -lpython2.7 -lm -m64
+
+
+
+SRCS = cosimulation.c interpolation.c ffd.c solver_tdma.c grid.c chen_zero_equ_model.c \
+       advection.c sci_reader.c timing.c boundary.c ffd_data_reader.c solver.c utility.c \
+       initialization.c parameter_reader.c geometry.c diffusion.c solver_gs.c \
+       projection.c visualization.c cosimulation_interface.c data_writer.c
+
+OBJS = cosimulation.o interpolation.o ffd.o solver_tdma.o grid.o chen_zero_equ_model.o \
+       advection.o sci_reader.o timing.o boundary.o ffd_data_reader.o solver.o utility.o \
+       initialization.o parameter_reader.o geometry.o diffusion.o solver_gs.o \
+       projection.o visualization.o cosimulation_interface.o data_writer.o
+
+LIB  = libFFD.so
+
+# Note that -fPIC is recommended on Linux according to the Modelica specification
+
+all: clean
+	$(CC) $(CC_FLAGS_$(ARCH)) -fPIC -c $(SRCS)
+	$(CC) -shared -fPIC -Wl,-soname,$(LIB) -o $(LIB) $(OBJS) -lc
+	mv $(LIB) $(BINDIR)
+	@echo "==== library generated in $(BINDIR)"
+
+prg: clean
+	$(CC) -g testProgram.c $(SRCS) -o testProgram  $(CC_FLAGS_$(ARCH))
+
+clean:
+	rm -f $(OBJS) $(LIB) main.o main
+
+
