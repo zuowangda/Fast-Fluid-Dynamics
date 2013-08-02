@@ -1,3 +1,6 @@
+#ifndef UTILITY_H_
+#define UTILITY_H_
+
 REAL check_residual(PARA_DATA *para, REAL **var, REAL *x);
 
 int define_IMAX(PARA_DATA *para, int var_type);
@@ -25,3 +28,5 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX);
 void check_energy(PARA_DATA *para, REAL **var,int **BINDEX);
 
 void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var);
+
+#endif

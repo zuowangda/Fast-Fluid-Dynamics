@@ -1,3 +1,5 @@
+#ifndef _DATA_STRUCTURE_H_
+#define _DATA_STRUCTURE_H_
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Filename: data_structure.h
@@ -10,8 +12,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 #include <time.h>
+#ifdef _MSC_VER
 #include <windows.h>
 #include <conio.h>
+#endif
 
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
@@ -307,3 +311,5 @@ typedef struct {
 typedef struct {
   int feedback;
 }ReceivedCommand;
+
+#endif

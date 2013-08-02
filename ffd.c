@@ -13,8 +13,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#ifdef _MSC_VER
 #include <glut.h>
-
+#elseif
+#include <GL/freeglut.h>
+#endif
 #include "data_structure.h" // This file must be the first included
 
 #include "boundary.h"

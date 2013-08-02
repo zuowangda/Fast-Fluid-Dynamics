@@ -1,15 +1,8 @@
-#include <windows.h>
-#include <stdio.h>
-#include <conio.h>
-#include <tchar.h>
-
-#include "data_structure.h"
-#include "utility.h" 
-#define BUF_SIZE 256
-#define BUF_DATA_SIZE 2560
-
-TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
-TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
+#ifdef _MSC_VER
+#elseif
+char ffdDataName[] = "FFDDataMappingObject";
+char otherDataName[] = "ModelicaDataMappingObject";
+#endif
 
 /******************************************************************************
  Write shared data to the shared memory 
@@ -25,7 +18,7 @@ int write_to_shared_memory(ffdSharedData *ffdData)
   ---------------------------------------------------------------------------*/
   DataMapFile = OpenFileMapping(
                     FILE_MAP_ALL_ACCESS,    // read/write access
-                    FALSE,           // do not inherit the name
+                    false,           // do not inherit the name
                     ffdDataName);    // name of mapping object for FFD data
 
   // Send warning if can not open shared memory
