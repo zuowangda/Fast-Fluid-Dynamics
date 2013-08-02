@@ -5,17 +5,14 @@
 
 #include "data_structure.h"
 #include "utility.h" 
-#define BUF_SIZE 256
-#define FFD_DATA_SIZE 2560
-#define OTHER_DATA_SIZE 2560
-
-TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
-TCHAR otherDataName[] = TEXT("ModelicaDataMappingObject");
+#include "modelica_ffd_common.h"
 
 HANDLE ffdDataMapFile;
-HANDLE otherDataMapFile;
+HANDLE modelicaDataMapFile;
+HANDLE boundaryDataMapFile;
 ffdSharedData *ffdDataBuf;
-otherSharedData *otherDataBuf;
+ModelicaSharedData *modelicaDataBuf;
+BoundarySharedData *boundaryDataBuf;
 
 /******************************************************************************
 | Creat mapping to the shared memory for data exchange
@@ -57,7 +54,7 @@ int create_mapping()
                       FILE_MAP_ALL_ACCESS, // read/write permission
                       0,
                       0,
-                      FFD_DATA_SIZE);
+                      BUF_FFD_SIZE);
   i = 0;
   while(ffdDataBuf==NULL && i<imax)
   {
@@ -65,7 +62,7 @@ int create_mapping()
                     FILE_MAP_ALL_ACCESS, // read/write permission
                     0,
                     0,
-                    FFD_DATA_SIZE);
+                    BUF_FFD_SIZE);
     i++;
   }
 
@@ -77,24 +74,24 @@ int create_mapping()
   }
 
   /*---------------------------------------------------------------------------
-  | Open the Other file mapping object
+  | Open the Modelica file mapping object
   ---------------------------------------------------------------------------*/
-  otherDataMapFile = OpenFileMapping(
+  modelicaDataMapFile = OpenFileMapping(
                       FILE_MAP_ALL_ACCESS,    // read/write access
                       FALSE,           // do not inherit the name
-                      otherDataName);    // name of mapping object for FFD data
+                      modelicaDataName);    // name of mapping object for FFD data
   i = 0;
-  while(i<imax && otherDataMapFile==NULL)
+  while(i<imax && modelicaDataMapFile==NULL)
   {
-    otherDataMapFile = OpenFileMapping(
+    modelicaDataMapFile = OpenFileMapping(
                         FILE_MAP_ALL_ACCESS,    // read/write access
                         FALSE,           // do not inherit the name
-                        otherDataName);    // name of mapping object for FFD data
+                        modelicaDataName);    // name of mapping object for FFD data
     i++;
   }
 
   // Send warning if can not open shared memory
-  if(otherDataMapFile==NULL)
+  if(modelicaDataMapFile==NULL)
   {
     sprintf(msg, "cosimulation.c: Could not open Other data file mapping object. Error code %d", GetLastError());
     ffd_log("cosimulation.c: Could not open Other data file mapping object.", FFD_ERROR);
@@ -104,26 +101,77 @@ int create_mapping()
   /*---------------------------------------------------------------------------
   | Maps a view of the Other file mapping into the address space 
   ---------------------------------------------------------------------------*/
-  otherDataBuf = (otherSharedData *) MapViewOfFile(otherDataMapFile,   // handle to map object
+  modelicaDataBuf = (ModelicaSharedData *) MapViewOfFile(modelicaDataMapFile,   // handle to map object
                       FILE_MAP_ALL_ACCESS, // read/write permission
                       0,
                       0,
-                      OTHER_DATA_SIZE);
+                      BUF_MODELICA_SIZE);
   i = 0;
-  while(otherDataBuf==NULL && i<imax)
+  while(modelicaDataBuf==NULL && i<imax)
   {
-    otherDataBuf = (otherSharedData *) MapViewOfFile(otherDataMapFile,   // handle to map object
+    modelicaDataBuf = (ModelicaSharedData *) MapViewOfFile(modelicaDataMapFile,   // handle to map object
                     FILE_MAP_ALL_ACCESS, // read/write permission
                     0,
                     0,
-                    OTHER_DATA_SIZE);
+                    BUF_MODELICA_SIZE);
     i++;
   }
 
-  if(otherDataBuf==NULL)
+  if(modelicaDataBuf==NULL)
   {
     sprintf(msg, "cosimulation.c: Could not map view of Other data file. Error code %d", GetLastError());
-    CloseHandle(ffdDataMapFile);
+    CloseHandle(modelicaDataMapFile);
+    return GetLastError();
+  }
+
+  /*---------------------------------------------------------------------------
+  | Open the bounday file mapping object
+  ---------------------------------------------------------------------------*/
+  boundaryDataMapFile = OpenFileMapping(
+                      FILE_MAP_ALL_ACCESS,    // read/write access
+                      FALSE,           // do not inherit the name
+                      boundaryDataName);    // name of mapping object for FFD data
+  i = 0;
+  while(i<imax && boundaryDataMapFile==NULL)
+  {
+    boundaryDataMapFile = OpenFileMapping(
+                        FILE_MAP_ALL_ACCESS,    // read/write access
+                        FALSE,           // do not inherit the name
+                        boundaryDataName);    // name of mapping object for FFD data
+    i++;
+  }
+
+  // Send warning if can not open shared memory
+  if(boundaryDataMapFile==NULL)
+  {
+    sprintf(msg, "cosimulation.c: Could not open Other data file mapping object. Error code %d", GetLastError());
+    ffd_log("cosimulation.c: Could not open Other data file mapping object.", FFD_ERROR);
+    return GetLastError();
+  }
+
+  /*---------------------------------------------------------------------------
+  | Maps a view of the Other file mapping into the address space 
+  ---------------------------------------------------------------------------*/
+  boundaryDataBuf = (BoundarySharedData *) MapViewOfFile(boundaryDataMapFile,   // handle to map object
+                      FILE_MAP_ALL_ACCESS, // read/write permission
+                      0,
+                      0,
+                      BUF_BOUNDARY_SIZE);
+  i = 0;
+  while(modelicaDataBuf==NULL && i<imax)
+  {
+    boundaryDataBuf = (BoundarySharedData *) MapViewOfFile(boundaryDataMapFile,   // handle to map object
+                    FILE_MAP_ALL_ACCESS, // read/write permission
+                    0,
+                    0,
+                    BUF_BOUNDARY_SIZE);
+    i++;
+  }
+
+  if(boundaryDataBuf==NULL)
+  {
+    sprintf(msg, "cosimulation.c: Could not map view of Other data file. Error code %d", GetLastError());
+    CloseHandle(boundaryDataMapFile);
     return GetLastError();
   }
 
@@ -131,17 +179,104 @@ int create_mapping()
 
 } // End of create_mapping()
 
+///////////////////////////////////////////////////////////////////////////////
+/// Read the boundary data from modelica
+///
+///////////////////////////////////////////////////////////////////////////////
+int read_modelica_boundary_data()
+{
+  int i;
+  char msg[500];
+  float float_feak;
+  int int_feak;
+
+  ffd_log("cosimulation_interface.c: Received the following boundary data.",
+           FFD_NORMAL);
+
+  sprintf(msg, "nSur=%d", boundaryDataBuf->nSur);
+  ffd_log(msg, FFD_NORMAL);
+    
+  sprintf(msg, "nSen=%d", boundaryDataBuf->nSen);
+  ffd_log(msg, FFD_NORMAL);
+
+  sprintf(msg, "nConExtWin=%d", boundaryDataBuf->nConExtWin);
+  ffd_log(msg, FFD_NORMAL);
+
+  sprintf(msg, "nPorts=%d", boundaryDataBuf->nPorts);
+  ffd_log(msg, FFD_NORMAL);
+
+  sprintf(msg, "sha=%d", boundaryDataBuf->sha);
+  ffd_log(msg, FFD_NORMAL);
+
+  for(i=0; i<boundaryDataBuf->nSur; i++) {
+    sprintf(msg, "Surface %d: %s", i, boundaryDataBuf->name[i]);
+    ffd_log(msg, FFD_NORMAL);
+    sprintf(msg, "Area:%f m2,\t Tilt:%f deg", 
+            boundaryDataBuf->are[i], boundaryDataBuf->til[i]);
+    ffd_log(msg, FFD_NORMAL);
+    sprintf(msg, "Thermal boundary condition:%d", boundaryDataBuf->bouCon[i]);  
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  for(i=0; i<boundaryDataBuf->nSen; i++) {
+    sprintf(msg, "Sensor %d: %s", i, boundaryDataBuf->sensorName[i]);
+    ffd_log(msg, FFD_NORMAL); 
+  }
+
+  return 0;
+}
+
 /******************************************************************************
  Write shared data to the shared memory 
 ******************************************************************************/
-int write_to_shared_memory(ffdSharedData *ffdData)
+int write_to_shared_memory(PARA_DATA *para, REAL **var)
 {
+  int i;
+  int int_feak = 1;
+  float float_feak=1.0;
+  char msg[500];
+
   // Wait if the previosu data hasnot been read by the other program
-  while(ffdDataBuf->status==1)
+  while(ffdDataBuf->flag==1)
     Sleep(1000);
 
-  // Copy a block of memory from ffdData to ffdDataBuf
-  CopyMemory((PVOID)ffdDataBuf, ffdData, sizeof(ffdSharedData));
+  ffdDataBuf->t = para->mytime->t;
+
+  sprintf(msg, "cosimulation_interfce.c: Sent FFD data to Modelica at t=%fs", 
+          ffdDataBuf->t);
+  ffd_log(msg, FFD_NORMAL);
+
+  ffd_log("Thermal conditions for solid surfaces:", FFD_NORMAL);
+  for(i=0; i<boundaryDataBuf->nSur; i++) { 
+    ffdDataBuf->temHea[i] = float_feak; 
+    sprintf(msg, "Surface %d: %f", i, ffdDataBuf->temHea[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  ffdDataBuf->TRoo = average(para, var[TEMP]) + 273.15; // Need to convert from C to K
+  sprintf(msg, "Averaged Room temperature %fK", ffdDataBuf->TRoo);
+  ffd_log(msg, FFD_NORMAL);
+
+  if(boundaryDataBuf->sha==1) {
+    ffd_log("Temperature of the shade:\n", FFD_NORMAL);
+    for(i=0; i<boundaryDataBuf->nConExtWin; i++) {
+      ffdDataBuf->TSha[i] = 20 + 273.15;
+      sprintf(msg, "Surface %d: %fK\n",
+              i, ffdDataBuf->TSha[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+  }
+
+  ffd_log("Flow information at the ports: T, Xi, C\n", FFD_NORMAL);
+  for(i=0; i<boundaryDataBuf->nPorts; i++) {
+    ffdDataBuf->TPor[i] = 20 + 273.15;
+    ffdDataBuf->XiPor[i] = 0;
+    ffdDataBuf->CPor[i] = 0;
+    sprintf(msg, "Port %d: %f,\t%f,\t%f\n",
+            i, ffdDataBuf->TPor[i],
+            ffdDataBuf->XiPor[i], ffdDataBuf->CPor[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   ffd_log("cosimulation_interace.c: wrote data to shared memory", FFD_NORMAL);
   return 0;
@@ -154,24 +289,57 @@ int write_to_shared_memory(ffdSharedData *ffdData)
 |  0: data has been read by the other program
 |  1: data waiting for the other program to read
 ******************************************************************************/
-int read_from_shared_memory(otherSharedData *otherData)
+int read_from_shared_memory(PARA_DATA *para, REAL **var)
 {
+  int i;
+  char msg[500];
+  float float_feak;
+  int int_feak;
+
 
   // Wait for data to be updated by the other program
-  while(otherDataBuf->status<1) 
+  while(modelicaDataBuf->flag<1) 
     Sleep(1000);
 
-  otherData->arr[0] = otherDataBuf->arr[0];
-  otherData->arr[1] = otherDataBuf->arr[1];
-  otherData->arr[2] = otherDataBuf->arr[2];
-  otherData->t = otherDataBuf->t;
-  otherData->status= otherDataBuf->status;
-  strcpy(otherData->message, otherDataBuf->message);
+  sprintf(msg, 
+          "cosimulation_interface.c: Received the following data at t=%f", modelicaDataBuf->t);
+  ffd_log(msg, FFD_NORMAL);
+
+  ffd_log("thermal conditions for solide surfaces:", FFD_NORMAL);
+  for(i=0; i<boundaryDataBuf->nSur; i++) {
+    float_feak = modelicaDataBuf->temHea[i];
+    sprintf(msg, "%s\t%f", msg, modelicaDataBuf->temHea[i]);
+  }
+  ffd_log(msg, FFD_NORMAL);
+    
+ 
+  if(boundaryDataBuf->sha==1) {
+    ffd_log("Shading control signal and absorded radiation by the shade:\n", FFD_NORMAL);
+    for(i=0; i<boundaryDataBuf->nConExtWin; i++) {
+      float_feak = modelicaDataBuf->shaConSig[i];
+      float_feak = modelicaDataBuf->shaAbsRad[i];
+      sprintf(msg, "Surface %d: %f,\t%f\n",
+              i, modelicaDataBuf->shaConSig[i], modelicaDataBuf->shaAbsRad[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+  }
+
+  ffd_log("Flow information at the ports:mdot, T, Xi, C\n", FFD_NORMAL);
+  for(i=0; i<boundaryDataBuf->nPorts; i++) {
+    float_feak = modelicaDataBuf->mFloRatPor[i];
+    float_feak = modelicaDataBuf->TPor[i] - 273.15;
+    float_feak = modelicaDataBuf->XiPor[i];
+    float_feak = modelicaDataBuf->CPor[i];
+    sprintf(msg, "Port %d: %f,\t%fK,\t%f,\t%f\n",
+            i, modelicaDataBuf->mFloRatPor[i], modelicaDataBuf->TPor[i],
+            modelicaDataBuf->XiPor[i], modelicaDataBuf->CPor[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   // Change the sign to indicate that the data has been read
-  otherDataBuf->status = 0;
+  modelicaDataBuf->flag = 0;
 
-  ffd_log("cosimulation_interface.c: read data from shared memory.", FFD_NORMAL);
+  ffd_log("cosimulation_interface.c: Ended reading data from shared memory.", FFD_NORMAL);
   return 0;
 } // End of read_from_shared_memory()
 
@@ -192,7 +360,7 @@ int close_mapping()
   else
     ffd_log("cosimulation_interface.c: successfully unmapped data buffer for FFD.", FFD_NORMAL);
   
-  if(!UnmapViewOfFile(otherDataBuf))
+  if(!UnmapViewOfFile(modelicaDataBuf))
   {
     sprintf(msg, "cosimulation_interface.c: failed to unmap view for Other data buffer with error code %d.",
       GetLastError());
@@ -212,7 +380,7 @@ int close_mapping()
   else
     ffd_log("cosimulation_interface.c: successfully closed handle for FFD.", FFD_NORMAL);
 
-  if(!CloseHandle(otherDataMapFile))
+  if(!CloseHandle(modelicaDataMapFile))
   {
     sprintf(msg, "cosimulation_interface.c: failedto close handle for the other program with error code %d.", 
       GetLastError());

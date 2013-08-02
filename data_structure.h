@@ -98,21 +98,22 @@ typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
 typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
 
-typedef struct 
-{
-  REAL t;
-  int status;
-  REAL number[3];
-  char message[20];
-}ffdSharedData;
-
-typedef struct 
-{
-  REAL t;
-  int status;
-  REAL arr[3];
-  char message[30];
-}otherSharedData;
+//typedef struct 
+//{
+//  REAL t;
+//  int status;
+//  REAL number[3];
+//  char message[20];
+//}ffdSharedData;
+//
+//typedef struct 
+//{
+//  REAL t;
+//  int status;
+//  REAL arr[3];
+//  float *testdata;
+//  char message[30];
+//}otherSharedData;
 
 
 
@@ -251,8 +252,8 @@ typedef struct{
   int nb_source; // Number of sources, provided by SCI
   int nb_bc; // Number of boundaries, provided by SCI
   char** bcname;
-  char ffdbcid[100]; // BC id stored in FFD
-  char otherbcid[100]; // BC id for the other program
+  int *ffdbcid; // BC id stored in FFD
+  int *modelicabcid; // BC id for modelica
 }BC_DATA;
 
 typedef struct 

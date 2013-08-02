@@ -340,8 +340,11 @@ return tmp;
 
 }// End of check_max( )
 
-
-REAL check_avg(PARA_DATA *para, REAL *psi)
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate averaged value of psi
+///
+///////////////////////////////////////////////////////////////////////////////
+REAL average(PARA_DATA *para, REAL *psi)
 {
   int imax = para->geom->imax, jmax = para->geom->jmax; 
   int kmax = para->geom->kmax;
@@ -355,7 +358,7 @@ REAL check_avg(PARA_DATA *para, REAL *psi)
     
   return tmp / (imax*jmax*kmax);
 
-}// End of check_residual( )
+}// End of average( )
 
 
 REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX)
