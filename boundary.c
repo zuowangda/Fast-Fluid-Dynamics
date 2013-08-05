@@ -1,47 +1,94 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: bounary.c
-//
-// Task: Define the boundary conditions
-//
-// Modification history:
-// 
-// 7/10/2013 by Wangda Zuo: re-constructed the code for release
-//
+///
+/// \file   boundary.c
+///
+/// \brief  Set the boundary conditions
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///         Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
+/// This file provides functions that are used for setting the boundary 
+/// conditons. 
+/// It starts with \c set_bnd(). Then different subroutines are called
+/// according to the properties of variables.
+///
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "boundary.h" 
 
-#include "data_structure.h"
-#include "boundary.h"
-#include "geometry.h"
-
-/******************************************************************************
-|  Set the boundary conditions
-******************************************************************************/
-void set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi, int **BINDEX)
-{
-  switch(var_type)
-  {
+///////////////////////////////////////////////////////////////////////////////
+/// Entrance of setting boundary conditions
+///
+/// Specific boundary conditions will be selected according to the variable 
+/// type.
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param psi Pointer to the variable needing the boundary conditions
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
+            int **BINDEX) {
+  int flag;
+  switch(var_type) {
     case VX:
-      set_bnd_vel(para, var, VX, psi, BINDEX); break;
+      flag = set_bnd_vel(para, var, VX, psi, BINDEX); 
+      if(flag!=0)
+        ffd_log("set_bnd(): Failed to set boundary conditon for X-velocity.",
+                FFD_ERROR);
+      break;
     case VY:
-      set_bnd_vel(para, var, VY, psi, BINDEX); break;
+      flag = set_bnd_vel(para, var, VY, psi, BINDEX); 
+      if(flag!=0)
+        ffd_log("set_bnd(): Failed to set boundary conditon for Y-velocity.",
+                FFD_ERROR);
+      break;
     case VZ:
-      set_bnd_vel(para, var, VZ, psi, BINDEX); break;
+      flag = set_bnd_vel(para, var, VZ, psi, BINDEX); 
+      if(flag!=0)
+        ffd_log("set_bnd(): Failed to set boundary conditon for Z-velocity.",
+                FFD_ERROR);
+      break;
     case TEMP:
-      set_bnd_temp(para, var, TEMP, psi, BINDEX); break; 
+      flag = set_bnd_temp(para, var, TEMP, psi, BINDEX); 
+      if(flag!=0)
+        ffd_log("set_bnd(): Failed to set boundary conditon for temperature.",
+                FFD_ERROR);
+      break;
+    default:
+      flag = 1;
+      sprintf(msg, 
+              "set_bnd(): boundary condition for variable type %d is not defined.",
+              var_type);
+      ffd_log(msg, FFD_ERROR);
   }
+
+  return flag;
 } // End of set_bnd() 
 
 
-/******************************************************************************
-|  Set the boundary conditions for velocity
-******************************************************************************/
-void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
-                 int **BINDEX)
+///////////////////////////////////////////////////////////////////////////////
+/// Set boundary conditions for velocity
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param psi Pointer to the variable needing the boundary conditions
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
+                int **BINDEX)
 {
   int i, j, k;
   int it;
@@ -53,41 +100,34 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL *af = var[AF], *ab = var[AB];
   REAL *flagp = var[FLAGP];
 
-  switch(var_type)
-  {
+  switch(var_type) {
     /* --------------------------------------------------------------------------
     | VX
     -------------------------------------------------------------------------- */
     case VX:
-      for(it=0; it<index; it++)
-      {
+      for(it=0; it<index; it++) {
         i = BINDEX[0][it];
         j = BINDEX[1][it];
         k = BINDEX[2][it];
         // Inlet
-        if(flagp[IX(i,j,k)]==0)
-        {
+        if(flagp[IX(i,j,k)]==0) {
           psi[IX(i,j,k)] = var[VXBC][IX(i,j,k)];
           if(i!=0) psi[IX(i-1,j,k)] = var[VXBC][IX(i,j,k)];
         }
         // Solid wall
-        if(flagp[IX(i,j,k)]==1)
-        {
+        if(flagp[IX(i,j,k)]==1) {
           psi[IX(i,j,k)] = 0;
           if(i!=0) psi[IX(i-1,j,k)] = 0;
         }
         // Outlet
-        if(flagp[IX(i,j,k)]==2)
-        {
+        if(flagp[IX(i,j,k)]==2) {
           // West
-          if(i==0) 
-          {
+          if(i==0) {
             psi[IX(i,j,k)] = psi[IX(i+1,j,k)]; 
             aw[IX(i+1,j,k)] = 0;
           }
           // East
-          if(i==imax+1) 
-          {
+          if(i==imax+1) {
             psi[IX(i-1,j,k)] = psi[IX(i-2,j,k)]; 
             ae[IX(i-2,j,k)] = 0;
           }
@@ -106,39 +146,33 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     | VY
     -------------------------------------------------------------------------- */
     case VY:
-      for(it=0;it<index;it++)
-      {
+      for(it=0;it<index;it++) {
         i = BINDEX[0][it];
         j = BINDEX[1][it];
         k = BINDEX[2][it];
         // Inlet
-        if(flagp[IX(i,j,k)]==0)
-        {
+        if(flagp[IX(i,j,k)]==0) {
           psi[IX(i,j,k)] = var[VYBC][IX(i,j,k)];
           if(j!=0) psi[IX(i,j-1,k)] = var[VYBC][IX(i,j,k)];
         }
         // Solid wall
-        if(flagp[IX(i,j,k)]==1)
-        {
+        if(flagp[IX(i,j,k)]==1) {
           psi[IX(i,j,k)] = 0;
           if(j!=0) psi[IX(i,j-1,k)] = 0;
         }
         // Outlet
-        if(flagp[IX(i,j,k)]==2)
-        {
+        if(flagp[IX(i,j,k)]==2) {
           // West
           if(i==0) aw[IX(i+1,j,k)]=0;
           // East
           if(i==imax+1) ae[IX(i-1,j,k)]=0;
           // South
-          if(j==0) 
-          {
+          if(j==0) {
             as[IX(i,j+1,k)] = 0; 
             psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
           }
           // North
-          if(j==jmax+1) 
-          {
+          if(j==jmax+1) {
             an[IX(i,j-2,k)] = 0;
             psi[IX(i,j-1,k)] = psi[IX(i,j-2,k)];
           }
@@ -152,24 +186,20 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     | VZ
     -------------------------------------------------------------------------- */
     case VZ:
-      for(it=0;it<index;it++)
-      {
+      for(it=0;it<index;it++) {
         i = BINDEX[0][it];
         j = BINDEX[1][it];
         k = BINDEX[2][it];
         // Inlet
-        if(flagp[IX(i,j,k)]==0)
-        {
+        if(flagp[IX(i,j,k)]==0) {
           psi[IX(i,j,k)] = var[VZBC][IX(i,j,k)];
           if(k!=0) psi[IX(i,j,k-1)] = var[VZBC][IX(i,j,k)];
         }
-        if(flagp[IX(i,j,k)]==1)
-        {
+        if(flagp[IX(i,j,k)]==1) {
           psi[IX(i,j,k)] = 0;
           if(k!=0) psi[IX(i,j,k-1)] = 0;
         }
-        if(flagp[IX(i,j,k)]==2)
-        {
+        if(flagp[IX(i,j,k)]==2) {
           // West
           if(i==0) aw[IX(i+1,j,k)] = 0;
           // East
@@ -177,16 +207,14 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           //South
           if(j==0) as[IX(i,j+1,k)] = 0;
           // North
-          if(j==jmax+1) an[IX(i,j-1,k)]=0;
+          if(j==jmax+1) an[IX(i,j-1,k)] = 0;
           // Floor
-          if(k==0) 
-          { 
+          if(k==0) { 
             ab[IX(i,j,k+1)] = 0;
             psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
           }
           // Ceiling
-          if(k==kmax+1) 
-          { 
+          if(k==kmax+1) { 
             af[IX(i,j,k-2)] = 0;
             psi[IX(i,j,k-1)] = psi[IX(i,j,k-2)];
           }
@@ -195,14 +223,23 @@ void set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
       break;
    } // End of switch case
 
+   return 0;
 }// End of set_bnd_vel( )
 
-/*******************************************************************************
-| Set boundary conditon for the temperature
-*******************************************************************************/
-void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
-                  int **BINDEX)
-{
+
+///////////////////////////////////////////////////////////////////////////////
+/// Set the boundary condition for temperature
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param psi Pointer to the variable needing the boundary conditions
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
+                 int **BINDEX) {
   int i, j, k;
   int it;
   int index=para->geom->index;
@@ -215,12 +252,11 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL axy, ayz, azx; // Area of surfaces
   REAL coeff_h=para->prob->coeff_h;
 
-  REAL coeq = 0.001; // Fixme: Check why times 0.001 for heat flux
+  REAL coeq = (REAL) 0.001; // Fixme: Check why times 0.001 for heat flux
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
-  for(it=0; it<index; it++)
-  {
+  for(it=0; it<index; it++) {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
     k = BINDEX[2][it];
@@ -238,62 +274,51 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     /*-------------------------------------------------------------------------
     | Solid wall or block
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==1)
-    {
+    if(flagp[IX(i,j,k)]==1) {
       // Constant temperature
-      if(BINDEX[3][it]==1)
-      {
+      if(BINDEX[3][it]==1) {
         psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
         // West boundary wall and eastern neighbor cell is fluid
-        if(i==0)
-        {  
+        if(i==0) {  
           if(flagp[IX(i+1,j,k)]<0) aw[IX(i+1,j,k)] = coeff_h * ayz;
         }
         // East boundary wall and western neigbor cell is fluid
-        else if(i==imax+1)
-        {
+        else if(i==imax+1) {
           if(flagp[IX(i-1,j,k)]<0) ae[IX(i-1,j,k)] = coeff_h * ayz;
         }
         // Between West and East
-        else 
-        {
+        else {
           // Eastern neighbor cell is fluid
           if(flagp[IX(i+1,j,k)]<0) aw[IX(i+1,j,k)] = coeff_h * ayz;
           // Western neigbor cell is fluid
           if(flagp[IX(i-1,j,k)]<0) ae[IX(i-1,j,k)] = coeff_h * ayz;
         }
         // South wall boundary and northern neighbor is fluid
-        if(j==0)
-        {
+        if(j==0) {
           if(flagp[IX(i,j+1,k)]<0) as[IX(i,j+1,k)] = coeff_h * azx;
         }
         // North wall boundary and southern neighbor is fluid
-        else if(j==jmax+1)
-        {
+        else if(j==jmax+1) {
           if(flagp[IX(i,j-1,k)]<0) an[IX(i,j-1,k)] = coeff_h * azx;
         }
         // Between South and North
-        else 
-        {
+        else {
           // Southern neighbor is fluid
           if(flagp[IX(i,j-1,k)]<0) an[IX(i,j-1,k)] = coeff_h * azx;
           // Northern neighbor is fluid
           if(flagp[IX(i,j+1,k)]<0) as[IX(i,j+1,k)] = coeff_h * azx;
         } 
         // Floor and ceiling neighbor is fluid
-        if(k==0)
-        {
+        if(k==0) {
           if(flagp[IX(i,j,k+1)]<0) ab[IX(i,j,k+1)] = coeff_h * axy;
         }
         // Ceilling and floor neighbor is fluid
-        else if(k==kmax+1)
-        {
+        else if(k==kmax+1) {
           if(flagp[IX(i,j,k-1)]<0) af[IX(i,j,k-1)] = coeff_h * axy; 
         }
         // Between Floor and Ceiling
-        else 
-        {
+        else {
           // Ceiling neighbor is fluid
           if(flagp[IX(i,j,k+1)]<0) ab[IX(i,j,k+1)] = coeff_h * axy;
           // Floor neighbor is fluid
@@ -301,120 +326,98 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         } 
       } // End of contant temperature wall
       // Constant heat flux
-      if(BINDEX[3][it]==0)
-      {
+      if(BINDEX[3][it]==0) {
         // West wall boundary and eastern neighbor is fluid
-        if(i==0)
-        {
-          if(flagp[IX(i+1,j,k)]<0) 
-          {
+        if(i==0) {
+          if(flagp[IX(i+1,j,k)]<0) {
             aw[IX(i+1,j,k)] = 0;
             b[IX(i+1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)]);
           }
         }
         // East wall bounary and western neighbor is fluid
-        else if(i==imax+1)
-        {
-          if(flagp[IX(i-1,j,k)]<0) 
-          { 
+        else if(i==imax+1) {
+          if(flagp[IX(i-1,j,k)]<0) { 
             ae[IX(i-1,j,k)] = 0;
             b[IX(i-1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)]);
           }
         }
         // Between West and East
-        else 
-        {
+        else {
           // Eastern neighbot is fluid
-          if(flagp[IX(i+1,j,k)]<0) 
-          {
+          if(flagp[IX(i+1,j,k)]<0) {
             aw[IX(i+1,j,k)] = 0; 
             b[IX(i+1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i+1,j,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0+psi[IX(i+1,j,k)]);
           }
           // Western neighbor is fluid
-          if(flagp[IX(i-1,j,k)]<0) 
-          {
+          if(flagp[IX(i-1,j,k)]<0) {
             ae[IX(i-1,j,k)] = 0;
             b[IX(i-1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)]);
           }
         } 
         // South wall boundary and northern neighbor is fluid
-        if(j==0)
-        {
-          if(flagp[IX(i,j+1,k)]<0)
-          {
+        if(j==0) {
+          if(flagp[IX(i,j+1,k)]<0) {
             as[IX(i,j+1,k)] = 0;
             b[IX(i,j+1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)]);
           }
         } 
         // North wall boundary and southern neighbor is fluid
-        else if(j==jmax+1)
-        {
-          if(flagp[IX(i,j-1,k)]<0)
-          { 
+        else if(j==jmax+1) {
+          if(flagp[IX(i,j-1,k)]<0) { 
             an[IX(i,j-1,k)] = 0; 
             b[IX(i,j-1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)]);
           }
         }
         // Between South and North
-        else
-        {
+        else {
           // Southern neighbor is fluid
-          if(flagp[IX(i,j-1,k)]<0) 
-          { 
+          if(flagp[IX(i,j-1,k)]<0) { 
             an[IX(i,j-1,k)] =0; 
             b[IX(i,j-1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)]);
           }
           // Northern neighbor is fluid
-          if(flagp[IX(i,j+1,k)]<0) 
-          { 
+          if(flagp[IX(i,j+1,k)]<0) { 
             as[IX(i,j+1,k)] = 0; 
             b[IX(i,j+1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)]);
           }
         } 
         // Floor boundary and ceiling neighbor is fluid
-        if(k==0)
-        {
-          if(flagp[IX(i,j,k+1)]<0)
-          { 
+        if(k==0) {
+          if(flagp[IX(i,j,k+1)]<0) { 
             ab[IX(i,j,k+1)] = 0;
             b[IX(i,j,k+1)] += coeq * q[IX(i,j,k)] * axy;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0f+psi[IX(i,j,k+1)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0+psi[IX(i,j,k+1)]);
           }
         }
         // Ceiling boundary and floor neighbor is fluid
-        else if(k==kmax+1)
-        {
-          if(flagp[IX(i,j,k-1)]<0) 
-          { 
+        else if(k==kmax+1) {
+          if(flagp[IX(i,j,k-1)]<0) { 
             af[IX(i,j,k-1)] = 0;
             b[IX(i,j,k-1)] += coeq * q[IX(i,j,k)] *axy;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)]);
           }
         }
         // Between Floor and Ceiling
-        else
-        {
+        else {
           // Ceiling neighbor is fluid
-          if(flagp[IX(i,j,k+1)]<0) 
-          { 
+          if(flagp[IX(i,j,k+1)]<0) { 
             ab[IX(i,j,k+1)] = 0; 
             b[IX(i,j,k+1)] += coeq * q[IX(i,j,k)] * axy;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k+1)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j,k+1)]);
           } 
           // Floor neighbor is fluid
-          if(flagp[IX(i,j,k-1)]<0) 
-          { 
+          if(flagp[IX(i,j,k-1)]<0) { 
             af[IX(i,j,k-1)] = 0;
             b[IX(i,j,k-1)] += coeq * q[IX(i,j,k)] * axy;
-            psi[IX(i,j,k)] = q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)];
+            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)]);
           } 
         } 
       } // End of constant heat flux
@@ -423,54 +426,55 @@ void set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     /*-------------------------------------------------------------------------
     | Outlet boundary
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==2)
-    {
+    if(flagp[IX(i,j,k)]==2) {
       // West
-      if(i==0)      
-      {
+      if(i==0) {
         aw[IX(i+1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
       }
       // North
-      if(i==imax+1) 
-      {
+      if(i==imax+1) {
         ae[IX(i-1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
       }
       // South
-      if(j==0)      
-      {
+      if(j==0) {
         as[IX(i,j+1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
       }
       // North
-      if(j==jmax+1) 
-      {
+      if(j==jmax+1) {
         an[IX(i,j-1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
       }
       // Floor
-      if(k==0)
-      {
+      if(k==0) {
         ab[IX(i,j,k+1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
       }
       // Ceiling
-      if(k==kmax+1) 
-      {
+      if(k==kmax+1) {
         af[IX(i,j,k-1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
       }
     } // End of boundary for outlet
   } // End of for() loop for go through the index
+
+  return 0;
 } // End of set_bnd_temp()
 
 
-/******************************************************************************
-|  Set the boundary conditions for pressure
-******************************************************************************/
-void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Set the boundary condition for pressure
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param p Pointer to pressure variable
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
   int i, j, k, it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -481,8 +485,7 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
 
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
 
-  for(it=0;it<index;it++)
-  {
+  for(it=0;it<index;it++) {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
     k = BINDEX[2][it];
@@ -490,18 +493,14 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
     /*-------------------------------------------------------------------------
     | For X direction
     -------------------------------------------------------------------------*/
-    if(i>0)
-    { 
-      if(flagp[IX(i-1,j,k)]<0)  
-      { 
+    if(i>0) { 
+      if(flagp[IX(i-1,j,k)]<0) { 
         p[IX(i,j,k)] = p[IX(i-1,j,k)];
         ae[IX(i-1,j,k)] = 0;
       } 
     }
-    if(i<imax+1)  
-    { 
-      if(flagp[IX(i+1,j,k )]<0)
-      { 
+    if(i<imax+1) { 
+      if(flagp[IX(i+1,j,k )]<0) { 
         p[IX(i,j,k)] = p[IX(i+1,j,k)];
         aw[IX(i+1,j,k)] = 0;
       }
@@ -509,18 +508,14 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
     /*-------------------------------------------------------------------------
     | For Y direction
     -------------------------------------------------------------------------*/
-    if(j>0)
-    { 
-      if(flagp[IX(i,j-1,k)]<0)
-      { 
+    if(j>0) { 
+      if(flagp[IX(i,j-1,k)]<0) { 
         p[IX(i,j,k)] = p[IX(i,j-1,k )];  
         an[IX(i,j-1,k)] = 0;
       }
     } 
-    if(j<jmax+1)  
-    { 
-      if(flagp[IX(i,j+1,k)]<0)  
-      { 
+    if(j<jmax+1) { 
+      if(flagp[IX(i,j+1,k)]<0) { 
         p[IX(i,j,k )] = p[IX(i,j+1,k )];
         as[IX(i,j+1,k)] = 0;
       }
@@ -528,30 +523,38 @@ void set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX)
     /*-------------------------------------------------------------------------
     | For Z direction
     -------------------------------------------------------------------------*/
-    if(k>0)       
-    { 
-      if(flagp[IX(i,j,k-1)]<0)  
-      { 
+    if(k>0) {
+      if(flagp[IX(i,j,k-1)]<0) { 
         p[IX(i,j,k)] = p[IX(i,j,k-1)];
         af[IX(i,j,k-1)] = 0; 
       }
     }
-    if(k<kmax+1)  
-    { 
-      if(flagp[IX(i,j,k+1 )]<0)  
-      { 
+    if(k<kmax+1) { 
+      if(flagp[IX(i,j,k+1 )]<0) {
         p[IX(i,j,k)] = p[IX(i,j,k+1)];   
         ab[IX(i,j,k+1)] = 0; 
       } 
     }
   }
-} // End of set_bnd_pressure( )
 
+  return 0;
+} // End of set_bnd_pressure()
 
-/******************************************************************************
-| Make the mass conserved by adjusting the outflow rate
-******************************************************************************/
-void mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX)
+///////////////////////////////////////////////////////////////////////////////
+/// Enforce the mass conservation by adjusting the outlet flow rate
+///
+/// The detailes was published in the paper 
+/// "W. Zuo, J. Hu, Q. Chen 2010. 
+/// Improvements on FFD modeling by using different numerical schemes, 
+/// Numerical Heat Transfer, Part B Fundamentals, 58(1), 1-16."
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX)
 {
   int i, j, k;
   int it;
@@ -568,14 +571,12 @@ void mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX)
   /*---------------------------------------------------------------------------
   | Adjust the outflow
   ---------------------------------------------------------------------------*/
-  for(it=0;it<index;it++)
-  {
+  for(it=0;it<index;it++) {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
     k = BINDEX[2][it];
     // Fixme: Adding or substracting velocity may cause change in flow direction
-    if(flagp[IX(i,j,k)]==2)
-    {
+    if(flagp[IX(i,j,k)]==2) {
       if(i==0) u[IX(i,j,k)] -= dvel;
       if(i==imax+1) u[IX(i-1,j,k)]+= dvel;
       if(j==0) v[IX(i,j,k)] -= dvel;
@@ -584,13 +585,25 @@ void mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX)
       if(k==kmax+1) w[IX(i,j,k-1)] += dvel;
     }
   }
+
+  return 0;
 } // End of mass_conservation()
 
-/******************************************************************************
-| get the inflow and outflow mass ratio of the domain
-******************************************************************************/
-REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Get the mass flow difference divided by outflow area 
+///
+/// The detailes was published in the paper 
+/// "W. Zuo, J. Hu, Q. Chen 2010. 
+/// Improvements on FFD modeling by using different numerical schemes, 
+/// Numerical Heat Transfer, Part B Fundamentals, 58(1), 1-16."
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return Mass flow difference divided by the outflow area
+///////////////////////////////////////////////////////////////////////////////
+REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -599,14 +612,13 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL mass_in = 0.0, mass_out = 0.00000001, mass_ratio;
-  REAL area_temp,area_out=0;
+  REAL mass_in = (REAL) 0.0, mass_out = (REAL) 0.00000001, mass_ratio;
+  REAL area_out=0;
   REAL *flagp = var[FLAGP];
   REAL axy, ayz, azx;
 
   // Go through all the inelt and outlets
-  for(it=0; it<index; it++)
-  {
+  for(it=0; it<index; it++) {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
     k = BINDEX[2][it];
@@ -617,8 +629,7 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
     /*-------------------------------------------------------------------------
     | Compute the total inflow
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==0)
-    {
+    if(flagp[IX(i,j,k)]==0) {
       // West
       if(i==0) mass_in += u[IX(i,j,k)] * ayz;
       // East
@@ -635,41 +646,34 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
     /*-------------------------------------------------------------------------
     | Compute the total outflow
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==2)
-    {
+    if(flagp[IX(i,j,k)]==2) {
       // West
-      if(i==0) 
-      {
+      if(i==0) {
         mass_out += (-u[IX(i,j,k)]) * ayz; 
         area_out +=  ayz;
       }
       // East
-      if(i==imax+1) 
-      {
+      if(i==imax+1) {
         mass_out += u[IX(i-1,j,k)] * ayz;
         area_out += ayz;
       }
       // South
-      if(j==0) 
-      {
+      if(j==0) {
         mass_out += (-v[IX(i,j,k)]) * azx;
         area_out += azx;
       }
       // North
-      if(j==jmax+1) 
-      {
+      if(j==jmax+1) {
         mass_out += v[IX(i,j-1,k)] * azx;
         area_out += azx;
       }
       // Floor
-      if(k==0) 
-      {
+      if(k==0) {
         mass_out += (-w[IX(i,j,k)]) * axy;
         area_out += axy;
       }
       // Ceiling
-      if(k==kmax+1) 
-      {
+      if(k==kmax+1) {
         mass_out += w[IX(i,j,k-1)] * axy;
         area_out += axy;
       }
@@ -681,4 +685,4 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX)
   | Return the adjusted velocuty for mass conservation
   ---------------------------------------------------------------------------*/
   return (mass_in-mass_out)/area_out;
-}
+} // End of adjust_velocity()
