@@ -1,15 +1,36 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <math.h>
+///////////////////////////////////////////////////////////////////////////////
+///
+/// \file   chen_zero_equ_model.c
+///
+/// \brief  Computes turbulent viscosity using Chen's zero equ model
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///         Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
+/// This file provides function that computes the turbulent viscosity using 
+/// Chen's zero equation model 
+///
+///////////////////////////////////////////////////////////////////////////////
+#include "chen_zero_equ_model.h"
 
-#include "data_structure.h"
-
-/******************************************************************************
-| chen's zero queation model
-******************************************************************************/
-REAL nu_t_chen_zero_equ(PARA_DATA *para, REAL **var, int i, int j, int k)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Computes turbulent viscosity using Chen's zero equation model
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param i I-index of the control volume
+///\param j J-index of the control volume
+///\param k K-index of the control volume
+///
+///\return Turbulent Kinematic viscosity
+///////////////////////////////////////////////////////////////////////////////
+REAL nu_t_chen_zero_equ(PARA_DATA *para, REAL **var, int i, int j, int k) {
   REAL nu_t, l, lx, lx1, lx2, ly, ly1, ly2, lz, lz1, lz2;
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   REAL *u = var[VX], *v = var[VY], *w = var[Z];
@@ -20,9 +41,9 @@ REAL nu_t_chen_zero_equ(PARA_DATA *para, REAL **var, int i, int j, int k)
   lx1 = x[IX(i,j,k)] - x[IX(0,j,k)];
   lx2 = x[IX(imax+1,j,k)] - x[IX(i,j,k)];
 
-  lz=0;
-  lz1=0;
-  lz2=0;
+  lz = 0;
+  lz1 = 0;
+  lz2 = 0;
 
   lx = lx1 < lx2 ? lx1 : lx2;
 
@@ -33,9 +54,9 @@ REAL nu_t_chen_zero_equ(PARA_DATA *para, REAL **var, int i, int j, int k)
   l = lx < ly ? lx : ly;
 
   nu_t = para->prob->chen_a * l
-       * (float)sqrt( u[IX(i,j,k)]*u[IX(i,j,k)]
-              +v[IX(i,j,k)]*v[IX(i,j,k)]
-              +w[IX(i,j,k)]*w[IX(i,j,k)] );
+       * (REAL)sqrt( u[IX(i,j,k)]*u[IX(i,j,k)]
+                    +v[IX(i,j,k)]*v[IX(i,j,k)]
+                    +w[IX(i,j,k)]*w[IX(i,j,k)] );
 
   return nu_t;
-}
+} // End of nu_t_chen_zero_equ()
