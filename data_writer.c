@@ -1,12 +1,20 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: data_writer.c
-//
-// Task: Write the simulation data
-//
-// Modification history:
-// 7/10/2013 by Wangda Zuo: re-construct the code for release
-//
+///
+/// \file   data_write.c
+///
+/// \brief  Write the simulation data
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///         Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
+/// This file provides functions that write the data file in differnt formats.
+///
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "data_writer.h"
@@ -71,10 +79,11 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
             flagp[IX(i,j,k)], p[IX(i,j,k)]);    
   END_FOR
 
+  fclose(file1);
   sprintf(msg, "write_tecplot_data(): Wrote file %s.", filename);
   ffd_log(msg, FFD_NORMAL);
   free(filename);
-  fclose(file1);
+
   return 0;
 } //write_tecplot_data()
 
@@ -178,10 +187,11 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
 
   END_FOR
 
+  fclose(file1);
   sprintf(msg, "write_tecplot_all_data(): Wrote file %s.", filename);
   ffd_log(msg, FFD_NORMAL);
   free(filename);
-  fclose(file1);
+
   return 0;
 } //write_tecplot_all_data()
 
@@ -293,13 +303,13 @@ void convert_to_tecplot_corners(PARA_DATA *para, REAL **var, REAL *psi) {
 } // End of convert_to_tecplot_corners()
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Write the instentanient value of variables in Tecplot format
+/// Write the instantaneous value of variables in Tecplot format
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param name Pointer to the filename
 ///
-///\return no return
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int write_unsteady(PARA_DATA *para, REAL **var, char *name)
 {
@@ -310,12 +320,11 @@ int write_unsteady(PARA_DATA *para, REAL **var, char *name)
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
   REAL  *d = var[DEN];
   REAL *T = var[TEMP];
-
   char *filename;  
   
   filename = (char *) malloc((strlen(name)+4)*sizeof(char));
   if(filename==NULL) {
-    ffd_log("write_tecplot_all_data(): Failed to allocate memory for file name", 
+    ffd_log("write_unsteady(): Failed to allocate memory for file name", 
             FFD_ERROR); 
     return 1;
   }
@@ -334,19 +343,27 @@ int write_unsteady(PARA_DATA *para, REAL **var, char *name)
     fprintf( file1, "%f\t%f\t%f\t",u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)]);
     fprintf( file1, "%f\t%f\t%f\n",T[IX(i,j,k)],d[IX(i,j,k)], p[IX(i,j,k)]);
   END_FOR
-  
+
+  fclose(file1);
   sprintf(msg, "write_unsteady(): Wrote the unsteady data file %s.", filename);
   ffd_log(msg, FFD_NORMAL);
   free(filename);
-  fclose(file1);
 
   return 0;
 } //write_unsteady()
 
-int write_SCI(PARA_DATA *para, REAL **var, char *name)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Write the data in a format for SCI program
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param name Pointer to the filename
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int write_SCI(PARA_DATA *para, REAL **var, char *name) {
   int i, j, k;
-  int IPR,IU,IV,IW,IT,IC1,IC2,IC3,IC4,IC5,IC6,IC7;
+  int IPR, IU, IV, IW, IT, IC1, IC2, IC3, IC4, IC5, IC6, IC7;
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -356,189 +373,150 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name)
   REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];
   REAL *T = var[TEMP], *Tm = var[TEMPM];
   REAL *tmp1 = var[TMP1], *tmp2 = var[TMP2], *tmp3 = var[TMP3];
-
-  char filename[20];  
+  char *filename;
   
+  filename = (char *) malloc((strlen(name)+4)*sizeof(char));
+  if(filename==NULL) {
+    ffd_log("write_SCI(): Failed to allocate memory for file name", 
+            FFD_ERROR); 
+    return 1;
+  }
+
   strcpy(filename, name);
   strcat(filename, ".cfd");
 
-  /* open output file */
-  if((file1 = fopen( filename, "w" ))==NULL)
-  {
-    fprintf(stderr,"Error:can not open input file!\n");
-    return -1;
+  // Open output file
+  if((file1=fopen(filename,"w"))==NULL) {
+    sprintf(msg, "write_SCI(): Failed to open file %s.", filename);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
   }
 
-  IPR=1;
-  IU=1;
-  IV=1;
-  IW=1;
-  IT=1;
-  IC1=0;
-  IC2=0;
-  IC3=0;
-  IC4=0;
-  IC5=0;
-  IC6=0;
-  IC7=0;
+  IPR = 1;
+  IU = 1;
+  IV = 1;
+  IW = 1;
+  IT = 1;
+  IC1 = 0;
+  IC2 = 0;
+  IC3 = 0;
+  IC4 = 0;
+  IC5 = 0;
+  IC6 = 0;
+  IC7 = 0;
 
+  for(j=0; j<=jmax+1; j++) {
+    for(k=0; k<=kmax+1; k++) {
+      u[IX(imax+1,j,k)] = u[IX(imax,j,k)];
+      um[IX(imax+1,j,k)] = um[IX(imax,j,k)];
+      for(i=imax; i>=1; i--) {
+        u[IX(i,j,k)] = (REAL) 0.5 * (u[IX(i,j,k)]+u[IX(i-1,j,k)]);
+        um[IX(i,j,k)] = (REAL) 0.5 * (um[IX(i,j,k)]+um[IX(i-1,j,k)]);
+      }
+    }
+  }
 
-    for(j=0; j<=jmax+1; j++)
-	  {
-		for(k=0; k<=kmax+1; k++)
-          {
-            
-                u[IX(imax+1,j,k)] = u[IX(imax,j,k)];
-                um[IX(imax+1,j,k)] = um[IX(imax,j,k)];   
+  for(i=0; i<=imax+1; i++) {
+    for(k=0; k<=kmax+1; k++) {
+      v[IX(i,jmax+1,k)] = v[IX(i,jmax,k)];
+      vm[IX(i,jmax+1,k)] = vm[IX(i,jmax,k)];  
+      for(j=jmax; j>=1; j--) {
+          v[IX(i,j,k)] = (REAL) 0.5 * (v[IX(i,j,k)]+v[IX(i,j-1,k)]);
+          vm[IX(i,j,k)] = (REAL) 0.5 * (vm[IX(i,j,k)]+vm[IX(i,j-1,k)]);
+        }
+    }
+  }
 
-                     for(i=imax; i>=1; i--)
-                     {
-                          u[IX(i,j,k)] = 0.5f * (u[IX(i,j,k)]+u[IX(i-1,j,k)]);
-                          um[IX(i,j,k)] = 0.5f * (um[IX(i,j,k)]+um[IX(i-1,j,k)]);
-                      }
-            }
-	  }
-
-
-	
-    for(i=0; i<=imax+1; i++)
-	  {
-		for(k=0; k<=kmax+1; k++)
-          {
-            
-                v[IX(i,jmax+1,k)] = v[IX(i,jmax,k)];
-                vm[IX(i,jmax+1,k)] = vm[IX(i,jmax,k)];  
-
-                     for(j=jmax; j>=1; j--)
-                     {
-                          v[IX(i,j,k)] = 0.5f * (v[IX(i,j,k)]+v[IX(i,j-1,k)]);
-                          vm[IX(i,j,k)] = 0.5f * (vm[IX(i,j,k)]+vm[IX(i,j-1,k)]);
-                      }
-            }
-	  }
-   
-
-	 for(i=0; i<=imax+1; i++)
-	  {
-		for(j=0; j<=jmax+1; j++)
-          {
-            
-                w[IX(i,j,kmax+1)] = w[IX(i,j,kmax)];
-                wm[IX(i,j,kmax+1)] = wm[IX(i,j,kmax)];  
-
-                     for(k=kmax; k>=1; k--)
-                     {
-                          w[IX(i,j,k)] = 0.5f * (w[IX(i,j,k)]+w[IX(i,j,k-1)]);
-                          wm[IX(i,j,k)] = 0.5f * (wm[IX(i,j,k)]+wm[IX(i,j,k-1)]);
-                      }
-            }
-	  }
+  for(i=0; i<=imax+1; i++) {
+    for(j=0; j<=jmax+1; j++) {
+      w[IX(i,j,kmax+1)] = w[IX(i,j,kmax)];
+      wm[IX(i,j,kmax+1)] = wm[IX(i,j,kmax)];  
+      for(k=kmax; k>=1; k--) {
+        w[IX(i,j,k)] = (REAL) 0.5 * (w[IX(i,j,k)]+w[IX(i,j,k-1)]);
+        wm[IX(i,j,k)] = (REAL) 0.5 * (wm[IX(i,j,k)]+wm[IX(i,j,k-1)]);
+      }
+    }
+  }
   
- //W-S-B
-  p[IX(0,0,0)] = (p[IX(0,1,0)]+p[IX(1,0,0)]+p[IX(0,0,1)]) / 3.0f;
+  //W-S-B
+  p[IX(0,0,0)] = (p[IX(0,1,0)]+p[IX(1,0,0)]+p[IX(0,0,1)]) / (REAL) 3.0;
   //W-N-B
   p[IX(0,jmax+1,0)] = ( p[IX(1,jmax+1,0)]+p[IX(0,jmax,0)]
-                         +p[IX(0,jmax+1,1)]) / 3.0f;
+                         +p[IX(0,jmax+1,1)]) / (REAL) 3.0;
   //E-S-B
   p[IX(imax+1,0,0)] = ( p[IX(imax,0,0)]+p[IX(imax+1,1,0)]
-                         +p[IX(imax+1,0,1)]) / 3.0f;
+                       +p[IX(imax+1,0,1)]) / (REAL) 3.0;
   //E-N-B
   p[IX(imax+1,jmax+1,0)] = ( p[IX(imax,jmax+1,0)]+p[IX(imax+1,jmax,0)]
-                              +p[IX(imax+1,jmax+1,1)]) / 3.0f;
+                            +p[IX(imax+1,jmax+1,1)]) / (REAL) 3.0;
   //W-S-F
   p[IX(0,0,kmax+1)] = ( p[IX(0,1,kmax+1)]+p[IX(1,0,kmax+1)]
-                         +p[IX(0,0,kmax)]) / 3.0f;  
+                       +p[IX(0,0,kmax)]) / (REAL) 3.0;  
   //W-N-F
   p[IX(0,jmax+1,kmax+1)] = ( p[IX(1,jmax+1,kmax+1)]+p[IX(0,jmax,kmax+1)]
-                              +p[IX(0,jmax+1,kmax)]) / 3.0f;
+                            +p[IX(0,jmax+1,kmax)]) / (REAL) 3.0;
 
   //E-S-F
   p[IX(imax+1,0,kmax+1)] = ( p[IX(imax,0,kmax+1)]+p[IX(imax+1,1,kmax+1)]
-                              +p[IX(imax+1,0,kmax)]) / 3.0f;
+                            +p[IX(imax+1,0,kmax)]) / (REAL) 3.0;
   //E-N-F
   p[IX(imax+1,jmax+1,kmax+1)] = ( p[IX(imax,jmax+1,0)]+p[IX(imax+1,jmax,0)]
-                                   +p[IX(imax+1,jmax+1,kmax)]) / 3.0f;
+                                 +p[IX(imax+1,jmax+1,kmax)]) / (REAL) 3.0;
 
 
+  fprintf(file1, "%e\t%e\t%e\n", para->geom->Lx, para->geom->Ly, para->geom->Lz);
+  fprintf(file1, "%d\t%d\t%d\n", imax, jmax, kmax);
+  fprintf(file1, "%d\t%d\t%d\t%d\t%d\t%d\n", IPR, IU, IV, IW, IT, IC1);
+  fprintf(file1, "%d\t%d\t%d\t%d\t%d\t%d\n", IC2, IC3, IC4, IC5, IC6, IC7);
 
-
-  fprintf( file1, "%e\t%e\t%e\n", para->geom->Lx, para->geom->Ly, para->geom->Lz);
-  fprintf( file1, "%d\t%d\t%d\n", imax,jmax,kmax);
-  fprintf( file1, "%d\t%d\t%d\t%d\t%d\t%d\n", IPR,IU,IV,IW,IT,IC1);
-  fprintf( file1, "%d\t%d\t%d\t%d\t%d\t%d\n", IC2,IC3,IC4,IC5,IC6,IC7);
-
-  for(i=1;i<=imax;i++)  fprintf( file1, "%e\t", x[IX(i,j,k)]);
+  for(i=1; i<=imax; i++)
+    fprintf(file1, "%e\t", x[IX(i,j,k)]);
   fprintf( file1, "\n");
-  for(j=1;j<=jmax;j++)  fprintf( file1, "%e\t", y[IX(i,j,k)]);
+  for(j=1; j<=jmax; j++)
+    fprintf(file1, "%e\t", y[IX(i,j,k)]);
   fprintf( file1, "\n");
-  for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", z[IX(i,j,k)]);
+  for(k=1; k<=kmax; k++)
+    fprintf(file1, "%e\t", z[IX(i,j,k)]);
   fprintf( file1, "\n");
 
-  for(j=1;j<=jmax;j++)
-	  for(i=1;i<=imax;i++)
-	  {
-		    fprintf( file1, "%d\t%d\n", i,j);
-   if(IPR==1)
-   {
-	 for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", p[IX(i,j,k)]);   
-     fprintf( file1, "\n");
-   }
-   if(IU==1)
-   {
-	 for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", u[IX(i,j,k)]);   
-     fprintf( file1, "\n");
-   }
-   if(IV==1)
-   {
-	 for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", v[IX(i,j,k)]);   
-     fprintf( file1, "\n");
-   }
-   if(IW==1)
-   {
-	 for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", w[IX(i,j,k)]);   
-     fprintf( file1, "\n");
-   }
+  for(j=1; j<=jmax; j++)
+    for(i=1; i<=imax; i++) {
+      fprintf(file1, "%d\t%d\n", i,j);
+      if(IPR==1) {
+        for(k=1; k<=kmax; k++) 
+          fprintf(file1, "%e\t", p[IX(i,j,k)]);   
+        fprintf(file1, "\n");
+      }
+      if(IU==1) {
+        for(k=1; k<=kmax; k++) 
+          fprintf(file1, "%e\t", u[IX(i,j,k)]);   
+        fprintf(file1, "\n");
+      }
+      if(IV==1) {
+        for(k=1; k<=kmax; k++)
+          fprintf(file1, "%e\t", v[IX(i,j,k)]);
+        fprintf(file1, "\n");
+      }
+      if(IW==1) {
+        for(k=1; k<=kmax; k++)
+          fprintf(file1, "%e\t", w[IX(i,j,k)]);
+          fprintf(file1, "\n");
+      }
 
-      if(IT==1)
-   {
-	 for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", T[IX(i,j,k)]);   
-     fprintf( file1, "\n");
-   }
-
-	 for(k=1;k<=kmax;k++)  fprintf( file1, "%e\t", T[IX(i,j,k)]);  //turbulence intensity 
-     fprintf( file1, "\n");
-	  }
-
+      if(IT==1) {
+        for(k=1; k<=kmax; k++)
+          fprintf( file1, "%e\t", T[IX(i,j,k)]);
+        fprintf(file1, "\n");
+      }
+      for(k=1;k<=kmax;k++)
+        fprintf(file1, "%e\t", T[IX(i,j,k)]);
+      fprintf( file1, "\n");
+    }
 
   fclose(file1);
-  
-  printf("The data file %s has been written!\n", name);
+  sprintf(msg, "wrtie_SCI(): Wrote the SCI data file %s.", filename);
+  ffd_log(msg, FFD_NORMAL);
+  free(filename);
   return 0;
 
-} //write_data()
-
-int write_time(int tsize, REAL *T_mon, REAL *U_mon)
-{
-	int i;
-	file1 = fopen("time.txt", "w");
-    if(file1 == NULL)
-    {
-    printf("Error:can not open input file!\n");  /*fprintf(stderr,"Error:can not open input file!\n")*/
-	return -1;
-    }
-    else
-	printf("file open successfully\n");
-
- 
-   for (i=0;i<=tsize;i++)
-   {
-	   fprintf (file1,"%d\t%f\t%f\n",i,U_mon[i],T_mon[i]);
-   }
-
-   fclose(file1);
-  
-  printf("The data file result.plt has been written!\n");
-
-  return 0;
-
-} //write_data()
+} // End of write_SCI()
