@@ -1,55 +1,102 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: advection.c
-//
-// Task: Advection step
-//
-// Modification history:
-// 7/20/2013 by Wangda Zuo: re-constructed the code for release
-//
+///
+/// \file   advection.c
+///
+/// \brief  Solver for advection step
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///         Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
+/// This file provides functions that used for the advection step of FFD method.
+/// The advection starts with \c advect(). Then different subroutines are 
+/// called according to the properties of the variables that are sorted by
+/// the location of variables assigned in the control volume. 
+/// Velocities at X, Y and Z directions are locatted
+/// on the surface of the control volume. They are computed using 
+/// subroutines: \c trace_vx(), \c trace_vy() and \ctrace_vz().
+/// Scalar variables are in the center of control volume and they are computed
+/// using \c trace_scalar().
+///
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <math.h>
-#include <stdio.h>
-#include "data_structure.h"
-#include "boundary.h"
 #include "advection.h"
-#include "solver.h"
-#include "utility.h"
-#include "interpolation.h"
 
-/******************************************************************************
-| Advect
-******************************************************************************/
-void advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-               int **BINDEX)
-{
-  switch (var_type)
-  {
+///////////////////////////////////////////////////////////////////////////////
+/// Entrance of advection step
+///
+/// Specific method for advection will be selected according to the variable 
+/// type.
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param d Pointer to the computed variables at previous time step
+///\param d0 Pointer to the computed variables for current time step
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
+               int **BINDEX) {
+  int flag;
+  switch (var_type) {
     case VX:
-      trace_vx(para, var, var_type, d, d0, BINDEX);
+      flag = trace_vx(para, var, var_type, d, d0, BINDEX);
+      if(flag!=0)
+        ffd_log("advect(): Failed in advection for X-velocity.",
+                FFD_ERROR);
       break;
     case VY:
-      trace_vy(para, var, var_type, d, d0, BINDEX);
+      flag = trace_vy(para, var, var_type, d, d0, BINDEX);
+      if(flag!=0)
+        ffd_log("advect(): Failed in advection for Y-velocity.",
+                FFD_ERROR);
       break;
-  case VZ:
-      trace_vz(para, var, var_type, d, d0, BINDEX);
+    case VZ:
+      flag = trace_vz(para, var, var_type, d, d0, BINDEX);
+      if(flag!=0)
+        ffd_log("advect(): Failed in advection for Z-velocity.",
+                FFD_ERROR);
       break;
-  case TEMP:
-  case DEN:
-      trace_scalar(para, var, var_type, d, d0, BINDEX);
+    case TEMP:
+    case DEN:
+      flag = trace_scalar(para, var, var_type, d, d0, BINDEX);
+      if(flag!=0) {
+        sprintf(msg, 
+                "advect(): Failed in advection for scalar variable type %d.", 
+                var_type);
+        ffd_log(msg, FFD_ERROR);
+      }
       break;
+    default:
+      flag = 1;
+      sprintf(msg, "advect(): no advection for variable type %d.", var_type);
+      ffd_log(msg, FFD_ERROR);
   }
 
+  return flag;
 } // End of advect( )
 
-
-/******************************************************************************
-  Trace the VX
-******************************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+/// Advection for velocity at X-direction
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param d Pointer to the computed variables at previous time step
+///\param d0 Pointer to the computed variables for current time step
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
 int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX)
-{
+             int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -75,11 +122,11 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     -----------------------------------------------------------------------*/
     // Get velocities at the location of VX
     u0 = u[IX(i,j,k)];
-    v0 = 0.5 
+    v0 = (REAL) 0.5 
         * ((v[IX(i,  j,k)]+v[IX(i,  j-1,k)])*( x[IX(i+1,j,k)]-gx[IX(i,j,k)])
           +(v[IX(i+1,j,k)]+v[IX(i+1,j-1,k)])*(gx[IX(i,  j,k)]- x[IX(i,j,k)])) 
         / (x[IX(i+1,j,k)]-x[IX(i,j,k)]);
-    w0 = 0.5 
+    w0 = (REAL) 0.5 
         * ((w[IX(i,  j,k)]+w[IX(i  ,j, k-1)])*( x[IX(i+1,j,k)]-gx[IX(i,j,k)])
           +(w[IX(i+1,j,k)]+w[IX(i+1,j, k-1)])*(gx[IX(i,  j,k)]- x[IX(i,j,k)]))
         / (x[IX(i+1,j,k)]-x[IX(i,j,k)]); 
@@ -160,12 +207,20 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   return 0;
 } // End of trace_vx()
 
-/******************************************************************************
-  Trace the VY
-******************************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+/// Advection for velocity at Y-direction
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param d Pointer to the computed variables at previous time step
+///\param d0 Pointer to the computed variables for current time step
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
 int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX)
-{
+             int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -192,12 +247,12 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     | Step 1: Tracing Back
     -------------------------------------------------------------------------*/
     // Get velocities at the location of VY
-    u0 = 0.5
+    u0 = (REAL) 0.5
        * ((u[IX(i,j,k)]+u[IX(i-1,j,  k)])*(y [IX(i,j+1,k)]-gy[IX(i,j,k)])
          +(u[IX(i,j+1,k)]+u[IX(i-1,j+1,k)])*(gy[IX(i,j,  k)]-y[IX(i,j,k)]))
        / (y[IX(i,j+1,k)]-y[IX(i,j,k)]);
     v0 = v[IX(i,j,k)]; 
-    w0 = 0.5
+    w0 = (REAL) 0.5
        * ((w[IX(i,j,k)]+w[IX(i,j,k-1)])*(y[IX(i,j+1,k)]-gy[IX(i,j,k)])
          +(w[IX(i,j+1,k)]+w[IX(i,j+1,k-1)])*(gy[IX(i,j,k)]-y[IX(i,j,k)]))
        / (y[IX(i,j+1,k)]-y[IX(i,j,k)]); 
@@ -272,12 +327,20 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   return 0;
 } // End of trace_vy()
 
-/******************************************************************************
-  Trace the VZ
-******************************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+/// Advection for velocity at Z-direction
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param d Pointer to the computed variables at previous time step
+///\param d0 Pointer to the computed variables for current time step
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
 int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX)
-{
+             int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -304,11 +367,11 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     | Step 1: Tracing Back
     -------------------------------------------------------------------------*/
     // Get velocities at the location of VZ
-    u0 = 0.5 
+    u0 = (REAL) 0.5 
        * ((u[IX(i,j,k  )]+u[IX(i-1,j,k  )])*(z [IX(i,j,k+1)]-gz[IX(i,j,k)])
          +(u[IX(i,j,k+1)]+u[IX(i-1,j,k+1)])*(gz[IX(i,j,k  )]- z[IX(i,j,k)]))
        /  (z[IX(i,j,k+1)]-z[IX(i,j,k)]);
-    v0 = 0.5
+    v0 = (REAL) 0.5
        * ((v[IX(i,j,k  )]+v[IX(i,j-1,k  )])*(z [IX(i,j,k+1)]-gz[IX(i,j,k)])
        +(v[IX(i,j,k+1)]+v[IX(i,j-1,k+1)])*(gz[IX(i,j,k  )]-z [IX(i,j,k)]))
        /  (z[IX(i,j,k+1)]-z[IX(i,j,k)]); 
@@ -345,8 +408,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       if(COOD[Z]==1 && LOC[Z]==1)
         set_z_location(para, var, flagw, gz, w0, i, j, k, OL, OC, LOC, COOD); 
 
-      if(it>itmax)
-             {
+      if(it>itmax) {
         printf("Error: advection.c can not track the location for VY(%d, %d,%d)",
                 i, j, k);
         printf("after %d iterations.\n", it);
@@ -383,12 +445,20 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   return 0;
 } // End of trace_vz()
 
-/******************************************************************************
-  Trace the scalar variables located in cell center
-******************************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+/// Advection for scalar variables located in the center of control volume
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable for advection solver
+///\param d Pointer to the computed variables at previous time step
+///\param d0 Pointer to the computed variables for current time step
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
 int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX)
-{
+             int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -415,9 +485,9 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     | Step 1: Tracing Back
     -------------------------------------------------------------------------*/
     // Get velocities at the location of scalar variable
-    u0 = 0.5 * (u[IX(i,j,k)]+u[IX(i-1,j,k  )]);
-    v0 = 0.5 * (v[IX(i,j,k)]+v[IX(i,j-1,k  )]);
-    w0 = 0.5 * (w[IX(i,j,k)]+w[IX(i,j  ,k-1)]);
+    u0 = (REAL) 0.5 * (u[IX(i,j,k)]+u[IX(i-1,j,k  )]);
+    v0 = (REAL) 0.5 * (v[IX(i,j,k)]+v[IX(i,j-1,k  )]);
+    w0 = (REAL) 0.5 * (w[IX(i,j,k)]+w[IX(i,j  ,k-1)]);
     // Find the location at previous time step
     OL[X] = x[IX(i,j,k)] - u0*dt; 
     OL[Y] = y[IX(i,j,k)] - v0*dt;
@@ -431,7 +501,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     COOD[X] = 1; 
     COOD[Y] = 1; 
     COOD[Z] = 1;
-    // Initialize the signs for recording if the tracing back hits the boundary
+    // Initialize the flags for recording if the tracing back hits the boundary
     // Hit the boundary: 0; Not hit the boundary: 1
     LOC[X] = 1; 
     LOC[Y] = 1; 
@@ -494,12 +564,31 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   return 0;
 } // End of trace_scalar()
 
-/******************************************************************************
-| Find the location in X
-******************************************************************************/
+
+///////////////////////////////////////////////////////////////////////////////
+/// Find the X-location and coordinates at previous time step
+///
+/// Conducting backward tracing for the particle's X-location and 
+/// corresponding coordinates at the previous time step.
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param flag Pointer to the property of the cell
+///\param x Pointer to the current position x(t) of particle
+///\param u0 X-velocity at time (t-1) in location x(t) 
+///\param i I-index for cell at time t at x(t) 
+///\param j J-index for cell at time t at x(t)
+///\param k K-index for cell at time t at x(t)
+///\param OL Pointer to the locations of particle at time (t-1)
+///\param OC Pointer to the coordinates of particle at time (t-1)
+///\param LOC Pointer to flags recording if tracing back hits the boundary
+///\param COOD Pointer to record the status of tracing back process
+///
+///\return void No return needed
+///////////////////////////////////////////////////////////////////////////////
 void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, 
-                    int i, int j, int k, REAL *OL, int *OC, int *LOC, int *COOD)
-{
+                    int i, int j, int k, 
+                    REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -594,12 +683,31 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
   } // End of if() for previous position is on the east of new position
 } // End of set_x_location()
  
-/******************************************************************************
-| Find the location in Y
-******************************************************************************/
+
+///////////////////////////////////////////////////////////////////////////////
+/// Find the Y-location and coordinates at previous time step
+///
+/// Conducting backward tracing for the particle's Y-location and 
+/// corresponding coordinates at the previous time step.
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param flag Pointer to the property of the cell
+///\param y Pointer to the current position y(t) of particle
+///\param v0 Y-velocity at time (t-1) in location y(t) 
+///\param i I-index for cell at time t at y(t) 
+///\param j J-index for cell at time t at y(t)
+///\param k K-index for cell at time t at y(t)
+///\param OL Pointer to the locations of particle at time (t-1)
+///\param OC Pointer to the coordinates of particle at time (t-1)
+///\param LOC Pointer to flags recording if tracing back hits the boundary
+///\param COOD Pointer to record the status of tracing back process
+///
+///\return void No return needed
+///////////////////////////////////////////////////////////////////////////////
 void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0, 
-                    int i, int j, int k, REAL *OL, int *OC, int *LOC, int *COOD)
-{
+                    int i, int j, int k, 
+                    REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -693,12 +801,30 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
   } // End of if() for previous position is on the east of new position
 } // End of set_x_location()
 
-/******************************************************************************
-| Find the location in Z
-******************************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+/// Find the Z-location and coordinates at previous time step
+///
+/// Conducting backward tracing for the particle's Z-location and 
+/// corresponding coordinates at the previous time step.
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param flag Pointer to the property of the cell
+///\param Z Pointer to the current position y(t) of particle
+///\param w0 Z-velocity at time (t-1) in location z(t) 
+///\param i I-index for cell at time t at z(t) 
+///\param j J-index for cell at time t at z(t)
+///\param k K-index for cell at time t at z(t)
+///\param OL Pointer to the locations of particle at time (t-1)
+///\param OC Pointer to the coordinates of particle at time (t-1)
+///\param LOC Pointer to flags recording if tracing back hits the boundary
+///\param COOD Pointer to record the status of tracing back process
+///
+///\return void No return needed
+///////////////////////////////////////////////////////////////////////////////
 void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
-                    int i, int j, int k, REAL *OL, int *OC, int *LOC, int *COOD)
-{
+                    int i, int j, int k, 
+                    REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -789,4 +915,4 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
       COOD[Z]=0;
     } // End of if() for inlet or outlet
   } // End of if() for previous position is on the east of new position
-} // End of set_y_location()
+} // End of set_z_location()
