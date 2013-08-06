@@ -1,17 +1,28 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: data_structure.h
-//
-// Written by:  Wangda Zuo
-//
-// Last Modified: Wangda Zuo on 7/10/2013
-//
-// Task: Defines the data structure of FFD
-//
-//////////////////////////////////////////////////////////////////////////////
-#include <time.h>
+///
+/// \file   data_structure.h
+///
+/// \brief  Defien the data used the FFD
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///         Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
+///////////////////////////////////////////////////////////////////////////////
+#ifndef _DATA_STRUCTURE_H
+#define _DATA_STRUCTURE_H
+#endif
+#ifdef _MSC_VER
 #include <windows.h>
-#include <conio.h>
+#endif
+
+#include <stdio.h>
+#include <time.h>
 
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
@@ -97,24 +108,6 @@ typedef enum{DEMO, DEBUG, RUN} VERSION;
 typedef enum{FFD, SCI, TECPLOT} FILE_FORMAT;
 
 typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
-
-//typedef struct 
-//{
-//  REAL t;
-//  int status;
-//  REAL number[3];
-//  char message[20];
-//}ffdSharedData;
-//
-//typedef struct 
-//{
-//  REAL t;
-//  int status;
-//  REAL arr[3];
-//  float *testdata;
-//  char message[30];
-//}otherSharedData;
-
 
 
 // Parameter for geometry and mesh
@@ -308,3 +301,5 @@ typedef struct {
 typedef struct {
   int feedback;
 }ReceivedCommand;
+
+char msg[1000];
