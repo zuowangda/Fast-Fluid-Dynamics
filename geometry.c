@@ -90,7 +90,7 @@ REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k, 
               int IMAX, int IJMAX) {
-  return fabs(var[GX][IX(i,j,k)]-var[GX][IX(i-1,j,k)]); 
+  return (REAL) fabs(var[GX][IX(i,j,k)]-var[GX][IX(i-1,j,k)]); 
 } // End of length_x()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k,
               int IMAX, int IJMAX) {
-  return fabs(var[GY][IX(i,j,k)]-var[GY][IX(i,j-1,k)]); 
+  return (REAL) fabs(var[GY][IX(i,j,k)]-var[GY][IX(i,j-1,k)]); 
 } // End of length_y()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,5 +126,5 @@ REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
               int IMAX, int IJMAX) {
-  return fabs(var[GZ][IX(i,j,k)]-var[GZ][IX(i,j,k-1)]); 
+  return (REAL) fabs(var[GZ][IX(i,j,k)]-var[GZ][IX(i,j,k-1)]); 
 } // End of length_z()
