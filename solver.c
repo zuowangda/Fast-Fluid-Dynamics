@@ -1,36 +1,32 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: solver.c
-//
-// Written by: Wangda Zuo
-//
-// Last Modified by: Wangda Zuo on 7/7/2013
-//
-//Task: Solver of Fast Fluid Dynamics program 
-//
+///
+/// \file   solver.c
+///
+/// \brief  Solver of FFD
+///
+/// \author Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///         Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
 ///////////////////////////////////////////////////////////////////////////////
-#include <stdio.h>
-#include <stdlib.h>
 
-#include "data_structure.h"
 #include "solver.h"
-#include "data_writer.h"
-#include "diffusion.h"
-#include "projection.h"
-#include "advection.h"
-#include "timing.h"
-#include "solver_gs.h"
-#include "solver_tdma.h"
-#include "boundary.h"
-#include "utility.h"
-#include "cosimulation.h"
-#include "cosimulation_interface.h"
 
-/******************************************************************************
-| FFD Solver
-******************************************************************************/
-void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD solver
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int size = (imax+2) * (jmax+2) * (kmax+2);
@@ -40,55 +36,50 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL *den = var[DEN], *temp = var[TEMP];
   REAL *u_mean = var[VXM], *v_mean = var[VYM], *w_mean = var[VZM];
-  int i,tsize=3;
+  int i, tsize=3;
   int  IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
   REAL t_cosim;
-  char msg[100];
 
-  if(para->solv->cosimulation == 1) 
-  {
+  if(para->solv->cosimulation == 1) {
     // Exchange the intial consitions for cosimulation
     create_mapping();
     read_cosimulation_data(para, var);
     write_cosimulation_data(para, var);
     //getchar();
-    printf("Synchronize data at t=%f\n", para->mytime->t);
+    sprintf(msg, "Synchronize data at t=%f\n", para->mytime->t);
+    ffd_log(msg, FFD_NORMAL);
+
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
   }
 
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
-  while(para->mytime->step_current < step_total)
-  {
+  while(para->mytime->step_current < step_total) {
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);
     //den_step(para, var, BINDEX);
-
     timing(para);
 
     // Start to record data for calculating mean velocity if needed
-    if(para->mytime->t>t_steady && cal_mean==0)
-    {
+    if(para->mytime->t>t_steady && cal_mean==0) {
       cal_mean = 1;
       step_current += 1;
       printf("start to calculate mean properties.\n");
     }   
 
     if(cal_mean == 1)
-      for(i=0; i<size; i++)
-      {
+      for(i=0; i<size; i++) {
         u_mean[i] += u[i];
         v_mean[i] += v[i];
         w_mean[i] += w[i];
       }
 
     // Synchronize the data for cosimulation
-    if(para->solv->cosimulation == 1 && para->mytime->t >= t_cosim) 
-    {
+    if(para->solv->cosimulation == 1 && para->mytime->t >= t_cosim) {
       //Exchange the data for cosimulation
       read_cosimulation_data(para, var);
       write_cosimulation_data(para, var);
@@ -117,82 +108,102 @@ void FFD_solver(PARA_DATA *para, REAL **var,int **BINDEX)
 
 } // End of FFD_solver( ) 
 
-
-/******************************************************************************
-| calculate the temperature
-******************************************************************************/ 
-void temp_step(PARA_DATA *para, REAL **var,int **BINDEX)
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate the temperature
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void temp_step(PARA_DATA *para, REAL **var, int **BINDEX)
 {
-  REAL *T = var[TEMP], *T0 = var[TMP1];  	  
+  REAL *T = var[TEMP], *T0 = var[TMP1];
   
   advect(para, var, TEMP, T0, T, BINDEX); 
   diffusion(para, var, TEMP, T, T0, BINDEX);
 
 } // End of temp_step( )
 
-/******************************************************************************
-| calculate the temperature
-******************************************************************************/ 
-void den_step(PARA_DATA *para, REAL **var,int **BINDEX)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate the contaminant concentration
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return No return needed
+/////////////////////////////////////////////////////////////////////////////// 
+void den_step(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *den = var[DEN], *den0 = var[TMP1];
-  	  
-  advect(para, var, DEN, den0, den,BINDEX); 	   	
-  diffusion(para, var, DEN, den, den0,BINDEX); 	
+
+  advect(para, var, DEN, den0, den, BINDEX);
+  diffusion(para, var, DEN, den, den0, BINDEX);
 
 } // End of den_step( )
 
-/******************************************************************************
-| calculate the velocity
-******************************************************************************/ 
-void vel_step(PARA_DATA *para, REAL **var,int **BINDEX)
-{
-   REAL *u  = var[VX],  *v  = var[VY],    *w  = var[VZ];
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate the velocity
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return No return needed
+/////////////////////////////////////////////////////////////////////////////// 
+void vel_step(PARA_DATA *para, REAL **var,int **BINDEX) {
+  REAL *u  = var[VX],  *v  = var[VY],    *w  = var[VZ];
   REAL *u0 = var[TMP1], *v0 = var[TMP2], *w0 = var[TMP3];
-  //REAL *u1  = var[VXS],  *v1  = var[VYS],    *w1  = var[VZS];
 
   advect(para, var, VX, u0, u, BINDEX);
   advect(para, var, VY, v0, v, BINDEX);
   advect(para, var, VZ, w0, w, BINDEX); 
 
- 
   diffusion(para, var, VX, u, u0, BINDEX);   
-   diffusion(para, var, VY, v, v0, BINDEX); 
-   diffusion(para, var, VZ, w, w0, BINDEX); 
+  diffusion(para, var, VY, v, v0, BINDEX); 
+  diffusion(para, var, VZ, w, w0, BINDEX); 
 
 
- if(para->bc->nb_outlet!=0) mass_conservation(para, var,BINDEX);
-  projection(para, var,BINDEX);
+  if(para->bc->nb_outlet!=0) mass_conservation(para, var,BINDEX);
+  
+  project(para, var,BINDEX);
 
 } // End of vel_step( )
 
+///////////////////////////////////////////////////////////////////////////////
+/// Solver for equations
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type Variable type
+///\param Pointer to variable
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi) {
+   REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
+        *flagv = var[FLAGV], *flagw = var[FLAGW];
 
-/******************************************************************************
-| Solver of equations
-******************************************************************************/ 
-void equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi)
-{
-   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-
-
-	  switch (var_type)
-  {
-	  case VX:
-       Gauss_Seidel(para, var, flagu, psi);
-
-		break;
-	  case VY:
-         Gauss_Seidel(para, var, flagv, psi);
-
-		break;
-	  case VZ:
+  switch(var_type) {
+    case VX:
+      Gauss_Seidel(para, var, flagu, psi);
+      break;
+    case VY:
+      Gauss_Seidel(para, var, flagv, psi);
+      break;
+    case VZ:
       Gauss_Seidel(para, var, flagw, psi);
-
-		break;
-	  case TEMP:
-	  case IP:
-          Gauss_Seidel_simple(para,var,var_type,psi);
-		break;
+      break;
+    case TEMP:
+    case IP:
+    case DEN
+      Gauss_Seidel_simple(para,var,var_type,psi);
+      break;
+    default:
+      sprintf(msg, "equ_solver(): Solver for variable type %d not defined.", 
+              var_type);
+      ffd_log(msg, FFD_ERROR):
   }
-	   
+
 }// end of equ_solver
