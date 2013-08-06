@@ -1,15 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "data_structure.h"
-#include "utility.h"
-#include <math.h>
 
-FILE *file_log;
-/******************************************************************************
-| check the residual of equation
-******************************************************************************/
-REAL check_residual(PARA_DATA *para, REAL **var, REAL *x)
-{
+#include "utility.h"
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Check the residual of equation
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param psi Pointer to the variable
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+REAL check_residual(PARA_DATA *para, REAL **var, REAL *x) {
   int imax = para->geom->imax, jmax = para->geom->jmax; 
   int kmax = para->geom->kmax;
   int i, j, k;
@@ -31,27 +33,27 @@ REAL check_residual(PARA_DATA *para, REAL **var, REAL *x)
 
 }// End of check_residual( )
 
-/******************************************************************************
-| Write the log file
-******************************************************************************/
-void ffd_log(char *message, FFD_MSG_TYPE msg_type)
-{
-  if(msg_type==FFD_NEW)
-  {
-    if((file_log=fopen("log.ffd","w")) == NULL)
-      {
-        fprintf(stderr,"Error:can not open error file!\n");
+///////////////////////////////////////////////////////////////////////////////
+/// Write the log file
+///
+///\param message Pointer the message
+///\param msg_type Type ogf message
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+void ffd_log(char *message, FFD_MSG_TYPE msg_type) {
+  if(msg_type==FFD_NEW) {
+    if((file_log=fopen("log.ffd","w"))==NULL) {
+        fprintf(stderr, "Error:can not open error file!\n");
         exit(1);
-      }
+    }
   }
-  else if((file_log=fopen("log.ffd","a+")) == NULL)
-  {
+  else if((file_log=fopen("log.ffd","a+"))==NULL) {
     fprintf(stderr,"Error:can not open error file!\n");
     exit(1);
   }
 
-  switch(msg_type)
-  {
+  switch(msg_type) {
     case FFD_WARNING:
       fprintf(file_log, "Waring in: %s\n", message);
       break;
@@ -63,36 +65,7 @@ void ffd_log(char *message, FFD_MSG_TYPE msg_type)
       fprintf(file_log, "%s\n", message);
   }
   fclose(file_log);
-}; // End of ffd_log()
-
-
-void swap(PARA_DATA *para, REAL **var)
-{
-	int i, size = (para->geom->imax + 2)*(para->geom->jmax+2)*(para->geom->kmax+2);
-  
-  
- 	for(i=0; i<size; i++) 
-  {
-    var[VX][i]     = var[TMP1][i];
-     var[VY][i]     = var[TMP2][i];
-     var[VZ][i]     = var[TMP3][i];
-   //  var[TMP1][i]=var[VX][i]    ;
-  //  var[TMP2][i]= var[VY][i] ;
-   //  var[TMP3][i]=var[VZ][i];
-  }
-}
-
-void limit(REAL x)
-{
-
-	REAL min,max;
-
-	min=-1e6;
-	max=1e6;
-	x=x>min?x:min;
-	x=x<max?x:max;
-
-}
+} // End of ffd_log()
 
 void check_mass(PARA_DATA *para, REAL **var)
 {

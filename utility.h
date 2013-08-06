@@ -1,11 +1,18 @@
+#ifndef _UTILITY_H
+#define _UTILITY_H
+#endif
+
+#ifndef _DATA_STRUCTURE_H
+#define _DATA_STRUCTURE_H
+#include "data_structure.h"
+#endif
+FILE *file_log;
+
 REAL check_residual(PARA_DATA *para, REAL **var, REAL *x);
 
 int define_IMAX(PARA_DATA *para, int var_type);
 
 int define_JMAX(PARA_DATA *para, int var_type);
-
-void swap(PARA_DATA *para, REAL **var);
-void limit(REAL x);
 
 void check_mass(PARA_DATA *para, REAL **var);
 
