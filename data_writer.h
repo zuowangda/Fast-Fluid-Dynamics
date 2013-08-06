@@ -25,10 +25,10 @@
 #include "data_structure.h"
 #endif
 
-#include <string.h>
-#include <math.h>
-
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
 
 FILE *file1;
 

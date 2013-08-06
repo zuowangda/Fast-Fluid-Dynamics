@@ -29,8 +29,15 @@
 #include "data_structure.h"
 #endif
 
+#ifndef _GEOMETRY_H
+#define _GEOMETRY_H
 #include "geometry.h"
+#endif
+
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Entrance of setting boundary conditions

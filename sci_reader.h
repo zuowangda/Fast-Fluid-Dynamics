@@ -1,12 +1,15 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: sci_reader.h
-//
-// Task: Head file of sci_reader.c
-//
-// Modification history:
-// 7/10/2013 by Wangda Zuo: re-construct the code for release
-//
+///
+/// \file   sci_reader.c
+///
+/// \brief  Read mesh and simulation data defined by SCI
+///
+/// \author Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _SCI_READER_H

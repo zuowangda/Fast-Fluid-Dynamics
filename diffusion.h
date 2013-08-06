@@ -26,12 +26,25 @@
 #include "data_structure.h"
 #endif
 
-#include <stdlib.h>
-
+#ifndef _BOUNDARY_H
+#define _BOUNDARY_H
 #include "boundary.h"
+#endif
+
+#ifndef _SOLVER_H
+#define _SOLVER_H
 #include "solver.h"
+#endif
+
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
+
+#ifndef _CHEN_ZERO_EQU_MODEL_h
+#define _CHEN_ZERO_EQU_MODEL_h
 #include "chen_zero_equ_model.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Entrance of calculating diffusion equation

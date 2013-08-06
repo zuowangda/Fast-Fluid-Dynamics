@@ -1,17 +1,19 @@
+///////////////////////////////////////////////////////////////////////////////
+///
+/// \file   modelica_ffd_common.h
+///
+/// \brief  Define commonly used data for Modelica-FFD cosimulation
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
+///////////////////////////////////////////////////////////////////////////////
 #define BUF_FFD_SIZE (sizeof(ffdSharedData))
 #define BUF_MODELICA_SIZE (sizeof(ModelicaSharedData))
 #define BUF_BOUNDARY_SIZE (sizeof(BoundarySharedData))
-
-// name[nSur+nPorts]: name of bounary surfaces
-// nSur = nConExt+nConExtWin+nConPar+nConBou+nSurBou
-// nConExt: number of exterior construction
-// nConExtWin: number of exterior construction with window
-// nConPar: number of partition wall surface
-// nConBou: number of construction boundary
-// nsurBou: number of surfaces whose heat conduction is modeled outside of this room
-// fixme: nIn: number of inlets
-// fixme: nOut: number of outlets
-
 
 typedef struct 
 {

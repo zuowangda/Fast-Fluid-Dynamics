@@ -23,9 +23,11 @@
 #include "data_structure.h"
 #endif
 
-#include <stdlib.h>
-
+#ifndef _DATA_WRITER_H
+#define _DATA_WRITER_H
 #include "data_writer.h"
+#endif
+
 #include "diffusion.h"
 #include "projection.h"
 #include "advection.h"

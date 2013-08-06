@@ -25,3 +25,7 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX);
 void check_energy(PARA_DATA *para, REAL **var,int **BINDEX);
 
 void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var);
+
+void free_data(REAL **var);
+
+void free_index(int **BINDEX);

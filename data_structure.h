@@ -23,6 +23,9 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {

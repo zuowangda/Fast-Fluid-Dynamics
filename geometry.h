@@ -20,8 +20,6 @@
 #include "data_structure.h"
 #endif
 
-#include <math.h>
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the XY area of control volume (i,j,k)
 ///

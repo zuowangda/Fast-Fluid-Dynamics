@@ -34,10 +34,32 @@
 #include "data_structure.h"
 #endif
 
-#include "boundary.h"
-#include "solver.h"
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
+
+#ifndef _BOUNDARY_H
+#define _BOUNDARY_H
+#include "boundary.h"
+#endif
+
+#ifndef _SOLVER_H
+#define _SOLVER_H
+#include "solver.h"
+#endif
+
+#ifndef _INTERPOLATION_H
+#define _INTERPOLATION_H
 #include "interpolation.h"
+#endif
+
+
+#ifndef _SOLVER_H
+#define _SOLVER_H
+#include "solver.h"
+#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Entrance of advection step

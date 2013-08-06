@@ -1,16 +1,25 @@
 
+#ifndef _COSIMUKATION_H_
+#define _COSIMUKATION_H_
+#endif
+
+#ifdef _MSC_VER  //microsoft compiler
+#include <windows.h>
+#endif
+
+#include <stdio.h>
+
+#ifndef _DATA_STRUCTURE_H
+#include "data_structure.h"
+#endif
+
+#include "cosimulation_interface.h"
+#include "utility.h"
+
 
 int read_cosimulation_data(PARA_DATA *para, REAL **var);
 
 void receive_data();
-
-BOOL CALLBACK receive_data_dialog(HWND hwndDlg, UINT message, 
-                                  WPARAM wParam, LPARAM lParam);
-
-BOOL CALLBACK receive_command(HWND hwndDlg, UINT message, WPARAM wParam, 
-                              LPARAM lParam);
-
-void send_command(SentCommand command_sent);
 
 int send_data(SentData data_sent);
 

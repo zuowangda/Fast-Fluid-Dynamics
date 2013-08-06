@@ -23,10 +23,25 @@
 #include "data_structure.h"
 #endif
 
+#ifndef _SOLVER_H
+#define _SOLVER_H
 #include "solver_gs.h"
+#endif
+
+#ifndef _SOLVER_TDMA_H
+#define _SOLVER_TDMA_H
 #include "solver_tdma.h"
+#endif
+
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
+
+#ifndef _BOUNDARY_H
+#define _BOUNDARY_H
 #include "boundary.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Project the velocity
