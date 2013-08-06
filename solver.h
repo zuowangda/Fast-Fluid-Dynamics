@@ -28,16 +28,55 @@
 #include "data_writer.h"
 #endif
 
+#ifndef _DIFFUSION_H
+#define _DIFFUSION_H
 #include "diffusion.h"
+#endif
+
+#ifndef _PROJECTION_H
+#define _PROJECTION_H
 #include "projection.h"
+#endif
+
+#ifndef _ADVECTION_H
+#define _ADVECTION_H
 #include "advection.h"
+#endif
+
+#ifndef _TIMING_H
+#define _TIMING_H
 #include "timing.h"
+#endif
+
+#ifndef _SOLVER_GS_H
+#define _SOLVER_GS_H
 #include "solver_gs.h"
+#endif
+
+#ifndef _SOLVER_TDMA_H
+#define _SOLVER_TDMA_H
 #include "solver_tdma.h"
+#endif
+
+#ifndef _BOUNDARY_H
+#define _BOUNDARY_H
 #include "boundary.h"
+#endif
+
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
+
+#ifndef _COSIMULATION_H
+#define _COSIMULATION_H
 #include "cosimulation.h"
+#endif
+
+#ifndef _COSIMULATION_INTERFACE_H
+#define _COSIMULATION_INTERFACE_H
 #include "cosimulation_interface.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 /// FFD solver

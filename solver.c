@@ -197,13 +197,13 @@ void equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi) {
       break;
     case TEMP:
     case IP:
-    case DEN
-      Gauss_Seidel_simple(para,var,var_type,psi);
+    case DEN:
+      Gauss_Seidel_simple(para, var, var_type, psi);
       break;
     default:
       sprintf(msg, "equ_solver(): Solver for variable type %d not defined.", 
               var_type);
-      ffd_log(msg, FFD_ERROR):
+      ffd_log(msg, FFD_ERROR);
   }
 
 }// end of equ_solver
