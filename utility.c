@@ -67,132 +67,6 @@ void ffd_log(char *message, FFD_MSG_TYPE msg_type) {
   fclose(file_log);
 } // End of ffd_log()
 
-void check_mass(PARA_DATA *para, REAL **var)
-{
-  int imax = para->geom->imax, jmax = para->geom->jmax; 
-  int kmax = para->geom->kmax;
-  int i, j, k,it;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *u=var[VX],*gx=var[GX],*gy=var[GY],*gz=var[GZ];
-  REAL mass;
-  REAL mass_in;
-
-  i=0;	
-  mass_in =0;
-  for(j=1;j<=jmax;j++)
-	  for(k=1;k<=kmax;k++)
-	  {
-		  mass_in  += u[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-	  }
-
-  for(it=0;it<=8;it++)
-  {  
-	  i=it*10+3;
-	  mass =0;
-  for(j=1;j<=jmax;j++)
-	  for(k=1;k<=kmax;k++)
-	  {
-		  mass  += u[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-	  }
-	  mass= (REAL) fabs(mass-mass_in)/mass_in;
-   // printf("%f\t",mass);
-	  
-  }
- // printf("\n");
-
- 
-}// End of check_residual( )
-
-
-void psi_conservation(PARA_DATA *para, REAL **var, REAL *psi,REAL *psi0,int **BINDEX)
-{
-
-  int i,j,k;
-  int imax = para->geom->imax, jmax = para->geom->jmax, kmax=para->geom->kmax;
-  REAL *u = var[VX], *v = var[VY];
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
-  REAL *flagp = var[FLAGP];
- REAL dA;
-  REAL dt=para->mytime->dt;
-  int k1 = para->geom->k1, k2 = para->geom->k2;
-  REAL mass0 = 0, mass = (REAL) 0.00001;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL qin,qout;
-  REAL area=0;
-  REAL *dens_s=var[DENS];
-  REAL dens=0, dens1=0;
-  REAL eta;
-
-
- qin= inflow(para,var,psi0,BINDEX);
- qout=outflow(para,var,psi0,BINDEX);
-
- //printf("%f\t%f\n", qin,qout);
-
- mass0=(qin-qout)*dt;
-
-
-  FOR_EACH_CELL
-
-	  if(flagp[IX(i,j,k)]>=0) continue;
-
-      dA= (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-	  area += dA;
-	  mass0 += psi0[IX(i,j,k)]*dA;
-      mass  += psi[IX(i,j,k)]*dA;
-	  dens +=  (REAL) fabs(psi[IX(i,j,k)]-var[LOCMIN][IX(i,j,k)]);
-	  dens1 +=  (REAL) fabs(psi[IX(i,j,k)]-var[LOCMAX][IX(i,j,k)]);
-
- END_FOR
-
-	 eta=mass0-mass;
-		if(eta>0)
-		{
-
-		   FOR_EACH_CELL
-		  if(flagp[IX(i,j,k)]>=0) continue;
-            psi[IX(i,j,k)] += (REAL) fabs(psi[IX(i,j,k)]-var[LOCMIN][IX(i,j,k)])/dens*eta/((gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]));
-		   END_FOR
-			
-		}
-		else
-		{
-          
-		   FOR_EACH_CELL
-	      if(flagp[IX(i,j,k)]>=0) continue;
-           psi[IX(i,j,k)] += fabs(psi[IX(i,j,k)]-var[LOCMAX][IX(i,j,k)])/dens1*eta/((gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]));
-		   END_FOR
-		}
- 
-
- /* FOR_EACH_CELL
-
-	  if(flagp[IX(i,j,k)]>=0) continue;
-
-      dA= (gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-	  area += dA;
-	  mass0 += psi0[IX(i,j,k)]*dA;
-      mass  += psi[IX(i,j,k)]*dA;
-	  dens_s[IX(i,j,k)]=fabs(psi[IX(i,j,k)]-psi0[IX(i,j,k)]);
-	  dens +=  dens_s[IX(i,j,k)];
-
- END_FOR
-
-  FOR_EACH_CELL
-
-	   if(flagp[IX(i,j,k)]>=0) continue;
-        psi[IX(i,j,k)] *= mass0/mass;
-
-        psi[IX(i,j,k)] += dens_s[IX(i,j,k)]/dens*(mass0-mass)/((gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]));
-     	    if(psi[IX(i,j,k)]<var[TEMPS][IX(i,j,k)]) { psi[IX(i,j,k)] = var[TEMPS][IX(i,j,k)]; }
-	    if(psi[IX(i,j,k)]>var[TEMPM][IX(i,j,k)]) psi[IX(i,j,k)]=var[TEMPM][IX(i,j,k)];
-
-  END_FOR
-  */
-
-
-} // End of mass_conservation()
-
 
 REAL outflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX)
 {
@@ -208,28 +82,30 @@ REAL outflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX)
   REAL *flagp = var[FLAGP];
 
   /*---------------------------------------------------------------------------
-  | Compute the total inflow
+  | Compute the total outflow
   ---------------------------------------------------------------------------*/
-    for(it=0;it<index;it++)
-			{
-				i=BINDEX[0][it];
-                j=BINDEX[1][it];
-                k=BINDEX[2][it];
-    			 if(flagp[IX(i,j,k)]==2)
-				 {
-				  	if(i==0) mass_out += psi[IX(i,j,k)]*(-u[IX(i,j,k)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					if(i==imax+1) mass_out += psi[IX(i-1,j,k)]*u[IX(i-1,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					 if(j==0) mass_out += psi[IX(i,j,k)]*(-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					 if(j==jmax+1) mass_out += psi[IX(i,j,k)]*v[IX(i,j-1,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-					 if(k==0) mass_out += psi[IX(i,j,k)]*(-w[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
-					 if(k==kmax+1) mass_out += psi[IX(i,j,k)]*w[IX(i,j,k-1)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);  
-				 	
-	 
-				 }
+  for(it=0;it<index;it++) {
+    i=BINDEX[0][it];
+    j=BINDEX[1][it];
+    k=BINDEX[2][it];
+    if(flagp[IX(i,j,k)]==2) {
+      if(i==0) 
+        mass_out += psi[IX(i,j,k)] * (-u[IX(i,j,k)])
+                  * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                  * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+      if(i==imax+1)
+        mass_out += psi[IX(i-1,j,k)] * u[IX(i-1,j,k)] 
+                  * (gy[IX(i,j,k)]-gy[IX(i,j-1,k)])
+                  * (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+      if(j==0) mass_out += psi[IX(i,j,k)]*(-v[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+      if(j==jmax+1) mass_out += psi[IX(i,j,k)]*v[IX(i,j-1,k)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+      if(k==0) mass_out += psi[IX(i,j,k)]*(-w[IX(i,j,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);
+      if(k==kmax+1) mass_out += psi[IX(i,j,k)]*w[IX(i,j,k-1)]*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])* (gy[IX(i,j,k)]-gy[IX(i,j-1,k)]);  
+}
 
-	         }
+  }
 
-	return mass_out;
+  return mass_out;
 }
 
 REAL inflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX)

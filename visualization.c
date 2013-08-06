@@ -1,40 +1,28 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: visualization.c
-//
-// Task: Visulization features
-//
-// Modification history:
-// 7/10/2013 by Wangda Zuo: re-constructed the code for release
-//
+///
+/// \file   visualization.c
+///
+/// \brief  Visulization features
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
 ///////////////////////////////////////////////////////////////////////////////
-/*-----------------------------------------------------------------------------
-Problem: 
-The stdlib.h which ships with the recent versions of Visual Studio has a 
-different (and conflicting) definition of the exit() function. 
-It clashes with the definition in glut.h.
-Solution:
-Override the definition in glut.h with that in stdlib.h. 
-Place the stdlib.h line above the glut.h line in the code.
------------------------------------------------------------------------------*/
-#include <stdlib.h> 
-#include <stdio.h>
-#include <glut.h>
-#include <math.h>
 
-#include "data_structure.h"
-#include "data_writer.h"
-#include "initialization.h"
-#include "solver.h"
-#include "timing.h"
-#include "utility.h"
+
 #include "visualization.h"
 
-/******************************************************************************
-| OpenGL specific drawing routines for a 2D plane
-******************************************************************************/
-void pre_2d_display(PARA_DATA *para)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// OpenGL specific drawing routines for a 2D plane
+///
+///\param para Pointer to FFD parameters
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void pre_2d_display(PARA_DATA *para) {
   int win_x=para->outp->winx, win_y=para->outp->winy;
   int Lx=para->geom->Lx, Ly = para->geom->Ly;
   REAL Length = max(Lx, Ly);
@@ -54,40 +42,51 @@ void pre_2d_display(PARA_DATA *para)
   glClear(GL_COLOR_BUFFER_BIT);
 } // End of pre_2d_display()
 
-/******************************************************************************
-| Function after the display
-******************************************************************************/  
-void post_display(void)
-{
-  glutSwapBuffers ();
+///////////////////////////////////////////////////////////////////////////////
+/// Function after the display
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void post_display(void) {
+  glutSwapBuffers();
 } // End of post_display()
 
-/******************************************************************************
-|  FFD routines for GLUT display callback routines
-******************************************************************************/
-void ffd_display_func(PARA_DATA *para, REAL **var)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD routines for GLUT display callback routines
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void ffd_display_func(PARA_DATA *para, REAL **var) {
   int k = (int) para->geom->kmax/2;
   pre_2d_display(para);
 
-  switch(para->outp->screen)
-  {
+  switch(para->outp->screen) {
     case 1:
       draw_xy_velocity(para, var, k); break;
     case 2:
       draw_xy_density(para, var, k); break;
     case 3: 
       draw_xy_temperature(para, var, k); break;
+    default: 
+      break;
   }
 
-  post_display ();
+  post_display();
 } // End of ffd_display_func()
 
-/******************************************************************************
-| FFD routine for GLUT idle callback
-******************************************************************************/
-void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD routine for GLUT idle callback
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///\param BINDEX Pointer to bounary index
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX) {
   // Get the display in XY plane
   get_xy_UI(para, var, (int)para->geom->kmax/2);
 
@@ -100,8 +99,7 @@ void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX)
 
   // Update the visualization results after a few tiem steps 
   // to save the time for visualization
-  if(para->mytime->step_current%para->outp->tstep_display==0)
-  {
+  if(para->mytime->step_current%para->outp->tstep_display==0) {
     glutSetWindow(para->outp->win_id);
     glutPostRedisplay( );
   } 
@@ -109,22 +107,26 @@ void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX)
   timing(para);
 } // End of ffd_idle_func()
 
-/******************************************************************************
-| FFD routines for GLUT keyboard callback routines 
-******************************************************************************/
-void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, unsigned char key, 
-              int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD routines for GLUT keyboard callback routines 
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///\param BINDEX Pointer to bounary index
+///\param key Character of the key
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, 
+                  unsigned char key) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
   // Set control variable according to key input
-  switch ( key )
-  {
+  switch(key) {
     // Restart the simulation
-    case 'c':
-    case 'C': 
+    case '0':
       if(set_initial_data(para, var, BINDEX)) exit(1);
       break;
     // Quit
@@ -172,45 +174,64 @@ void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, unsigned char key,
   }
 } // End of ffd_key_func()
 
-/******************************************************************************
-| FFD routines for GLUT mouse callback routines 
-******************************************************************************/
-void ffd_mouse_func(PARA_DATA *para, int button, int state, int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD routines for GLUT mouse callback routines 
+///
+///\param para Pointer to FFD parameters
+///\param button Button of the mouse
+///\param state State of the button
+///\param x X-coordinate
+///\param y Y-coordinate
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void ffd_mouse_func(PARA_DATA *para, int button, int state, int x, int y) {
   para->outp->omx = para->outp->mx = x;
   para->outp->omy = para->outp->my = y; 
   para->outp->mouse_down[button] = state == GLUT_DOWN;
 } // End of ffd_mouse_func()
 
-/******************************************************************************
-| FFD routines for GLUT motion callback routines
-******************************************************************************/
-void ffd_motion_func(PARA_DATA *para, int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD routines for setting the position
+///
+///\param para Pointer to FFD parameters
+///\param x X-coordinate
+///\param y Y-coordinate
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void ffd_motion_func(PARA_DATA *para, int x, int y) {
   para->outp->mx = x;
   para->outp->my = y;
 } // End of ffd_motion_func()
 
-/******************************************************************************
-| FFD routine for GLUT reshape callback
-******************************************************************************/
-void ffd_reshape_func(PARA_DATA *para, int width, int height)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// FFD routines for reshaping the window
+///
+///\param para Pointer to FFD parameters
+///\param width Width of the window
+///\param height Height of the window
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void ffd_reshape_func(PARA_DATA *para, int width, int height) {
   glutSetWindow(para->outp->win_id);
   glutReshapeWindow(width, height);
 
   para->outp->winx = width;
   para->outp->winy = height;
-} // End of ffd_reshape_func
+} // End of ffd_reshape_func()
 
-
-
-
-/******************************************************************************
-  Relate mouse movements to forces & sources in XY plane
-******************************************************************************/
-void get_xy_UI(PARA_DATA *para, REAL **var, int k)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Relate mouse movements to forces & sources in XY plane
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///\param k K-index of the plane
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void get_xy_UI(PARA_DATA *para, REAL **var, int k) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   REAL Lx = para->geom->Lx, Ly = para->geom->Ly;
@@ -253,8 +274,7 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k)
 
   if(i<1 || i>imax || j<1 || j>jmax) return;
 
-  if(mouse_down[0]) 
-  {
+  if(mouse_down[0]) {
     u_s[IX(i,j,k)] = para->prob->force;
     v_s[IX(i,j,k)] = para->prob->force;
   }
@@ -269,13 +289,16 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k)
   return;
 } // End of get_xy_UI( )
 
-
-
-/******************************************************************************
-| Draw density distribution in X-Y plane
-******************************************************************************/
-void draw_xy_density(PARA_DATA *para, REAL **var, int k)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Draw density distribution in XY plane
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///\param k K-index of the plane
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void draw_xy_density(PARA_DATA *para, REAL **var, int k) {
   int i, j;
   REAL d00, d01, d10, d11;
   REAL *x = var[X], *y = var[Y], *z = var[Z], *dens = var[DEN];
@@ -286,8 +309,7 @@ void draw_xy_density(PARA_DATA *para, REAL **var, int k)
   glBegin(GL_QUADS);
 
   for(i=0; i<=imax; i++) 
-    for(j=0; j<=jmax; j++) 
-    {
+    for(j=0; j<=jmax; j++) {
       d00 = dens[IX(i,  j  ,k)];
       d01 = dens[IX(i,  j+1,k)];
       d10 = dens[IX(i+1,j  ,k)];
@@ -300,13 +322,18 @@ void draw_xy_density(PARA_DATA *para, REAL **var, int k)
     }
 
   glEnd();
-} /** draw_xy_density() **/
+} // End of draw_xy_density()
 
-/******************************************************************************
-| Draw temperature contour in X-Y plane
-******************************************************************************/
-void draw_xy_temperature(PARA_DATA *para, REAL **var, int k)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Draw temperature contour in XY plane
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///\param k K-index of the plane
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void draw_xy_temperature(PARA_DATA *para, REAL **var, int k) {
   int i, j;
   REAL *x = var[X], *y = var[Y], *z = var[Z], *temp = var[TEMP];
   int mycolor;
@@ -316,10 +343,8 @@ void draw_xy_temperature(PARA_DATA *para, REAL **var, int k)
 
   glBegin(GL_QUADS);
 
-  for(i=0; i<=imax; i++) 
-  {
-    for(j=0; j<=jmax; j++) 
-    {
+  for(i=0; i<=imax; i++) {
+    for(j=0; j<=jmax; j++) {
       mycolor = (int) 10 * (temp[IX(i,j,k)]/para->outp->Temp_ref); 
       mycolor = mycolor>10 ? 10: mycolor;
 
@@ -327,8 +352,7 @@ void draw_xy_temperature(PARA_DATA *para, REAL **var, int k)
       | void glColor3b(GLbyte red, GLbyte green, GLbyte blue)
       | control the color of the velocity field
       ---------------------------------------------------------------------*/
-      switch(mycolor)
-      {
+      switch(mycolor) {
         case 10: 
           glColor3f(1.000000f, 0.250000f, 0.250000f); break;
         case 9:
@@ -362,11 +386,16 @@ void draw_xy_temperature(PARA_DATA *para, REAL **var, int k)
   glEnd();
 } // End of draw_xy_temperature()
 
-/******************************************************************************
-| Draw velocity in X-Y plane
-******************************************************************************/
-void draw_xy_velocity(PARA_DATA *para, REAL **var, int k)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Draw velocity in XY plane
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to all variables
+///\param k K-index of the plane
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void draw_xy_velocity(PARA_DATA *para, REAL **var, int k) {
   int i, j;
   REAL x0, y0;
   REAL *x = var[X], *y = var[Y];
@@ -383,12 +412,10 @@ void draw_xy_velocity(PARA_DATA *para, REAL **var, int k)
   glBegin(GL_LINES);
 
   j = 1;
-  for(i=1; i<=imax; i+=para->outp->i_N) 
-  {
+  for(i=1; i<=imax; i+=para->outp->i_N) {
     x0 = x[IX(i,j,k)];
 
-    for(j=1; j<=jmax; j+=para->outp->j_N) 
-    {
+    for(j=1; j<=jmax; j+=para->outp->j_N) {
       y0 = y[IX(i,j,k)];
       mycolor = (int) 100 * fabs(u[IX(i,j,k)]) / 
                       fabs(para->outp->v_ref); 
@@ -398,8 +425,7 @@ void draw_xy_velocity(PARA_DATA *para, REAL **var, int k)
       | void glColor3b(GLbyte red, GLbyte green, GLbyte blue)
       | control the color of the velocity field
       -----------------------------------------------------------------------*/
-      switch(mycolor)
-      {
+      switch(mycolor) {
         case 10: 
           glColor3f(1.000000f, 0.250000f, 0.250000f); break;
         case 9:

@@ -18,8 +18,6 @@ void check_mass(PARA_DATA *para, REAL **var);
 
 void ffd_log(char *message, FFD_MSG_TYPE msg_type);
 
-void psi_conservation(PARA_DATA *para, REAL **var, REAL *psi,REAL *psi0,int **BINDEX);
-
 REAL outflow(PARA_DATA *para, REAL **var,  REAL *psi,  int **BINDEX);
 
 REAL inflow(PARA_DATA *para, REAL **var,  REAL *psi,  int **BINDEX);

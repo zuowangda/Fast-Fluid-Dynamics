@@ -201,7 +201,7 @@ static void display_func(void)
 ******************************************************************************/
 static void key_func(unsigned char key, int x, int y)
 {
-  ffd_key_func(&para, var, BINDEX, key, x, y);
+  ffd_key_func(&para, var, BINDEX, key);
 } // End of key_func()
 
 /******************************************************************************
