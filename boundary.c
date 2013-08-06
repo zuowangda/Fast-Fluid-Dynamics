@@ -30,7 +30,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
-///\param var_type The type of variable for advection solver
+///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
@@ -81,7 +81,7 @@ int set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
-///\param var_type The type of variable for advection solver
+///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
@@ -232,7 +232,7 @@ int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
-///\param var_type The type of variable for advection solver
+///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
