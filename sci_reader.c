@@ -1,24 +1,21 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: sci_reader.c
-//
-// Written by: Mingang Jin
-//
-// Last Modified by: Wangda Zuo on 7/7/2013
-//
-//Task: read mesh and simulation data defined by SCI with a file extension 
-// name ".cfd". 
-//
+///
+/// \file   sci_reader.c
+///
+/// \brief  Read mesh and simulation data defined by SCI
+///
+/// \author Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///         Wangda ZUo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
 ///////////////////////////////////////////////////////////////////////////////
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "data_structure.h"
-#include "ffd_data_reader.h"
-#include "utility.h"
-
-FILE *file_params;
+#include "sci_reader.h"
 
 /******************************************************************************
 | Read the information for dimension and number of meshes 
@@ -73,7 +70,6 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   char *temp, string[400];
   REAL *delx,*dely,*delz;
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-  char msg[200], tmp[50];
   int bcnameid = -1;
 
   // Open the parameter file
@@ -98,8 +94,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   dely = (REAL *) malloc ((jmax+2)*sizeof(REAL));
   delz = (REAL *) malloc ((kmax+2)*sizeof(REAL));
 
-  if( !delx || !dely ||!delz ) 
-  {
+  if( !delx || !dely ||!delz ) {
     fprintf ( stderr, "Cannot allocate memory for delx, dely or delz in read_sci_input()\n");
     return 1;
   }
@@ -150,26 +145,27 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
     else if(i>imax) 
       x[IX(i,j,k)] = Lx;
     else 
-      x[IX(i,j,k)] = 0.5 * (gx[IX(i,j,k)]+gx[IX(i-1,j,k)]);
+      x[IX(i,j,k)] = (REAL) 0.5 * (gx[IX(i,j,k)]+gx[IX(i-1,j,k)]);
 
     if(j<1)  
       y[IX(i,j,k)] = 0;
     else if(j>jmax) 
       y[IX(i,j,k)] = Ly;
     else 
-      y[IX(i,j,k)] = 0.5 * (gy[IX(i,j,k)]+gy[IX(i,j-1,k)]);
+      y[IX(i,j,k)] = (REAL) 0.5 * (gy[IX(i,j,k)]+gy[IX(i,j-1,k)]);
 
     if(k<1)  
       z[IX(i,j,k)] = 0;
     else if(k>kmax) 
       z[IX(i,j,k)] = Lz;
     else 
-      z[IX(i,j,k)] = 0.5 * (gz[IX(i,j,k)]+gz[IX(i,j,k-1)]);
+      z[IX(i,j,k)] = (REAL) 0.5 * (gz[IX(i,j,k)]+gz[IX(i,j,k-1)]);
   END_FOR
 
   // Get the wall property
   fgets(string, 400, file_params);
-  sscanf(string,"%d%d%d%d%d%d",&IWWALL,&IEWALL,&ISWALL,&INWALL,&IBWALL,&ITWALL); 
+  sscanf(string,"%d%d%d%d%d%d", &IWWALL, &IEWALL, &ISWALL, 
+         &INWALL, &IBWALL, &ITWALL); 
 
   /*---------------------------------------------------------------------------
   | Read total number of boundary conditions
@@ -475,7 +471,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX)
   } // End of assigning value for wall boundary 
 
   /*---------------------------------------------------------------------------
-  | Read the boundary conditions for contanmiant source
+  | Read the boundary conditions for contamiant source
   | Fixme: The data is ignored in current version
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
@@ -700,5 +696,4 @@ END_FOR
          if(k!=0) flagw[IX(i,j,k-1)]=2;
 	   }
    END_FOR
-
 }
