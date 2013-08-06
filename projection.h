@@ -4,12 +4,12 @@
 ///
 /// \brief  Solver for projection step
 ///
-/// \author Wangda Zuo
-///         University of Miami
-///         W.Zuo@miami.edu
-///         Mingang Jin, Qingyan Chen
+/// \author Mingang Jin, Qingyan Chen
 ///         Purdue University
 ///         Jin55@purdue.edu, YanChen@purdue.edu
+///         Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
 ///
 /// \date   8/3/2013
 ///
