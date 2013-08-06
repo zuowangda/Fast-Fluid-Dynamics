@@ -7,7 +7,7 @@
 /// \author Mingang Jin, Qingyan Chen
 ///         Purdue University
 ///         Jin55@purdue.edu, YanChen@purdue.edu
-///         Wangda ZUo
+///         Wangda Zuo
 ///         University of Miami
 ///         W.Zuo@miami.edu
 ///

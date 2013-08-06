@@ -46,6 +46,8 @@ int create_mapping()
     ffd_log("cosimulation.c: Could not open FFD data file mapping object.", FFD_ERROR);
     return GetLastError();
   }
+  else
+    ffd_log("cosimulation.c: Opened FFD data mapping", FFD_NORMAL);
 
   /*---------------------------------------------------------------------------
   | Maps a view of the FFD file mapping into the address space 
@@ -69,9 +71,12 @@ int create_mapping()
   if(ffdDataBuf==NULL)
   {
     sprintf(msg, "cosimulation.c: Could not map view of FFD data file. Error code %d", GetLastError());
+    ffd_log(msg, FFD_ERROR);
     CloseHandle(ffdDataMapFile);
     return GetLastError();
   }
+  else
+    ffd_log("cosimulation.c: Opened FFD data buffer", FFD_NORMAL);
 
   /*---------------------------------------------------------------------------
   | Open the Modelica file mapping object
@@ -97,6 +102,8 @@ int create_mapping()
     ffd_log("cosimulation.c: Could not open Other data file mapping object.", FFD_ERROR);
     return GetLastError();
   }
+  else
+    ffd_log("cosimulation.c: Opened Modelica data mapping", FFD_NORMAL);
 
   /*---------------------------------------------------------------------------
   | Maps a view of the Other file mapping into the address space 
@@ -120,9 +127,12 @@ int create_mapping()
   if(modelicaDataBuf==NULL)
   {
     sprintf(msg, "cosimulation.c: Could not map view of Other data file. Error code %d", GetLastError());
+    ffd_log(msg, FFD_ERROR);
     CloseHandle(modelicaDataMapFile);
     return GetLastError();
   }
+  else
+    ffd_log("cosimulation.c: Opened Modelica data buffer", FFD_NORMAL);
 
   /*---------------------------------------------------------------------------
   | Open the bounday file mapping object
@@ -149,6 +159,9 @@ int create_mapping()
     return GetLastError();
   }
 
+
+
+
   /*---------------------------------------------------------------------------
   | Maps a view of the Other file mapping into the address space 
   ---------------------------------------------------------------------------*/
@@ -171,9 +184,12 @@ int create_mapping()
   if(boundaryDataBuf==NULL)
   {
     sprintf(msg, "cosimulation.c: Could not map view of Other data file. Error code %d", GetLastError());
+    ffd_log(msg, FFD_ERROR);
     CloseHandle(boundaryDataMapFile);
     return GetLastError();
   }
+  else
+    ffd_log("cosimulation.c: Opened boundary data buffer", FFD_NORMAL);
 
   return 0;
 
@@ -217,6 +233,12 @@ int read_modelica_boundary_data()
     sprintf(msg, "Thermal boundary condition:%d", boundaryDataBuf->bouCon[i]);  
     ffd_log(msg, FFD_NORMAL);
   }
+
+  for(i=0; i<boundaryDataBuf->nPorts; i++) {
+    sprintf(msg, "Inlet %d: %s", i, boundaryDataBuf->portName[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
 
   for(i=0; i<boundaryDataBuf->nSen; i++) {
     sprintf(msg, "Sensor %d: %s", i, boundaryDataBuf->sensorName[i]);
@@ -296,10 +318,14 @@ int read_from_shared_memory(PARA_DATA *para, REAL **var)
   float float_feak;
   int int_feak;
 
-
+  ffd_log("cosimulation_interface.c: start to read data from shared memory.", 
+          FFD_NORMAL);
   // Wait for data to be updated by the other program
-  while(modelicaDataBuf->flag<1) 
+  while(modelicaDataBuf->flag < 1){
+    sprintf(msg, "modelicaDataBuf->flag = %d", modelicaDataBuf->flag);
+    ffd_log(msg, FFD_NORMAL);
     Sleep(1000);
+  }
 
   sprintf(msg, 
           "cosimulation_interface.c: Received the following data at t=%f", modelicaDataBuf->t);

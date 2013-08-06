@@ -333,10 +333,10 @@ static void reshape_func(int width, int height)
 /******************************************************************************
    ffd --- main routine
 ******************************************************************************/
-DWORD WINAPI ffd(PVOID p)
-{ 
+DWORD WINAPI ffd(PVOID p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
   printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+//int main(){
 
   // Initialize the parameters
   para.geom = &geom;
@@ -369,6 +369,7 @@ DWORD WINAPI ffd(PVOID p)
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);
 
+  ffd_log("ffd.c: Start FFD solver.", FFD_NORMAL);
 
   // Solve the problem
   if(para.outp->version==DEMO) /* show visulization */

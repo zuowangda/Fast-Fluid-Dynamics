@@ -121,7 +121,7 @@ void check_mass(PARA_DATA *para, REAL **var)
 	  {
 		  mass  += u[IX(i,j,k)]*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
 	  }
-	  mass= fabs(mass-mass_in)/mass_in;
+	  mass= (REAL) fabs(mass-mass_in)/mass_in;
    // printf("%f\t",mass);
 	  
   }
@@ -142,7 +142,7 @@ void psi_conservation(PARA_DATA *para, REAL **var, REAL *psi,REAL *psi0,int **BI
  REAL dA;
   REAL dt=para->mytime->dt;
   int k1 = para->geom->k1, k2 = para->geom->k2;
-  REAL mass0=0, mass=0.00001;
+  REAL mass0 = 0, mass = (REAL) 0.00001;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL qin,qout;
   REAL area=0;
@@ -167,8 +167,8 @@ void psi_conservation(PARA_DATA *para, REAL **var, REAL *psi,REAL *psi0,int **BI
 	  area += dA;
 	  mass0 += psi0[IX(i,j,k)]*dA;
       mass  += psi[IX(i,j,k)]*dA;
-	  dens +=  fabs(psi[IX(i,j,k)]-var[LOCMIN][IX(i,j,k)]);
-	  dens1 +=  fabs(psi[IX(i,j,k)]-var[LOCMAX][IX(i,j,k)]);
+	  dens +=  (REAL) fabs(psi[IX(i,j,k)]-var[LOCMIN][IX(i,j,k)]);
+	  dens1 +=  (REAL) fabs(psi[IX(i,j,k)]-var[LOCMAX][IX(i,j,k)]);
 
  END_FOR
 
@@ -178,7 +178,7 @@ void psi_conservation(PARA_DATA *para, REAL **var, REAL *psi,REAL *psi0,int **BI
 
 		   FOR_EACH_CELL
 		  if(flagp[IX(i,j,k)]>=0) continue;
-            psi[IX(i,j,k)] += fabs(psi[IX(i,j,k)]-var[LOCMIN][IX(i,j,k)])/dens*eta/((gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]));
+            psi[IX(i,j,k)] += (REAL) fabs(psi[IX(i,j,k)]-var[LOCMIN][IX(i,j,k)])/dens*eta/((gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)])*(gy[IX(i,j,k)]-gy[IX(i,j-1,k)]));
 		   END_FOR
 			
 		}
@@ -476,3 +476,63 @@ void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var)
   END_FOR
 } // End of calcuate_time_averaged_variable()
 
+void free_index(int **BINDEX)
+{ 
+  if(BINDEX[0]) free(BINDEX[0]);
+  if(BINDEX[1]) free(BINDEX[1]);
+  if(BINDEX[2]) free(BINDEX[2]);
+} // End of free_index ()
+
+/******************************************************************************
+   free simulation data
+******************************************************************************/
+void free_data(REAL **var)
+{
+  if(var[X]) free(var[X]);
+  if(var[Y]) free(var[Y]);
+  if(var[Z]) free(var[Z]);
+  if(var[VX]) free(var[VX]);
+  if(var[VY]) free(var[VY]);
+  if(var[VZ]) free(var[VZ]);
+  if(var[VXS]) free(var[VXS]);
+  if(var[VYS]) free(var[VYS]);
+  if(var[VZS]) free(var[VZS]);
+  if(var[VXM]) free(var[VXM]);
+  if(var[VYM]) free(var[VYM]);
+  if(var[VZM]) free(var[VZM]);
+  if(var[DEN]) free(var[DEN]);
+  if(var[DENS]) free(var[DENS]);
+  if(var[TEMP]) free(var[TEMP]);
+  if(var[TEMPM]) free(var[TEMPM]);
+  if(var[TEMPS]) free(var[TEMPS]);
+  if(var[IP]) free(var[IP]);
+  if(var[TMP1]) free(var[TMP1]);
+  if(var[TMP2]) free(var[TMP2]);
+  if(var[TMP3]) free(var[TMP3]);
+  if(var[AP]) free(var[AP]);
+  if(var[AN]) free(var[AN]);
+  if(var[AS]) free(var[AS]);
+  if(var[AE]) free(var[AE]);
+  if(var[AW]) free(var[AW]);
+  if(var[AF]) free(var[AF]);
+  if(var[AB]) free(var[AB]);
+  if(var[B])  free(var[B]);
+  if(var[GX])  free(var[GX]);
+  if(var[GY])  free(var[GY]);
+  if(var[GZ])  free(var[GZ]);
+  if(var[AP0])  free(var[AP0]);
+  if(var[PP])  free(var[PP]);
+  if(var[FLAGP])  free(var[FLAGP]);
+  if(var[FLAGU])  free(var[FLAGU]);
+  if(var[FLAGV])  free(var[FLAGV]);
+  if(var[FLAGW])  free(var[FLAGW]);
+  if(var[LOCMIN])  free(var[LOCMIN]);
+  if(var[LOCMAX])  free(var[LOCMAX]);
+  if(var[VXBC])  free(var[VXBC]);
+  if(var[VYBC])  free(var[VYBC]);
+  if(var[VZBC])  free(var[VZBC]);
+  if(var[TEMPBC])  free(var[TEMPBC]);
+  if(var[QFLUXBC])  free(var[QFLUXBC]);
+  if(var[QFLUX])  free(var[QFLUX]);
+
+} // End of free_data()

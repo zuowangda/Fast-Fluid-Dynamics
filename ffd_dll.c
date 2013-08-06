@@ -10,7 +10,11 @@
 int ffd_dll()
 {
   DWORD dummy;
-  HANDLE workerThreadHandle = CreateThread(NULL, 0, ffd, (PVOID)99, 0, &dummy);
+  HANDLE workerThreadHandle;
+
+  printf("Start to launch FFD\n");
+  getchar();
+  workerThreadHandle = CreateThread(NULL, 0, ffd, (PVOID)99, 0, &dummy);
   printf("ffd_dll.c: launched FFD simulation.\n");
   return 0;
 } // End of ffd_dll()
