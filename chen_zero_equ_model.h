@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 ///
-/// \file   chen_zero_equ_model.c
+/// \file   chen_zero_equ_model.h
 ///
 /// \brief  Computes turbulent viscosity using Chen's zero equ model
 ///
