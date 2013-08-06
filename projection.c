@@ -1,17 +1,32 @@
-#include <stdio.h>
+///////////////////////////////////////////////////////////////////////////////
+///
+/// \file   projection.c
+///
+/// \brief  Solver for projection step
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///         Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///
+/// \date   8/3/2013
+///
+///////////////////////////////////////////////////////////////////////////////
 
-#include "data_structure.h"
-#include "boundary.h"
 #include "projection.h"
-#include "solver_gs.h"
-#include "solver_tdma.h"
-#include "utility.h"
 
-/******************************************************************************
-| projection for velocity
-******************************************************************************/
-void projection(PARA_DATA *para, REAL **var,int **BINDEX)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Project the velocity
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+void project(PARA_DATA *para, REAL **var, int **BINDEX) {
 	int i, j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -34,17 +49,15 @@ void projection(PARA_DATA *para, REAL **var,int **BINDEX)
   | Coefficents
   ---------------------------------------------------------------------------*/
   FOR_EACH_CELL
-
-    dxe= x[IX(i+1,j,k)]-x[IX(i,j,k)];
-    dxw= x[IX(i,j,k)]-x[IX(i-1,j,k)];
-	dyn= y[IX(i,j+1,k)]-y[IX(i,j,k)];
-	dys= y[IX(i,j ,k)]-y[IX(i,j-1,k)];
-	dzf= z[IX(i,j ,k+1)]-z[IX(i,j,k)];
-	dzb= z[IX(i,j ,k)]-z[IX(i,j,k-1)];
-	Dx  = gx[IX(i,j,k)]-gx[IX(i-1,j,k)];
-	Dy  = gy[IX(i,j ,k)]-gy[IX(i,j-1,k)];
-	Dz  = gz[IX(i,j ,k)]-gz[IX(i,j,k-1)];
-
+    dxe = x[IX(i+1,j,k)]-x[IX(i,j,k)];
+    dxw = x[IX(i,j,k)]-x[IX(i-1,j,k)];
+    dyn = y[IX(i,j+1,k)]-y[IX(i,j,k)];
+    dys = y[IX(i,j ,k)]-y[IX(i,j-1,k)];
+    dzf = z[IX(i,j ,k+1)]-z[IX(i,j,k)];
+    dzb = z[IX(i,j ,k)]-z[IX(i,j,k-1)];
+    Dx  = gx[IX(i,j,k)]-gx[IX(i-1,j,k)];
+    Dy  = gy[IX(i,j ,k)]-gy[IX(i,j-1,k)];
+    Dz  = gz[IX(i,j ,k)]-gz[IX(i,j,k-1)];
  
     ae[IX(i,j,k)] = Dy*Dz/dxe;
     aw[IX(i,j,k)] = Dy*Dz/dxw;      
@@ -64,29 +77,22 @@ void projection(PARA_DATA *para, REAL **var,int **BINDEX)
                   + af[IX(i,j,k)] + ab[IX(i,j,k)];
   END_FOR
 
-  GS_P(para, var, IP, p);  
-
+  GS_P(para, var, IP, p);
   set_bnd_pressure(para, var, p,BINDEX); 
-
- 
- FOR_U_CELL
-     if (flagu[IX(i,j,k)]>=0) continue;
-
+   
+  FOR_U_CELL
+    if (flagu[IX(i,j,k)]>=0) continue;
     u[IX(i,j,k)] -= dt*(p[IX(i+1,j,k)]-p[IX(i,j,k)]) / (x[IX(i+1,j,k)]-x[IX(i,j,k)]);
- END_FOR
-
- FOR_V_CELL
-    if (flagv[IX(i,j,k)]>=0) continue;
-   v[IX(i,j,k)] -= dt*(p[IX(i,j+1,k)]-p[IX(i,j,k)]) / (y[IX(i,j+1,k)]-y[IX(i,j,k)]);
- END_FOR
-
-
- FOR_W_CELL
-     if (flagw[IX(i,j,k)]>=0) continue;
-    w[IX(i,j,k)] -= dt*(p[IX(i,j,k+1)]-p[IX(i,j,k)]) / (z[IX(i,j,k+1)]-z[IX(i,j,k)]);
-
   END_FOR
 
+  FOR_V_CELL
+    if (flagv[IX(i,j,k)]>=0) continue;
+    v[IX(i,j,k)] -= dt*(p[IX(i,j+1,k)]-p[IX(i,j,k)]) / (y[IX(i,j+1,k)]-y[IX(i,j,k)]);
+  END_FOR
 
-} // End of projecttion( )
+  FOR_W_CELL
+    if (flagw[IX(i,j,k)]>=0) continue;
+    w[IX(i,j,k)] -= dt*(p[IX(i,j,k+1)]-p[IX(i,j,k)]) / (z[IX(i,j,k+1)]-z[IX(i,j,k)]);
+  END_FOR
+} // End of project( )
 
