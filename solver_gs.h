@@ -58,14 +58,3 @@ void GS_P(PARA_DATA *para, REAL **var, int Type, REAL *x);
 ///////////////////////////////////////////////////////////////////////////////
 void Gauss_Seidel(PARA_DATA *para, REAL **var, REAL *flagp, REAL *x);
 
-///////////////////////////////////////////////////////////////////////////////
-/// Gauss-Seidel solver
-///
-///\param para Pointer to FFD parameters
-///\param var Pointer to FFD simulation variables
-///\param Type Type of variable
-///\param x Pointer to variable
-///
-///\return No return needed
-///////////////////////////////////////////////////////////////////////////////
-void Gauss_Seidel_simple(PARA_DATA *para, REAL **var, int Type, REAL *x);
