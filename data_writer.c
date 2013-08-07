@@ -28,8 +28,7 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int write_tecplot_data(PARA_DATA *para, REAL **var, char *name)
-{
+int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   int i, j, k;
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -311,8 +310,7 @@ void convert_to_tecplot_corners(PARA_DATA *para, REAL **var, REAL *psi) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int write_unsteady(PARA_DATA *para, REAL **var, char *name)
-{
+int write_unsteady(PARA_DATA *para, REAL **var, char *name){
   int i,j,k;
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;

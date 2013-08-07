@@ -19,7 +19,7 @@
 /// the location of variables assigned in the control volume. 
 /// Velocities at X, Y and Z directions are locatted
 /// on the surface of the control volume. They are computed using 
-/// subroutines: \c trace_vx(), \c trace_vy() and \ctrace_vz().
+/// subroutines: \c trace_vx(), \c trace_vy() and \c trace_vz().
 /// Scalar variables are in the center of control volume and they are computed
 /// using \c trace_scalar().
 ///
@@ -43,7 +43,7 @@
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-               int **BINDEX) {
+           int **BINDEX) {
   int flag;
   switch (var_type) {
     case VX:

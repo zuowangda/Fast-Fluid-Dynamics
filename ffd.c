@@ -1,21 +1,19 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename: ffd.c
-//
-// Task: Main routine of Fast Fluid Dynamics
-//
-// Modification history:
-// 7/10/2013 by Wangda Zuo: re-constructed the code for release
-//
+///
+/// \file ffd.c
+///
+/// \brief Main routine of Fast Fluid Dynamics
+///
+/// \author Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///         Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
 ///////////////////////////////////////////////////////////////////////////////
-
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <glut.h>
-
-#include "data_structure.h" // This file must be the first included
 
 #include "boundary.h"
 #include "data_writer.h"
@@ -57,11 +55,14 @@ static PARA_DATA para;
 
 clock_t start, end;
 
-/******************************************************************************
-| allocate data
-******************************************************************************/
-int allocate_data (void)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Allcoate memory for variables
+///
+///\param para Pointer to FFD parameters
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+int allocate_data (void) {
   int size = (geom.imax+2) * (geom.jmax+2) * (geom.kmax+2);
   printf( "size=%d\n", size); 
   x         = (REAL *) malloc ( size*sizeof(REAL) );
@@ -179,60 +180,77 @@ int allocate_data (void)
       !ap || !ae || !aw || !as || !an || !ab || !af || !b || !gx || !gy || !gz || !ap0 || !pp || !flagp ||
       !flagu || !flagv || !flagw || !locmin || !locmax ||
       !vxbc || !vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
-      !xindex || !yindex || !zindex || !bcid) 
-  {
-    fprintf( stderr, "cannot allocate data\n" );
+      !xindex || !yindex || !zindex || !bcid) {
+    fprintf(stderr, "cannot allocate data\n");
     return 1;
   }
 
   return 0;
-} /** allocate_data() **/
+} // End of allocate_data()
 
-/******************************************************************************
-|  GLUT display callback routines
-******************************************************************************/
-static void display_func(void)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// GLUT display callback routines
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+static void display_func(void) {
   ffd_display_func(&para, var);
 } // End of display_func()
 
-/******************************************************************************
-| GLUT keyboard callback routines 
-******************************************************************************/
-static void key_func(unsigned char key, int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// GLUT keyboard callback routines 
+///
+///\param key Chararcter of the key
+///\param x X-position
+///\param y Y-Positon
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+
+static void key_func(unsigned char key, int x, int y) {
   ffd_key_func(&para, var, BINDEX, key);
 } // End of key_func()
 
-/******************************************************************************
-| GLUT idle callback routines  
-******************************************************************************/
-static void idle_func(void)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// GLUT idle callback routines  
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+static void idle_func(void) {
   ffd_idle_func(&para, var, BINDEX);
 } // End of idle_func()
 
-/******************************************************************************
-| GLUT motion callback routines  
-******************************************************************************/
-static void motion_func(int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// GLUT motion callback routines  
+///
+///\param x X-position
+///\param y Y-Positon
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+static void motion_func(int x, int y) {
   ffd_motion_func(&para, x, y);
 } // End of motion_func()
 
-/******************************************************************************
-| GLUT mouse callback routines 
-******************************************************************************/
-static void mouse_func(int button, int state, int x, int y)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// GLUT mouse callback routines  
+///
+///\param button Button of the mouse
+///\param x X-position
+///\param y Y-Positon
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+static void mouse_func(int button, int state, int x, int y) {
   ffd_mouse_func(&para, button, state, x, y);
 } // End of mouse_func()
 
-/******************************************************************************
-|  open_glut_window --- open a glut compatible window and set callbacks
-******************************************************************************/
-static void open_glut_window()
-{
+///////////////////////////////////////////////////////////////////////////////
+/// Open_glut_window --- open a glut compatible window and set callbacks 
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+static void open_glut_window() {
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
   /*---------------------------------------------------------------------------
@@ -320,15 +338,17 @@ static void open_glut_window()
   glutDisplayFunc (display_func);
 } // End of open_glut_window()
 
-
-/******************************************************************************
-| GLUT reshape callback routines  
-******************************************************************************/
-static void reshape_func(int width, int height)
-{
+///////////////////////////////////////////////////////////////////////////////
+/// GLUT reshape callback routines
+///
+///\param width Width of the window
+///\param height Height of the window
+///
+///\return No return needed
+///////////////////////////////////////////////////////////////////////////////
+static void reshape_func(int width, int height) {
   ffd_reshape_func(&para, width, height);
 } // End of reshape_func()
-
 
 /******************************************************************************
    ffd --- main routine
@@ -380,11 +400,31 @@ DWORD WINAPI ffd(PVOID p){
   else
     FFD_solver(&para, var, BINDEX);
 
-  if(para.outp->version == DEBUG)
-    write_tecplot_all_data(&para, var, "result_all");
+  /*---------------------------------------------------------------------------
+  | Post Process
+  ---------------------------------------------------------------------------*/
+  // Calculate mean value
+  if(para.outp->cal_mean == 1)
+    calcuate_time_averaged_variable(&para, var);
+
+  if(para.solv->cosimulation==1)
+    close_mapping();
+
+  // Fixme: Simulaiton stops here
+  //if(write_unsteady(&para, var, "unsteady")!=0) {
+  //  ffd_log("FFD_solver(): Could not write the file unsteady.plt.", FFD_ERROR);
+  //}
+
+  //if(write_tecplot_data(&para, var, "result")!=0) {
+  //  ffd_log("FFD_solver(): Could not write the file result.plt.", FFD_ERROR);
+  //}
+
+
+  //if(para.outp->version == DEBUG)
+  //  write_tecplot_all_data(&para, var, "result_all");
 
   // Wrtie the data in SCI format
-  write_SCI(&para, var, "output");
+  //write_SCI(&para, var, "output");
 
   // Free the memory
   free_data(var);
@@ -393,6 +433,7 @@ DWORD WINAPI ffd(PVOID p){
   // End the simulation
   if(para.outp->version==DEBUG || para.outp->version==DEMO) {}//getchar();
 
-  ffd_log("ffd.c: Exit successfully.", FFD_NORMAL);
-  exit (0);
+  ffd_log("ffd(): Exit successfully.", FFD_NORMAL);
+  //exit (0);
+  return 0;
 } // End of ffd( )

@@ -92,19 +92,7 @@ void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   } // End of While loop  
 
-  /*---------------------------------------------------------------------------
-  | Post Process
-  ---------------------------------------------------------------------------*/
-  // Calculate mean value
-  if(cal_mean == 1)
-    calcuate_time_averaged_variable(para, var);
-
-  if(para->solv->cosimulation==1)
-    close_mapping();
-
-  write_unsteady(para, var, "unsteady");
-  write_tecplot_data(para, var, "result");
-  para->prob->output = 1;
+  
 
 } // End of FFD_solver( ) 
 
