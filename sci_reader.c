@@ -7,6 +7,9 @@
 /// \author Mingang Jin, Qingyan Chen
 ///         Purdue University
 ///         Jin55@purdue.edu, YanChen@purdue.edu
+///         Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
 ///
 /// \date   8/3/2013
 ///
@@ -89,7 +92,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     return 1;
   }
 
-  sprintf(msg, "sci_reader.c: Start to read sci input file %s", para->inpu->parameter_file_name);
+  sprintf(msg, "read_sci_input(): Start to read sci input file %s", para->inpu->parameter_file_name);
   ffd_log(msg, FFD_NORMAL);
 
   // Ingore the first and second lines
@@ -179,7 +182,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string,"%d", &para->bc->nb_bc); 
-  sprintf(msg, "sci_reader.c: para->bc->nb_bc=%d", para->bc->nb_bc);
+  sprintf(msg, "read_sci_input(): para->bc->nb_bc=%d", para->bc->nb_bc);
   ffd_log(msg, FFD_NORMAL);
 
   // Allocate the memory for bC name array
@@ -191,24 +194,24 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   // Get number of inlet boundaries
   fgets(string, 400, file_params);
   sscanf(string,"%d",&para->bc->nb_inlet); 
-  sprintf(msg, "sci_reader.c: para->bc->nb_inlet=%d", para->bc->nb_inlet);
+  sprintf(msg, "read_sci_input(): para->bc->nb_inlet=%d", para->bc->nb_inlet);
   ffd_log(msg, FFD_NORMAL);
 
   index=0;
   // Setting inlet boundary
   if(para->bc->nb_inlet != 0) {
     // Loop for each inlet boundary
-    for(i=1;i<=para->bc->nb_inlet;i++)
-    {
+    for(i=1; i<=para->bc->nb_inlet; i++) {
       fgets(string, 400, file_params);
-      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", name, &SI, &SJ, &SK, &EI, &EJ, &EK,
-                                              &TMP, &MASS, &U, &V, &W);
+      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", name, &SI, &SJ, &SK, &EI, 
+             &EJ, &EK, &TMP, &MASS, &U, &V, &W);
       bcnameid ++; // starts from -1, thus the first id will be 0
       para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
       strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s", 
+              bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);
-      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
+      sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
       ffd_log(msg, FFD_NORMAL);
       if(EI==0) { 
@@ -260,7 +263,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string,"%d",&para->bc->nb_outlet); 
-  sprintf(msg, "sci_reader.c: para->bc->nb_outlet=%d", para->bc->nb_outlet);
+  sprintf(msg, "read_sci_input(): para->bc->nb_outlet=%d", para->bc->nb_outlet);
   ffd_log(msg, FFD_NORMAL);
 
   if(para->bc->nb_outlet!=0) {
@@ -271,9 +274,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       bcnameid++;
       para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
       strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s", 
+              bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);      
-      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
+      sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
       ffd_log(msg, FFD_NORMAL);
 
@@ -322,7 +326,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string, "%d", &para->bc->nb_block); 
-  sprintf(msg, "sci_reader.c: para->bc->nb_block=%d", para->bc->nb_block);
+  sprintf(msg, "read_sci_input(): para->bc->nb_block=%d", para->bc->nb_block);
   ffd_log(msg, FFD_NORMAL);
 
   if(para->bc->nb_block!=0) {
@@ -336,9 +340,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       bcnameid++;
       para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
       strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s",
+              bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);      
-      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
+      sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
               U, V, W, FLTMP, TMP, MASS);
       ffd_log(msg, FFD_NORMAL);
 
@@ -387,25 +392,26 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string,"%d", &para->bc->nb_wall); 
-  sprintf(msg, "sci_reader.c: para->bc->nb_wall=%d", para->bc->nb_wall);
+  sprintf(msg, "read_sci_input(): para->bc->nb_wall=%d", para->bc->nb_wall);
   ffd_log(msg, FFD_NORMAL);
 
   if(para->bc->nb_wall!=0) {
     // Read wall conditions for each wall
-    for(i=1;i<=para->bc->nb_wall;i++) {
+    for(i=1; i<=para->bc->nb_wall; i++) {
       fgets(string, 400, file_params);
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
-            &FLTMP, &TMP);
+      sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, 
+             &EJ, &EK, &FLTMP, &TMP);
       bcnameid++;
       para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
       strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s",
+              bcnameid, para->bc->bcname[bcnameid]);
       ffd_log(msg, FFD_NORMAL);
-      sprintf(msg, "sci_reader.c: VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
-              U, V, W, FLTMP, TMP, MASS);
+      sprintf(msg, "read_sci_input(): ThermalBC=%d, T/q_dot=%f", 
+              FLTMP, TMP);
       ffd_log(msg, FFD_NORMAL);
 
       // Reset X index
@@ -459,18 +465,19 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
   sscanf(string,"%d", &para->bc->nb_source); 
-  sprintf(msg, "sci_reader.c: para->bc->nb_source=%d", para->bc->nb_source);
+  sprintf(msg, "read_sci_input(): para->bc->nb_source=%d", para->bc->nb_source);
   ffd_log(msg, FFD_NORMAL);
 
   if(para->bc->nb_source!=0) {
-    sscanf(string,"%s%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
-           &MASS);
+    sscanf(string,"%s%d%d%d%d%d%d%f", 
+           &name, &SI, &SJ, &SK, &EI, &EJ, &EK, &MASS);
     bcnameid++;
     para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
     strcpy(para->bc->bcname[bcnameid], name);
-    sprintf(msg, "sci_reader.c: para->bc->bcname[%d]=%s", bcnameid, para->bc->bcname[bcnameid]);
+    sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s",
+            bcnameid, para->bc->bcname[bcnameid]);
     ffd_log(msg, FFD_NORMAL);
-    sprintf(msg, "sci_reader.c: Xi_dot=%f", MASS);
+    sprintf(msg, "read_sci_input(): Xi_dot=%f", MASS);
     ffd_log(msg, FFD_NORMAL);
 
     // Fixme:Need to add code to assign the BC value as other part does
@@ -492,8 +499,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   // Read setting for restarting the old FFD simulation
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&para->inpu->read_old_ffd_file);
-  sprintf(msg, "sci_reader.c: para->inpu->read_old_ffd_file=%d", para->inpu->read_old_ffd_file);
+  sscanf(string,"%d", &para->inpu->read_old_ffd_file);
+  sprintf(msg, "read_sci_input(): para->inpu->read_old_ffd_file=%d",
+          para->inpu->read_old_ffd_file);
   ffd_log(msg, FFD_NORMAL);
 
   // Discard the unused data
@@ -508,29 +516,29 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
          &para->prob->gravx, &para->prob->gravy, &para->prob->gravz, 
          &para->prob->beta, &trefmax, &para->prob->Cp);
 
-  sprintf(msg, "sci_reader.c: para->prob->rho=%f", para->prob->rho);
+  sprintf(msg, "read_sci_input(): para->prob->rho=%f", para->prob->rho);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->prob->nu=%f", para->prob->nu);
+  sprintf(msg, "read_sci_input(): para->prob->nu=%f", para->prob->nu);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->prob->cond=%f", para->prob->cond);
+  sprintf(msg, "read_sci_input(): para->prob->cond=%f", para->prob->cond);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->prob->gravx=%f", para->prob->gravx);
+  sprintf(msg, "read_sci_input(): para->prob->gravx=%f", para->prob->gravx);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->prob->gravy=%f", para->prob->gravy);
+  sprintf(msg, "read_sci_input(): para->prob->gravy=%f", para->prob->gravy);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->prob->gravz=%f", para->prob->gravz);
+  sprintf(msg, "read_sci_input(): para->prob->gravz=%f", para->prob->gravz);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->prob->beta=%f", para->prob->beta);
+  sprintf(msg, "read_sci_input(): para->prob->beta=%f", para->prob->beta);
   ffd_log(msg, FFD_NORMAL);
 
   //para->prob->trefmax=trefmax;
-  sprintf(msg, "sci_reader.c: para->prob->Cp=%f", para->prob->Cp);
+  sprintf(msg, "read_sci_input(): para->prob->Cp=%f", para->prob->Cp);
   ffd_log(msg, FFD_NORMAL);
 
   // Read simulation time settings
@@ -538,14 +546,14 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sscanf(string,"%f %f %d", &para->mytime->t_start, &para->mytime->dt,
     &para->mytime->step_total);
 
-  sprintf(msg, "sci_reader.c: para->mytime->t_start=%f", 
+  sprintf(msg, "read_sci_input(): para->mytime->t_start=%f", 
           para->mytime->t_start);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->mytime->dt=%f", para->mytime->dt);
+  sprintf(msg, "read_sci_input(): para->mytime->dt=%f", para->mytime->dt);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sci_reader.c: para->mytime->step_total=%d", 
+  sprintf(msg, "read_sci_input(): para->mytime->step_total=%d", 
           para->mytime->step_total);
   ffd_log(msg, FFD_NORMAL);
 
@@ -581,16 +589,17 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
   int kmax = para->geom->kmax;
   int index = para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
+       *flagv = var[FLAGV], *flagw = var[FLAGW];
   char msg[100];
 
   if( (file_params=fopen("zeroone.dat","r")) == NULL )
   {
-    ffd_log("sci_reader.c:can not open file zeroone.dat!\n", FFD_ERROR);
+    ffd_log("read_sci_input():Could not open file zeroone.dat!\n", FFD_ERROR);
     return 1;
   }
 
-  sprintf(msg, "sci_reader.c: start to read zeroone.dat.");
+  sprintf(msg, "read_sci_input(): start to read zeroone.dat.");
   ffd_log(msg, FFD_NORMAL);
 
   for(k=1;k<=kmax;k++)
@@ -618,7 +627,7 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
   fclose(file_params);
   para->geom->index=index;
 
-  sprintf(msg, "sci_reader.c: end of reading zeroone.dat.");
+  sprintf(msg, "read_sci_input(): end of reading zeroone.dat.");
   ffd_log(msg, FFD_NORMAL);
 
   return 0;

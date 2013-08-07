@@ -371,8 +371,7 @@ DWORD WINAPI ffd(PVOID p){
   if(initialize(&para)) exit(1);
   
   // Overwrite the mesh and simulation data using SCI generated file
-  if(para.inpu->parameter_file_format == SCI) 
-  {
+  if(para.inpu->parameter_file_format == SCI) {
     if(read_sci_max(&para, var)) exit(1);
   }
 
@@ -392,8 +391,7 @@ DWORD WINAPI ffd(PVOID p){
   ffd_log("ffd.c: Start FFD solver.", FFD_NORMAL);
 
   // Solve the problem
-  if(para.outp->version==DEMO) /* show visulization */
-  {
+  if(para.outp->version==DEMO) {
     open_glut_window();
     glutMainLoop();
   }

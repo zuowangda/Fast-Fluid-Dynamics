@@ -45,12 +45,12 @@ void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   if(para->solv->cosimulation == 1) {
     // Exchange the intial consitions for cosimulation
-    create_mapping();
-    read_cosimulation_data(para, var);
-    write_cosimulation_data(para, var);
+    //create_mapping();
+    //read_cosimulation_data(para, var);
+    //write_cosimulation_data(para, var);
     //getchar();
-    sprintf(msg, "Synchronize data at t=%f\n", para->mytime->t);
-    ffd_log(msg, FFD_NORMAL);
+    //sprintf(msg, "Synchronize data at t=%f\n", para->mytime->t);
+    //ffd_log(msg, FFD_NORMAL);
 
     t_cosim = para->mytime->t + para->mytime->dt_cosim;
   }

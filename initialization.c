@@ -118,6 +118,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
 {
   int i; 
   int size = (para->geom->imax+2)*(para->geom->jmax+2)*(para->geom->kmax+2);
+  int flag = 0;
   
   para->mytime->t = 0.0;
   para->mytime->step_current = 0;
@@ -168,21 +169,40 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   }
 
   // Read the configurations defined by SCI 
-  if(para->inpu->parameter_file_format == SCI) 
-  {
+  if(para->inpu->parameter_file_format == SCI) {
     if(read_sci_input(para, var, BINDEX)) {
-      sprintf(msg, "set_inital_data(): Failed to read file %s", 
+      sprintf(msg, "set_inital_data(): Could not read file %s", 
               para->inpu->parameter_file_name);
       ffd_log(msg, FFD_ERROR);
       return 1; 
     }
     if(read_sci_zeroone(para, var, BINDEX)) {
-      ffd_log("set_inital_data(): Failed to read zeroone file", FFD_ERROR);
+      ffd_log("set_inital_data(): Could not read zeroone file", FFD_ERROR);
       return 1; 
     }
     mark_cell(para, var);
   }
 
+  if(para->solv->cosimulation==1) {
+    flag = create_mapping();
+    if(flag!=0)
+      ffd_log("set_initial_data(): Could not created memory mapping for cosimulaiton",
+              FFD_ERROR);
+    flag = read_cosim_parameter(para, var);
+    if(flag!=0)
+      ffd_log("set_initial_data(): Could not read cosimulaiton parameters.",
+              FFD_ERROR);
+
+    flag = read_from_shared_memory(para, var);
+    if(flag!=0)
+      ffd_log("set_initial_data(): Could not read initial data for cosimulaiton.",
+              FFD_ERROR);
+
+    flag = write_to_shared_memory(para, var);
+    if(flag!=0)
+      ffd_log("set_initial_data(): Could not write initial data for cosimulaiton.",
+              FFD_ERROR);
+  }
   return 0;
 } // set_initial_data()
 

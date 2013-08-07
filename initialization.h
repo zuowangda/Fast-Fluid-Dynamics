@@ -24,9 +24,24 @@
 #include "data_structure.h"
 #endif
 
+#ifndef _PARAMETER_READER_H
+#define _PARAMETER_READER_H
 #include "parameter_reader.h"
+#endif
+#ifndef _COSIMULATION_INTERFACE_H
+#define _COSIMULATION_INTERFACE_H
+#include "cosimulation_interface.h"
+#endif
+
+#ifndef _SCI_READER_H
+#define _SCI_READER_H
 #include "sci_reader.h"
+#endif
+
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Initialize the parameters 
