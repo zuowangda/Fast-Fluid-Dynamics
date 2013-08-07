@@ -27,6 +27,19 @@
 #include <string.h>
 #include <stdlib.h>
 
+/*-----------------------------------------------------------------------------
+Problem with windows version 
+The stdlib.h which ships with the recent versions of Visual Studio has a 
+different (and conflicting) definition of the exit() function. 
+It clashes with the definition in glut.h.
+Solution:
+Override the definition in glut.h with that in stdlib.h. 
+Place the stdlib.h line above the glut.h line in the code.
+-----------------------------------------------------------------------------*/
+#include <glut.h>
+
+
+
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
 #define FOR_ALL_CELL for(k=0; k<=kmax+1; k++) { for(j=0; j<=jmax+1; j++) { for(i=0; i<=imax+1; i++) {

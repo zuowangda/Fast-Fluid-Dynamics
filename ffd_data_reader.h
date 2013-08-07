@@ -24,7 +24,6 @@
 #include "data_structure.h"
 #endif
 
-#include <string.h>
 #include "utility.h"
 
 FILE *file_old_ffd;

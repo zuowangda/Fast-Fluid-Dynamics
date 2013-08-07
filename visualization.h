@@ -20,17 +20,6 @@
 #include "data_structure.h"
 #endif
 
-/*-----------------------------------------------------------------------------
-Problem with windows version 
-The stdlib.h which ships with the recent versions of Visual Studio has a 
-different (and conflicting) definition of the exit() function. 
-It clashes with the definition in glut.h.
-Solution:
-Override the definition in glut.h with that in stdlib.h. 
-Place the stdlib.h line above the glut.h line in the code.
------------------------------------------------------------------------------*/
-#include <glut.h>
-
 #ifndef _DATA_WRITER_H
 #define _DATA_WRITER_H
 #include "data_writer.h"
@@ -50,6 +39,8 @@ Place the stdlib.h line above the glut.h line in the code.
 #define _UTILITY_H
 #include "utility.h"
 #endif
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// OpenGL specific drawing routines for a 2D plane

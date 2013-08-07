@@ -54,12 +54,10 @@
 #include "interpolation.h"
 #endif
 
-
 #ifndef _SOLVER_H
 #define _SOLVER_H
 #include "solver.h"
 #endif
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Entrance of advection step
@@ -77,7 +75,7 @@
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-            int **BINDEX);
+           int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Advection for velocity at X-direction

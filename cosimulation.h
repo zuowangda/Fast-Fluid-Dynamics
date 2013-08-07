@@ -7,7 +7,6 @@
 #include <windows.h>
 #endif
 
-#include <stdio.h>
 
 #ifndef _DATA_STRUCTURE_H
 #include "data_structure.h"

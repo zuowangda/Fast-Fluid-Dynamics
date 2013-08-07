@@ -26,8 +26,6 @@
 #include "data_structure.h"
 #endif
 
-#include <math.h>
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Computes turbulent viscosity using Chen's zero equation model
 ///

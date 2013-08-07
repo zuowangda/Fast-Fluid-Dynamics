@@ -24,9 +24,6 @@
 #include "data_structure.h"
 #endif
 
-#include <stdlib.h>
-#include <time.h>
-
 #include "parameter_reader.h"
 #include "sci_reader.h"
 #include "utility.h"

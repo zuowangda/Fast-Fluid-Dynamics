@@ -8,6 +8,14 @@
 // 7/20/2013 by Wangda Zuo: First implementation
 //
 ///////////////////////////////////////////////////////////////////////////////
+#ifndef _FFD_H
+#define _FFD_H
+#endif
+
+#ifndef _DATA_STRUCTURE_H
+#define _DATA_STRUCTURE_H
+#include "data_structure.h"
+#endif
 
 DWORD WINAPI ffd(PVOID p);
 
