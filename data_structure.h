@@ -267,8 +267,7 @@ typedef struct{
   int nb_source; // Number of sources, provided by SCI
   int nb_bc; // Number of boundaries, provided by SCI
   char** bcname;
-  int *ffdbcid; // BC id stored in FFD
-  int *modelicabcid; // BC id for modelica
+  int *id; // BC id stored in FFD
 }BC_DATA;
 
 typedef struct 

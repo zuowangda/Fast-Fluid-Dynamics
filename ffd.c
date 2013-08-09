@@ -376,7 +376,10 @@ DWORD WINAPI ffd(PVOID p){
   if(allocate_data( )) exit(1);
 
   // Set the initial values for the simulation data
-  if(set_initial_data(&para, var, BINDEX)) exit(1);
+  if(set_initial_data(&para, var, BINDEX)) {
+    ffd_log("ffd(): Could not set initial data.", FFD_ERROR);
+    return 1;
+  }
 
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);

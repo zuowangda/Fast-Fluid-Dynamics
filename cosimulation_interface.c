@@ -10,7 +10,7 @@
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int read_cosim_parameter(PARA_DATA *para, REAL **var) {
-  int i;
+  int i, flag;
 
   ffd_log("read_cosim_parameter(): Received the following cosimulation parameters:",
            FFD_NORMAL);
@@ -45,14 +45,14 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var) {
     ffd_log(msg, FFD_NORMAL);
   }
 
-
   for(i=0; i<para->cosim->para->nSen; i++) {
     sprintf(msg, "Sensor %d: %s", i, para->cosim->para->sensorName[i]);
     ffd_log(msg, FFD_NORMAL); 
   }
 
-  return 0;
-}
+  flag = compare_boundary_names(para);
+  return flag;
+} // End of read_cosim_parameter()
 
 /******************************************************************************
  Write shared data to the shared memory 
@@ -122,7 +122,6 @@ int write_to_shared_memory(PARA_DATA *para, REAL **var) {
 int read_from_shared_memory(PARA_DATA *para, REAL **var) {
   int i;
   float float_feak;
-  int int_feak;
 
   ffd_log("read_from_shared_memory(): start to read data from shared memory.", 
           FFD_NORMAL);
@@ -187,3 +186,59 @@ int read_from_shared_memory(PARA_DATA *para, REAL **var) {
           FFD_NORMAL);
   return 0;
 } // End of read_from_shared_memory()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Compare the names of boundaries and store the relationship 
+///
+///\param para Pointer to FFD parameters
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int compare_boundary_names(PARA_DATA *para) {
+  int i, j, flag;
+
+  char **name1 = para->cosim->para->name;
+  char **name2 = para->bc->bcname;
+
+  for(i=0; i<para->cosim->para->nSur; i++) {
+    //-------------------------------------------------------------------------
+    // Assume we do not find the name
+    flag = -1;
+
+    //-------------------------------------------------------------------------
+    for(j=0; j<para->bc->nb_bc&&flag!=0; j++) {
+      flag = strcmp(name1[i], name2[i]);
+      // If found the name
+      if(flag==0) {
+        // If the same name has been foudn before
+        if(para->bc->id[j]>0) {
+          sprintf(msg,
+          "compare_boundary_names(): Modelica has the same name \"%s\" for two BCs.",
+          name1[i]);
+          ffd_log(msg, FFD_ERROR);
+          return 1;
+        }
+        // If no same name has been found before, use it
+        else {
+          sprintf(msg,
+          "compare_boundary_names(): Matched boundary name \"%s\".",
+          name1[i]);
+          ffd_log(msg, FFD_ERROR);
+          para->bc->id[j] = i;
+        }
+      } // End of if(flag==0)
+    }
+
+    //-------------------------------------------------------------------------
+    // Stop if name is not found 
+    if(flag!=0) {
+      sprintf(msg,
+        "compare_boundary_names(): Could not find the Modelica boundary name %s in FFD.",
+        name1[i]);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+  } // Next Modelica BC name
+
+  return 0;
+} // End of compare_boundary_names()

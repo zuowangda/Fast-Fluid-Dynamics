@@ -185,15 +185,17 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sprintf(msg, "read_sci_input(): para->bc->nb_bc=%d", para->bc->nb_bc);
   ffd_log(msg, FFD_NORMAL);
 
-  // Allocate the memory for bC name array
-  para->bc->bcname = (char**)malloc(para->bc->nb_bc * sizeof(char*));
-  
+  // Allocate the memory for bc name and id
+  para->bc->bcname = (char**)malloc(sizeof(char*));
+  para->bc->id = (int *)malloc(sizeof(int)*para->bc->nb_bc);
+  for(i=0; i<para->bc->nb_bc; i++)
+    para->bc->id[i] = -1;
   /*---------------------------------------------------------------------------
   | Read the inlet boundary conditions
   ----------------------------------------------------------------------------*/
   // Get number of inlet boundaries
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&para->bc->nb_inlet); 
+  sscanf(string,"%d", &para->bc->nb_inlet); 
   sprintf(msg, "read_sci_input(): para->bc->nb_inlet=%d", para->bc->nb_inlet);
   ffd_log(msg, FFD_NORMAL);
 
