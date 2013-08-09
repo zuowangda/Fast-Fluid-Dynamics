@@ -71,9 +71,28 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         w_mean[i] += w[i];
       }
 
-    // Synchronize the data for cosimulation
+    //-----------------------------------------------------------------------
+    // A cosimulation is performed
     if(para->solv->cosimulation == 1) {
-      if( fabs(para->mytime->t - t_cosim) < SMALL) {
+      sprintf(msg, "\n\nLast received Modelica time=%f, \tModleica dt=%f", para->cosim->modelica->t, para->cosim->modelica->dt); 
+      ffd_log(msg, FFD_NORMAL);
+      sprintf(msg, "ffd_solver(): para->cosim->para->flag=%d", para->cosim->para->flag);
+      ffd_log(msg, FFD_NORMAL);
+
+      // Modelica asks to stop the simulation
+      if(fabs(para->cosim->para->flag)<SMALL) {
+        // Stop the solver
+        flag = 0; 
+        // Inform Modelica the stopping command has been received 
+        para->cosim->para->flag = 1; 
+        sprintf(msg, 
+                "ffd_solver(): Received stop command from Modelica at t = %f[s]",
+                para->mytime->t);
+        ffd_log(msg, FFD_NORMAL);
+      }
+
+      // Check if synchronization point is reached
+      else if(fabs(para->mytime->t - t_cosim)<SMALL) {
         //Exchange the data for cosimulation
         read_cosimulation_data(para, var);
         write_cosimulation_data(para, var);
@@ -81,8 +100,11 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         ffd_log(msg, FFD_NORMAL);
         // set the next synchronization time
         t_cosim += para->cosim->modelica->dt;
+        // Move to next synchronization point
+        flag = 1;
       }
-      else if (para->mytime->t > t_cosim) {
+      // Missied the synchronization point
+      else if (para->mytime->t-t_cosim>SMALL) {
         sprintf(msg, 
                 "ffd_solver(): Mis-matched synchronization step at %fs with t_cosim=%f, dt_syn=%fs, dt_ffd=%fs.",
                 para->mytime->t, t_cosim, para->cosim->modelica->dt, para->mytime->dt);
@@ -91,15 +113,13 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         ffd_log(msg, FFD_ERROR);
         return 1;
       }
+      else 
+        flag = 1; // Continue
     }
-
-    // Check if next loop is needed
-    if (para->solv->cosimulation == 1)
-      flag = para->cosim->modelica->flag==-1 ? 0 : 1;
+    //-----------------------------------------------------------------------
+    // FFD internal control if it is not cosimulation
     else
       flag = para->mytime->step_current < step_total ? 1 : 0;
-
-
   } // End of While loop  
 
   

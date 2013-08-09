@@ -63,8 +63,11 @@ int write_to_shared_memory(PARA_DATA *para, REAL **var) {
   float float_feak=1.0;
 
   // Wait if the previosu data hasnot been read by the other program
-  while(para->cosim->ffd->flag==1)
+  while(para->cosim->ffd->flag==1) {
+    ffd_log("write_to_shared_memory(): Previosu data is not taken by Modelica", 
+             FFD_NORMAL);
     Sleep(1000);
+  }
 
   para->cosim->ffd->t = para->mytime->t;
 
@@ -124,7 +127,7 @@ int read_from_shared_memory(PARA_DATA *para, REAL **var) {
   ffd_log("read_from_shared_memory(): start to read data from shared memory.", 
           FFD_NORMAL);
   // Wait for data to be updated by the other program
-  while(para->cosim->modelica->flag<1) {
+  while(para->cosim->modelica->flag==0) {
     sprintf(msg, 
             "read_from_shared_memory(): Data is not ready with flag=%d",
             para->cosim->modelica->flag);

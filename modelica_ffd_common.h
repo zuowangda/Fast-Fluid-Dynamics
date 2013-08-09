@@ -13,6 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
+  int flag; // Flag for cosimulation: 0-> Stop; 1->Continue
   int nSur; // Number of surfaces
   int nSen; // Numver of sensors
   int nConExtWin; // Nmber of exterior construction with windows
