@@ -1,12 +1,18 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-// Filename ffd.h
-//
-// Task: Header file of ffd.c
-//
-// Modification history:
-// 7/20/2013 by Wangda Zuo: First implementation
-//
+///
+/// \file ffd.h
+///
+/// \brief Main routine of Fast Fluid Dynamics
+///
+/// \author Mingang Jin, Qingyan Chen
+///         Purdue University
+///         Jin55@purdue.edu, YanChen@purdue.edu
+///         Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef _FFD_H
 #define _FFD_H
@@ -22,13 +28,41 @@
 #include "ffd_dll.h"
 #endif
 
+#ifndef _TIMING_H
+#define _TIMING_H
 #include "timing.h"
-#include "sci_reader.h"
+#endif
+
+#ifndef _SOLVER_H
+#define _SOLVER_H
 #include "solver.h"
+#endif
+
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #include "utility.h"
+#endif
 
+#ifndef _DATA_WRITER_H
+#define _DATA_WRITER_H
+#include "data_writer.h"
+#endif
 
+#ifndef _INITIALIZATION_H
+#define _INITIALIZATION_H
+#include "initialization.h"
+#endif
+
+#ifndef _VISUALIZATION_H
+#define _VISUALIZATION_H
+#include "visualization.h"
+#endif
+
+#ifdef _MSC_VER
 DWORD WINAPI ffd(PVOID p);
+#else // Fixme: Add function for linux?
+
+#endif
 
 int allocate_data (void);
 

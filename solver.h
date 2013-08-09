@@ -85,9 +85,9 @@
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX);
+int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the temperature
@@ -121,10 +121,6 @@ void den_step(PARA_DATA *para, REAL **var,int **BINDEX);
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
 void vel_step(PARA_DATA *para, REAL **var, int **BINDEX);
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Solver for equations

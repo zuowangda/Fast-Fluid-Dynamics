@@ -58,6 +58,8 @@ Place the stdlib.h line above the glut.h line in the code.
 
 #define REAL float
 
+#define SMALL 0.000001
+
 #ifndef max
 	#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 #endif
@@ -271,10 +273,9 @@ typedef struct{
 
 typedef struct 
 {
-  REAL dt; // FFD simulation time step size
-  REAL t; // Internal: current time
+  double dt; // FFD simulation time step size
+  double t; // Internal: current time
   REAL t_steady; // Necessary time for reaching the steady state from initial condition
-  REAL dt_cosim;  // Time step for co-simulation data exchange 
   int step_total; // The interval of iteration step to output data
   int step_current; // Internal: current iteration step
   clock_t t_start; // Internal: clock time when simulation starts

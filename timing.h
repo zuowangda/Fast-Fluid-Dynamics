@@ -23,6 +23,11 @@
 #include "data_structure.h"
 #endif
 
+#ifndef _UTILITY_H
+#define _UTILITY_H
+#include "utility.h"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the simulation time and time ratio
 ///

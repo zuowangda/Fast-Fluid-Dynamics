@@ -11,29 +11,8 @@
 /// \date   8/3/2013
 ///
 ///////////////////////////////////////////////////////////////////////////////
-#define BUF_FFD_SIZE (sizeof(ffdSharedData))
-#define BUF_MODELICA_SIZE (sizeof(ModelicaSharedData))
-#define BUF_BOUNDARY_SIZE (sizeof(BoundarySharedData))
 
-typedef struct 
-{
-  int nSur; // Number of surfaces
-  int nSen; // Numver of sensors
-  int nConExtWin; // Nmber of exterior construction with windows
-  int nPorts; // Number of fluid ports
-  int sha; // 1: have shade ; 0: no shade 
-  char **name; // *name[nSur]: Name of surfaces and flow ports
-  char **portName; // *name[nPorts]: Name of fluid ports
-  float *are; // area of surface in the same order of name
-  float *til; // tilt of surface in the same order of name
-  int *bouCon; // Type of thermal bundary condition in the same order of name 
-                 // 1: fixed temperature, 
-                 // 2: fixed heat flow rate through the surface
-  char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
-} BoundarySharedData;
-
-typedef struct 
-{
+typedef struct {
   int nSur; // Number of surfaces
   int nSen; // Numver of sensors
   int nConExtWin; // Nmber of exterior construction with windows
@@ -49,10 +28,9 @@ typedef struct
   char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
 } ParameterSharedData;
 
-
 typedef struct {
   float t; // Current time of integration
-  int flag; // To control the data exhcange. 0: old data, 1: new data
+  int flag; // To control the data exhcange. 0: old data, 1: new data; -1: Stop cosimulation
   float dt; // Time step size for next synchronization
   float *temHea; // temHea[nSur]: Temperature or heat flow rate depending on surBou.bouCon
   float heaConvec; // Convective heat input into the room

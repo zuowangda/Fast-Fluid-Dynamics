@@ -33,6 +33,8 @@ void timing(PARA_DATA *para) {
 
   cputime= ((double) (clock() - para->mytime->t_start) / CLOCKS_PER_SEC);
 
-  printf("Phyical time=%.1f s, CPU time=%.3f s, Time Ratio=%.4f\n", 
+  sprintf(msg, "Phyical time=%.4f s, CPU time=%.4f s, Time Ratio=%.4f\n", 
          para->mytime->t, cputime, para->mytime->t/cputime);
+  ffd_log(msg, FFD_NORMAL);
+
 } // End of timing( )

@@ -24,9 +24,9 @@
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
+int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int size = (imax+2) * (jmax+2) * (kmax+2);
@@ -41,24 +41,17 @@ void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
-  REAL t_cosim;
+  double t_cosim;
+  int flag;
 
-  if(para->solv->cosimulation == 1) {
-    // Exchange the intial consitions for cosimulation
-    //create_mapping();
-    //read_cosimulation_data(para, var);
-    //write_cosimulation_data(para, var);
-    //getchar();
-    //sprintf(msg, "Synchronize data at t=%f\n", para->mytime->t);
-    //ffd_log(msg, FFD_NORMAL);
-
-    t_cosim = para->mytime->t + para->mytime->dt_cosim;
-  }
+  if(para->solv->cosimulation == 1)
+    t_cosim = para->mytime->t + para->cosim->modelica->dt;
 
   /*---------------------------------------------------------------------------
   | Solver Loop
   ---------------------------------------------------------------------------*/
-  while(para->mytime->step_current < step_total) {
+  flag = 1;
+  while(flag==1) {
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);
     //den_step(para, var, BINDEX);
@@ -68,7 +61,7 @@ void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
     if(para->mytime->t>t_steady && cal_mean==0) {
       cal_mean = 1;
       step_current += 1;
-      printf("start to calculate mean properties.\n");
+      ffd_log("FFD_solver(): Start to calculate mean properties.", FFD_NORMAL);
     }   
 
     if(cal_mean == 1)
@@ -79,15 +72,32 @@ void FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       }
 
     // Synchronize the data for cosimulation
-    if(para->solv->cosimulation == 1 && para->mytime->t >= t_cosim) {
-      //Exchange the data for cosimulation
-      read_cosimulation_data(para, var);
-      write_cosimulation_data(para, var);
-      sprintf(msg, "Synchronize data at t=%f\n", para->mytime->t);
-      ffd_log(msg, FFD_NORMAL);
-      // set the next synchronization time
-      t_cosim += para->mytime->dt_cosim;
+    if(para->solv->cosimulation == 1) {
+      if( fabs(para->mytime->t - t_cosim) < SMALL) {
+        //Exchange the data for cosimulation
+        read_cosimulation_data(para, var);
+        write_cosimulation_data(para, var);
+        sprintf(msg, "ffd_solver(): Synchronized data at t=%f\n", para->mytime->t);
+        ffd_log(msg, FFD_NORMAL);
+        // set the next synchronization time
+        t_cosim += para->cosim->modelica->dt;
+      }
+      else if (para->mytime->t > t_cosim) {
+        sprintf(msg, 
+                "ffd_solver(): Mis-matched synchronization step at %fs with t_cosim=%f, dt_syn=%fs, dt_ffd=%fs.",
+                para->mytime->t, t_cosim, para->cosim->modelica->dt, para->mytime->dt);
+        ffd_log(msg, FFD_ERROR);
+        sprintf(msg, "para->mytime->t - t_cosim=%lf", para->mytime->t - t_cosim);
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+      }
     }
+
+    // Check if next loop is needed
+    if (para->solv->cosimulation == 1)
+      flag = para->cosim->modelica->flag==-1 ? 0 : 1;
+    else
+      flag = para->mytime->step_current < step_total ? 1 : 0;
 
 
   } // End of While loop  

@@ -1,7 +1,5 @@
-#include <windows.h>
-#include <stdio.h>
 
-#include "ffd.h"
+
 #include "ffd_dll.h"
 /******************************************************************************
 | DLL interface to launch a separated thread for FFD. 

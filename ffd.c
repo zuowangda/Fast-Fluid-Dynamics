@@ -15,12 +15,7 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "boundary.h"
-#include "data_writer.h"
-#include "initialization.h"
-#include "visualization.h"
 #include "ffd.h"
-
 
 /* global variables */
 static REAL dt, diff, visc;
@@ -46,7 +41,6 @@ static INPU_DATA inpu;
 static OUTP_DATA outp1;
 static BC_DATA bc;
 static SOLV_DATA solv;
-
 
 clock_t start, end;
 
@@ -348,15 +342,11 @@ static void reshape_func(int width, int height) {
 /******************************************************************************
    ffd --- main routine
 ******************************************************************************/
+//int main(){
 DWORD WINAPI ffd(PVOID p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
-  CosimulationData *cosim;
-
-  cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
-  cosim = (CosimulationData *) p;
-
+  
   printf("Entered WorkerThreadProc with tid %lu\n", workerID);
-//int main(){
 
   // Initialize the parameters
   para.geom = &geom;
@@ -369,12 +359,8 @@ DWORD WINAPI ffd(PVOID p){
   para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
   para.cosim = (CosimulationData *) p;
 
-  ffd_log("Start Fast Fluid Dynamics Simulation.", FFD_NEW);
-  sprintf(msg, "ffd(): cosim->para->nSen=%d\n", cosim->para->nSen); 
-  ffd_log(msg, FFD_NORMAL);
-
-  sprintf(msg, "ffd(): para.cosim->para->nSen=%d\n", para.cosim->para->nSen); 
-  ffd_log(msg, FFD_NORMAL);
+  sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
+  ffd_log(msg, FFD_NEW);
 
   if(initialize(&para)) exit(1);
   
@@ -391,7 +377,6 @@ DWORD WINAPI ffd(PVOID p){
 
   // Set the initial values for the simulation data
   if(set_initial_data(&para, var, BINDEX)) exit(1);
-
 
   // Read previous simulation data as initial values
   if(para.inpu->read_old_ffd_file==1) read_ffd_data(&para, var);

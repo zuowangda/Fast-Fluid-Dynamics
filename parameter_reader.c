@@ -266,11 +266,6 @@ int assign_parameter(PARA_DATA *para, char *string) {
     sprintf(msg, "assign_parameter(): %s=%f", tmp, para->mytime->t_steady);
     ffd_log(msg, FFD_NORMAL);
   }
-  else if(!strcmp(tmp, "mytime.dt_cosim")) {
-    sscanf(string, "%s%f", tmp, &para->mytime->dt_cosim);
-    sprintf(msg, "assign_parameter(): %s=%f", tmp, para->mytime->dt_cosim);
-    ffd_log(msg, FFD_NORMAL);
-  }
   else if(!strcmp(tmp, "solv.solver")) {
     sscanf(string, "%s%s", tmp, tmp2);
     sprintf(msg, "assign_parameter(): %s=%s", tmp, tmp2);
