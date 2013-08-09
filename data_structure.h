@@ -27,6 +27,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifndef _MODELICA_FFD_COMMON_H
+#define _MODELICA_FFD_COMMON_H
+#include "modelica_ffd_common.h"
+#endif
 /*-----------------------------------------------------------------------------
 Problem with windows version 
 The stdlib.h which ships with the recent versions of Visual Studio has a 
@@ -296,6 +300,7 @@ typedef struct
   TIME_DATA  *mytime;
   BC_DATA    *bc;
   SOLV_DATA  *solv;
+  CosimulationData *cosim;
 }PARA_DATA;
 
 typedef struct {

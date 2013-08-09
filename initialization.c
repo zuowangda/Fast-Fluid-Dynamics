@@ -184,10 +184,6 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   }
 
   if(para->solv->cosimulation==1) {
-    flag = create_mapping();
-    if(flag!=0)
-      ffd_log("set_initial_data(): Could not created memory mapping for cosimulaiton",
-              FFD_ERROR);
     flag = read_cosim_parameter(para, var);
     if(flag!=0)
       ffd_log("set_initial_data(): Could not read cosimulaiton parameters.",

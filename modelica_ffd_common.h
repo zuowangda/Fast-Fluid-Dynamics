@@ -32,6 +32,24 @@ typedef struct
   char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
 } BoundarySharedData;
 
+typedef struct 
+{
+  int nSur; // Number of surfaces
+  int nSen; // Numver of sensors
+  int nConExtWin; // Nmber of exterior construction with windows
+  int nPorts; // Number of fluid ports
+  int sha; // 1: have shade ; 0: no shade 
+  char **name; // *name[nSur]: Name of surfaces and flow ports
+  char **portName; // *name[nPorts]: Name of fluid ports
+  float *are; // area of surface in the same order of name
+  float *til; // tilt of surface in the same order of name
+  int *bouCon; // Type of thermal bundary condition in the same order of name 
+                 // 1: fixed temperature, 
+                 // 2: fixed heat flow rate through the surface
+  char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
+} ParameterSharedData;
+
+
 typedef struct {
   float t; // Current time of integration
   int flag; // To control the data exhcange. 0: old data, 1: new data
@@ -67,7 +85,8 @@ typedef struct {
   float *CPor; // CPor[nPorts*medium.nC]: the trace substances of medium at the port
 }ffdSharedData;
 
-TCHAR ffdDataName[] = TEXT("FFDDataMappingObject");
-TCHAR modelicaDataName[] = TEXT("ModelicaDataMappingObject");
-TCHAR boundaryDataName[] = TEXT("BoundaryDataMappingObject");
-
+typedef struct{
+  ParameterSharedData *para;
+  ffdSharedData *ffd;
+  ModelicaSharedData *modelica;
+} CosimulationData;

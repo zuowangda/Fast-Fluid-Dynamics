@@ -9,10 +9,15 @@
 
 
 #ifndef _DATA_STRUCTURE_H
+#define _DATA_STRUCTURE_H
 #include "data_structure.h"
 #endif
 
+#ifndef _COSIMULATION_INTERFACE_H
+#define _COSIMULATION_INTERFACE_H
 #include "cosimulation_interface.h"
+#endif
+
 #include "utility.h"
 
 

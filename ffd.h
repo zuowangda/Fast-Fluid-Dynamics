@@ -17,6 +17,17 @@
 #include "data_structure.h"
 #endif
 
+#ifndef _FFD_DLL_H
+#define FFD_DLL_H
+#include "ffd_dll.h"
+#endif
+
+#include "timing.h"
+#include "sci_reader.h"
+#include "solver.h"
+#include "utility.h"
+
+
 DWORD WINAPI ffd(PVOID p);
 
 int allocate_data (void);

@@ -20,11 +20,6 @@
 #include "initialization.h"
 #include "visualization.h"
 #include "ffd.h"
-#include "ffd_data_reader.h"
-#include "timing.h"
-#include "sci_reader.h"
-#include "solver.h"
-#include "utility.h"
 
 
 /* global variables */
@@ -51,7 +46,7 @@ static INPU_DATA inpu;
 static OUTP_DATA outp1;
 static BC_DATA bc;
 static SOLV_DATA solv;
-static PARA_DATA para;
+
 
 clock_t start, end;
 
@@ -355,6 +350,11 @@ static void reshape_func(int width, int height) {
 ******************************************************************************/
 DWORD WINAPI ffd(PVOID p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
+  CosimulationData *cosim;
+
+  cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
+  cosim = (CosimulationData *) p;
+
   printf("Entered WorkerThreadProc with tid %lu\n", workerID);
 //int main(){
 
@@ -366,8 +366,16 @@ DWORD WINAPI ffd(PVOID p){
   para.mytime = &mytime;
   para.bc     = &bc;
   para.solv   = &solv;
+  para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
+  para.cosim = (CosimulationData *) p;
 
   ffd_log("Start Fast Fluid Dynamics Simulation.", FFD_NEW);
+  sprintf(msg, "ffd(): cosim->para->nSen=%d\n", cosim->para->nSen); 
+  ffd_log(msg, FFD_NORMAL);
+
+  sprintf(msg, "ffd(): para.cosim->para->nSen=%d\n", para.cosim->para->nSen); 
+  ffd_log(msg, FFD_NORMAL);
+
   if(initialize(&para)) exit(1);
   
   // Overwrite the mesh and simulation data using SCI generated file
@@ -404,10 +412,7 @@ DWORD WINAPI ffd(PVOID p){
   // Calculate mean value
   if(para.outp->cal_mean == 1)
     calcuate_time_averaged_variable(&para, var);
-
-  if(para.solv->cosimulation==1)
-    close_mapping();
-
+  
   // Fixme: Simulaiton stops here
   //if(write_unsteady(&para, var, "unsteady")!=0) {
   //  ffd_log("FFD_solver(): Could not write the file unsteady.plt.", FFD_ERROR);
