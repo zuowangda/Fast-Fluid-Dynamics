@@ -184,21 +184,21 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   }
 
   if(para->solv->cosimulation==1) {
-    flag = read_cosim_parameter(para, var);
+    flag = read_cosim_parameter(para, var, BINDEX);
     if(flag!=0) {
       ffd_log("set_initial_data(): Could not read cosimulaiton parameters.",
               FFD_ERROR);
       return 1;
     }
 
-    flag = read_from_shared_memory(para, var);
+    flag = read_cosim_data(para, var);
     if(flag!=0) {
       ffd_log("set_initial_data(): Could not read initial data for cosimulaiton.",
               FFD_ERROR);
       return 1;
     }
 
-    flag = write_to_shared_memory(para, var);
+    flag = write_cosim_data(para, var);
     if(flag!=0) {
       ffd_log("set_initial_data(): Could not write initial data for cosimulaiton.",
               FFD_ERROR);

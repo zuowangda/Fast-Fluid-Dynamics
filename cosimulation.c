@@ -4,7 +4,7 @@
   Read the data send from the other program
 ******************************************************************************/
 int read_cosimulation_data(PARA_DATA *para, REAL **var) {
-  if(read_from_shared_memory(para, var)) {
+  if(read_cosim_data(para, var)) {
     ffd_log("cosimulation.c: Failed to read data from shared memory.", FFD_ERROR); 
     exit(1);
   }
@@ -20,7 +20,7 @@ int read_cosimulation_data(PARA_DATA *para, REAL **var) {
 ******************************************************************************/
 int write_cosimulation_data(PARA_DATA *para, REAL **var) {
 
-  if(write_to_shared_memory(para, var)) {
+  if(write_cosim_data(para, var)) {
     ffd_log("cosimulation.c: Failed to write data to shared memory.", 
             FFD_ERROR);
     exit(1);

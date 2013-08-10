@@ -1,16 +1,33 @@
+///////////////////////////////////////////////////////////////////////////////
+///
+/// \file   cosimulation_interface.c
+///
+/// \brief  Functions for cosimulation
+///
+/// \author Wangda Zuo
+///         University of Miami
+///         W.Zuo@miami.edu
+///
+/// \date   8/3/2013
+///
+/// This file provides functions that are used for conducting the cosimulaiton 
+/// with Modelica
+///
+///////////////////////////////////////////////////////////////////////////////
 
 #include "cosimulation_interface.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Read the cosimulation paraters defined by Modelica
+/// Read the cosimulation parameters defined by Modelica
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param BINDEX pointer to boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_cosim_parameter(PARA_DATA *para, REAL **var) {
-  int i, flag;
+int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
+  int i;
 
   ffd_log("read_cosim_parameter(): Received the following cosimulation parameters:",
            FFD_NORMAL);
@@ -66,21 +83,36 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var) {
     return 1;
   }
   
-  flag = compare_boundary_names(para);
-  return flag;
+  if(compare_boundary_names(para)!=0) {
+    ffd_log("read_cosim_parameter(): The boundary names were not consistent.",
+    FFD_ERROR);
+    return 1;
+  }
+  else if(compare_boundary_area(para, var, BINDEX)!=0) {
+    ffd_log("read_cosim_parameter(): The boundary areas were not consistent.",
+    FFD_ERROR);
+    return 1;
+  }
+  
+  return 0;
 } // End of read_cosim_parameter()
 
-/******************************************************************************
- Write shared data to the shared memory 
-******************************************************************************/
-int write_to_shared_memory(PARA_DATA *para, REAL **var) {
+///////////////////////////////////////////////////////////////////////////////
+/// Write the FFD data for Modelica
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int write_cosim_data(PARA_DATA *para, REAL **var) {
   int i;
   int int_feak = 1;
   float float_feak=1.0;
 
   // Wait if the previosu data hasnot been read by the other program
   while(para->cosim->ffd->flag==1) {
-    ffd_log("write_to_shared_memory(): Previosu data is not taken by Modelica", 
+    ffd_log("write_cosim_data(): Previosu data is not taken by Modelica", 
              FFD_NORMAL);
     Sleep(1000);
   }
@@ -126,33 +158,34 @@ int write_to_shared_memory(PARA_DATA *para, REAL **var) {
   para->cosim->ffd->flag = 1;
   ffd_log("cosimulation_interace.c: wrote data to shared memory", FFD_NORMAL);
   return 0;
-} // End of write_to_shared_memory()
+} // End of write_cosim_data()
 
-/******************************************************************************
-| Read shared data from the shared memory 
-| Data status indicated by status
-| -1: feak data
-|  0: data has been read by the other program
-|  1: data waiting for the other program to read
-******************************************************************************/
-int read_from_shared_memory(PARA_DATA *para, REAL **var) {
+///////////////////////////////////////////////////////////////////////////////
+/// Read the data from Modelica
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int read_cosim_data(PARA_DATA *para, REAL **var) {
   int i;
   float float_feak;
 
-  ffd_log("read_from_shared_memory(): start to read data from shared memory.", 
+  ffd_log("read_cosim_data(): start to read data from shared memory.", 
           FFD_NORMAL);
   // Wait for data to be updated by the other program
   while(para->cosim->modelica->flag==0) {
     sprintf(msg, 
-            "read_from_shared_memory(): Data is not ready with flag=%d",
+            "read_cosim_data(): Data is not ready with flag=%d",
             para->cosim->modelica->flag);
     ffd_log(msg, FFD_NORMAL);
     Sleep(1000);
   }
 
-  ffd_log("read_from_shared_memory(): Data is ready. Start to read.", FFD_NORMAL);
+  ffd_log("read_cosim_data(): Data is ready. Start to read.", FFD_NORMAL);
   sprintf(msg, 
-          "read_from_shared_memory(): Received the following data at t=%f", 
+          "read_cosim_data(): Received the following data at t=%f", 
           para->cosim->modelica->t);
   ffd_log(msg, FFD_NORMAL);
 
@@ -198,10 +231,10 @@ int read_from_shared_memory(PARA_DATA *para, REAL **var) {
   para->cosim->modelica->flag = 0;
   printf("para->cosim->modelica->flag=%d\n", para->cosim->modelica->flag);
 
-  ffd_log("read_from_shared_memory(): Ended reading data from shared memory.",
+  ffd_log("read_cosim_data(): Ended reading data from shared memory.",
           FFD_NORMAL);
   return 0;
-} // End of read_from_shared_memory()
+} // End of read_cosim_data()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Compare the names of boundaries and store the relationship 
@@ -239,7 +272,7 @@ int compare_boundary_names(PARA_DATA *para) {
           sprintf(msg,
           "compare_boundary_names(): Matched boundary name \"%s\".",
           name1[i]);
-          ffd_log(msg, FFD_ERROR);
+          ffd_log(msg, FFD_NORMAL);
           para->bc->id[j] = i;
         }
       } // End of if(flag==0)
@@ -258,3 +291,44 @@ int compare_boundary_names(PARA_DATA *para) {
 
   return 0;
 } // End of compare_boundary_names()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Compare the area of boundaries
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
+  int i, j;
+  REAL *A0, *A1 = para->cosim->para->are;
+
+  A0 = (REAL *) malloc(sizeof(REAL)*para->bc->nb_wall);
+  
+  if(bounary_area(para, var, BINDEX, A0)!=0) {
+    ffd_log("compare_boundary_area(): Coudl not get the boundary area.",
+            FFD_ERROR);
+    return 1;
+  }
+
+  ffd_log("compare_boundary_area(): Start to compare the area of solid surfaces.",
+          FFD_NORMAL);
+  for(i=0; i<para->bc->nb_wall; i++) {
+    j = para->bc->id[i];
+    if(fabs(A0[i]-A1[j])<SMALL) {
+      sprintf(msg, "\tSurface %s have the same area of %f [m2]",
+        para->bc->bcname[i], A0[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+    else {
+      sprintf(msg, "compare_boundary_area(): Area of surface %s are different: Modelica (%f [m2]) and FFD (%f [m2])",
+        para->bc->bcname[i], A1[j], A0[i]);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+  }
+
+  return 0;
+} // End of compare_boundary_area()

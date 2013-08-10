@@ -123,7 +123,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   } // End of While loop  
 
   
-
+  return 0;
 } // End of FFD_solver( ) 
 
 ///////////////////////////////////////////////////////////////////////////////

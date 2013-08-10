@@ -20,6 +20,11 @@
 #include "data_structure.h"
 #endif
 
+#ifndef _UTILITY_H
+#define _UTILITY_H
+#include "utility.h"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the XY area of control volume (i,j,k)
 ///
@@ -110,3 +115,15 @@ REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJ
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
               int IMAX, int IJMAX);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate the area of boundary surface
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///\param A Pointer to the array of area
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A);

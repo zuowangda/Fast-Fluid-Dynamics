@@ -71,7 +71,6 @@ REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k,
        * length_x(para, var, i, j, k, IMAX, IJMAX);
 } // End of area_zx()
 
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the X-length of control volume (i,j,k)
 ///
@@ -125,3 +124,55 @@ REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
               int IMAX, int IJMAX) {
   return (REAL) fabs(var[GZ][IX(i,j,k)]-var[GZ][IX(i,j,k-1)]); 
 } // End of length_z()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate the area of boundary surface
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to boundary index
+///\param A Pointer to the array of area
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
+   
+  int i, j, k, it, id;
+  int index= para->geom->index, imax = para->geom->imax,
+      jmax = para->geom->jmax, kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *flagp = var[FLAGP];
+
+  for(i=0; i<para->bc->nb_wall; i++) A[i]=0;
+
+  for(it=0; it<index; it++) {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    id = BINDEX[4][it];
+
+    // Only need to calcuate wall or windows
+    if(flagp[IX(i,j,k)]==1) {
+      // West or East Boundary
+      if(i==0 || i==imax+1)
+        A[id] += area_yz(para, var, i, j, k, IMAX, IJMAX);
+      // South and Norht Boundary
+      if(j==0 || j==jmax+1)
+        A[id] += area_zx(para, var, i, j, k, IMAX, IJMAX);
+      // Ceiling and Floor Boundary
+      if(k==0 || k==kmax+1)
+        A[id] += area_xy(para, var, i, j, k, IMAX, IJMAX);
+      // Do not count internal block
+    } // End of Wall boudary
+  } // End of for(it=0; it<index; it++)
+
+  ffd_log("bounary_area(): Calucated surface area for FFD solid boundaryies are:",
+    FFD_NORMAL);
+
+  for(i=0; i<para->bc->nb_wall; i++) {
+    sprintf(msg, "\t%s: %f [m2]", para->bc->bcname[i], A[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  return 0;
+} // End of bounary_area()
