@@ -65,6 +65,7 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
         "Invalid value (%d) for thermal boundary condition. 1: Fixed T; 2: Fixed heat flux",
         para->cosim->para->bouCon[i]);        
         ffd_log(msg, FFD_ERROR);
+        return 1;
     }
   }
 
@@ -202,13 +203,24 @@ int read_cosim_data(PARA_DATA *para, REAL **var) {
   ffd_log("\tThermal conditions for solid surfaces:", FFD_NORMAL);
   for(i=0; i<para->cosim->para->nSur; i++) {
     float_feak = para->cosim->modelica->temHea[i];
-    if(para->cosim->para->bouCon[i]==1)
-      sprintf(msg, "\t%s: T=%f[K]", para->cosim->para->name[i], 
+    switch(para->cosim->para->bouCon[i]) {
+      case 1:
+        sprintf(msg, "\t%s: T=%f[K]", para->cosim->para->name[i], 
             para->cosim->modelica->temHea[i]);
-    else
-      sprintf(msg, "\t%s: Q=%f[W]", para->cosim->para->name[i], 
+        ffd_log(msg, FFD_NORMAL);
+        break;
+      case 2:
+        sprintf(msg, "\t%s: Q_dot=%f[W]", para->cosim->para->name[i], 
             para->cosim->modelica->temHea[i]);  
-    ffd_log(msg, FFD_NORMAL);
+        ffd_log(msg, FFD_NORMAL);
+        break;
+      default:
+        sprintf(msg, 
+        "Invalid value (%d) for thermal boundary condition. 1: Fixed T; 2: Fixed heat flux",
+        para->cosim->para->bouCon[i]);        
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+    }
   }
   
  
@@ -223,7 +235,7 @@ int read_cosim_data(PARA_DATA *para, REAL **var) {
     }
   }
   else
-    ffd_log("\t No shading devices.", FFD_NORMAL);
+    ffd_log("\tNo shading devices.", FFD_NORMAL);
 
   if(para->cosim->para->nPorts>0) {
     ffd_log("Flow information at the ports:mdot, T, Xi, C\n", FFD_NORMAL);
@@ -239,14 +251,14 @@ int read_cosim_data(PARA_DATA *para, REAL **var) {
     }
   }
   else
-    ffd_log("\t No fluid ports.", FFD_NORMAL);
+    ffd_log("\tNo fluid ports.", FFD_NORMAL);
 
 
   // Change the flag to indicate that the data has been read
   para->cosim->modelica->flag = 0;
   printf("para->cosim->modelica->flag=%d\n", para->cosim->modelica->flag);
 
-  ffd_log("read_cosim_data(): Ended reading data from shared memory.",
+  ffd_log("read_cosim_data(): Ended reading data from Modelica.",
           FFD_NORMAL);
   return 0;
 } // End of read_cosim_data()
@@ -333,12 +345,12 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   for(i=0; i<para->bc->nb_wall; i++) {
     j = para->bc->id[i];
     if(fabs(A0[i]-A1[j])<SMALL) {
-      sprintf(msg, "\t %s has the same area of %f [m2]",
+      sprintf(msg, "\t%s has the same area of %f[m2]",
         para->bc->bcname[i], A0[i]);
       ffd_log(msg, FFD_NORMAL);
     }
     else {
-      sprintf(msg, "compare_boundary_area(): Area of surface %s are different: Modelica (%f [m2]) and FFD (%f [m2])",
+      sprintf(msg, "compare_boundary_area(): Area of surface %s are different: Modelica (%f[m2]) and FFD (%f[m2])",
         para->bc->bcname[i], A1[j], A0[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;
