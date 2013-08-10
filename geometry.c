@@ -86,7 +86,10 @@ REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k, 
               int IMAX, int IJMAX) {
-  return (REAL) fabs(var[GX][IX(i,j,k)]-var[GX][IX(i-1,j,k)]); 
+  if(i==0)
+    return 0;
+  else
+    return (REAL) fabs(var[GX][IX(i,j,k)]-var[GX][IX(i-1,j,k)]); 
 } // End of length_x()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -104,7 +107,10 @@ REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k,
               int IMAX, int IJMAX) {
-  return (REAL) fabs(var[GY][IX(i,j,k)]-var[GY][IX(i,j-1,k)]); 
+  if(j==0)
+    return 0;
+  else 
+    return (REAL) fabs(var[GY][IX(i,j,k)]-var[GY][IX(i,j-1,k)]); 
 } // End of length_y()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -122,7 +128,10 @@ REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///////////////////////////////////////////////////////////////////////////////
 REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
               int IMAX, int IJMAX) {
-  return (REAL) fabs(var[GZ][IX(i,j,k)]-var[GZ][IX(i,j,k-1)]); 
+  if(k==0)
+    return 0;
+  else 
+    return (REAL) fabs(var[GZ][IX(i,j,k)]-var[GZ][IX(i,j,k-1)]); 
 } // End of length_z()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,39 +147,62 @@ REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
 int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
    
   int i, j, k, it, id;
+  //int id0;
   int index= para->geom->index, imax = para->geom->imax,
       jmax = para->geom->jmax, kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *flagp = var[FLAGP];
+  REAL tmp;
 
-  for(i=0; i<para->bc->nb_wall; i++) A[i]=0;
+  for(id=0; id<para->bc->nb_wall; id++) A[id]=0;
 
+  //id0 = -1;
   for(it=0; it<index; it++) {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
     k = BINDEX[2][it];
     id = BINDEX[4][it];
 
+    /*
+    if(id!=id0) {
+       sprintf(msg, "bounary_area(): Area of cells on %s are:",
+               para->bc->bcname[id]); 
+       ffd_log(msg, FFD_NORMAL);
+       id0 = id;
+    }
+    */
     // Only need to calcuate wall or windows
     if(flagp[IX(i,j,k)]==1) {
       // West or East Boundary
-      if(i==0 || i==imax+1)
-        A[id] += area_yz(para, var, i, j, k, IMAX, IJMAX);
+      if(i==0 || i==imax+1) {
+        tmp = area_yz(para, var, i, j, k, IMAX, IJMAX);
+        //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
+        //ffd_log(msg, FFD_NORMAL);
+        A[id] += tmp;
+      }
       // South and Norht Boundary
-      if(j==0 || j==jmax+1)
-        A[id] += area_zx(para, var, i, j, k, IMAX, IJMAX);
+      if(j==0 || j==jmax+1) {
+        tmp = area_zx(para, var, i, j, k, IMAX, IJMAX);
+        //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
+        //ffd_log(msg, FFD_NORMAL);
+        A[id] += tmp;
+      }
       // Ceiling and Floor Boundary
-      if(k==0 || k==kmax+1)
-        A[id] += area_xy(para, var, i, j, k, IMAX, IJMAX);
-      // Do not count internal block
+      if(k==0 || k==kmax+1) {
+        tmp = area_xy(para, var, i, j, k, IMAX, IJMAX);
+        //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
+        //ffd_log(msg, FFD_NORMAL);
+        A[id] += tmp;
+      }
+
     } // End of Wall boudary
   } // End of for(it=0; it<index; it++)
 
   ffd_log("bounary_area(): Calucated surface area for FFD solid boundaryies are:",
     FFD_NORMAL);
 
-  for(i=0; i<para->bc->nb_wall; i++) {
-    sprintf(msg, "\t%s: %f [m2]", para->bc->bcname[i], A[i]);
+  for(id=0; id<para->bc->nb_wall; id++) {
+    sprintf(msg, "\t%s: %f [m2]", para->bc->bcname[id], A[id]);
     ffd_log(msg, FFD_NORMAL);
   }
 

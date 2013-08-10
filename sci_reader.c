@@ -376,9 +376,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       else 
         EK=EK+SK-1;
 
-      for(ii=SI ;ii<=EI ;ii++)
-        for(ij=SJ ;ij<=EJ ;ij++)
-          for(ik=SK ;ik<=EK ;ik++) {
+      for(ii=SI; ii<=EI; ii++)
+        for(ij=SJ; ij<=EJ; ij++)
+          for(ik=SK; ik<=EK; ik++) {
             BINDEX[0][index] = ii;
             BINDEX[1][index] = ij;
             BINDEX[2][index] = ik;
