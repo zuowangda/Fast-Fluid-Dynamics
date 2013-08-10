@@ -15,41 +15,57 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var) {
   ffd_log("read_cosim_parameter(): Received the following cosimulation parameters:",
            FFD_NORMAL);
 
-  sprintf(msg, "nSur=%d", para->cosim->para->nSur);
+  sprintf(msg, "\tnSur=%d", para->cosim->para->nSur);
   ffd_log(msg, FFD_NORMAL);
     
-  sprintf(msg, "nSen=%d", para->cosim->para->nSen);
+  sprintf(msg, "\tnSen=%d", para->cosim->para->nSen);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "nConExtWin=%d", para->cosim->para->nConExtWin);
+  sprintf(msg, "\tnConExtWin=%d", para->cosim->para->nConExtWin);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "nPorts=%d", para->cosim->para->nPorts);
+  sprintf(msg, "\tnPorts=%d", para->cosim->para->nPorts);
   ffd_log(msg, FFD_NORMAL);
 
-  sprintf(msg, "sha=%d", para->cosim->para->sha);
+  sprintf(msg, "\tsha=%d", para->cosim->para->sha);
   ffd_log(msg, FFD_NORMAL);
 
   for(i=0; i<para->cosim->para->nSur; i++) {
-    sprintf(msg, "Surface %d: %s", i, para->cosim->para->name[i]);
+    sprintf(msg, "\tSurface %d: %s", i, para->cosim->para->name[i]);
     ffd_log(msg, FFD_NORMAL);
-    sprintf(msg, "Area:%f m2,\t Tilt:%f deg", 
+    sprintf(msg, "\tArea:%f m2,\t Tilt:%f deg", 
             para->cosim->para->are[i], para->cosim->para->til[i]);
     ffd_log(msg, FFD_NORMAL);
-    sprintf(msg, "Thermal boundary condition:%d", para->cosim->para->bouCon[i]);
+    sprintf(msg, "\tThermal boundary condition:%d", para->cosim->para->bouCon[i]);
     ffd_log(msg, FFD_NORMAL);
   }
 
   for(i=0; i<para->cosim->para->nPorts; i++) {
-    sprintf(msg, "Inlet %d: %s", i, para->cosim->para->portName[i]);
+    sprintf(msg, "\tFluid Ports %d: %s", i, para->cosim->para->portName[i]);
     ffd_log(msg, FFD_NORMAL);
   }
 
   for(i=0; i<para->cosim->para->nSen; i++) {
-    sprintf(msg, "Sensor %d: %s", i, para->cosim->para->sensorName[i]);
+    sprintf(msg, "\tSensor %d: %s", i, para->cosim->para->sensorName[i]);
     ffd_log(msg, FFD_NORMAL); 
   }
 
+  // Comopare number of boundaries
+  if(para->cosim->para->nSur!=para->bc->nb_wall) {
+    sprintf(msg, 
+     "read_cosim_parameter(): Modelica(%d) and FFD(%d) have different number of solid surfaces.", 
+      para->cosim->para->nSur, para->bc->nb_wall);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
+  else if(para->cosim->para->nPorts!=(para->bc->nb_inlet+para->bc->nb_outlet)) {
+    sprintf(msg, 
+      "read_cosim_parameter(): Modelica(%d) and FFD(%d) have different number of fluid ports.", 
+    para->cosim->para->nPorts, para->bc->nb_inlet+para->bc->nb_outlet);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
+  
   flag = compare_boundary_names(para);
   return flag;
 } // End of read_cosim_parameter()
@@ -203,11 +219,11 @@ int compare_boundary_names(PARA_DATA *para) {
   for(i=0; i<para->cosim->para->nSur; i++) {
     //-------------------------------------------------------------------------
     // Assume we do not find the name
-    flag = -1;
+    flag = 1;
 
     //-------------------------------------------------------------------------
     for(j=0; j<para->bc->nb_bc&&flag!=0; j++) {
-      flag = strcmp(name1[i], name2[i]);
+      flag = strcmp(name1[i], name2[j]);
       // If found the name
       if(flag==0) {
         // If the same name has been foudn before
@@ -233,7 +249,7 @@ int compare_boundary_names(PARA_DATA *para) {
     // Stop if name is not found 
     if(flag!=0) {
       sprintf(msg,
-        "compare_boundary_names(): Could not find the Modelica boundary name %s in FFD.",
+        "compare_boundary_names(): Could not find the Modelica boundary name \"%s\" in FFD.",
         name1[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;

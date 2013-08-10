@@ -88,11 +88,14 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   // Open the parameter file
   if((file_params=fopen(para->inpu->parameter_file_name,"r")) == NULL ) { 
-    fprintf(stderr,"Error:can not open the file \"%s\"\n.", para->inpu->parameter_file_name);
+    sprintf(msg,"read_sci_input(): Could not open the file \"%s\".", 
+            para->inpu->parameter_file_name);
+    ffd_log(msg, FFD_ERROR);
     return 1;
   }
 
-  sprintf(msg, "read_sci_input(): Start to read sci input file %s", para->inpu->parameter_file_name);
+  sprintf(msg, "read_sci_input(): Start to read sci input file %s",
+          para->inpu->parameter_file_name);
   ffd_log(msg, FFD_NORMAL);
 
   // Ingore the first and second lines

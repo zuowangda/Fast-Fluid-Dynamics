@@ -354,8 +354,6 @@ int read_parameter(PARA_DATA *para) {
   }
 
   fclose(file_para);
-  ffd_log("read_parameter(): Read data from input.cfd", FFD_NORMAL);
-
   return 0;
 } // End of read_parameter()
 
