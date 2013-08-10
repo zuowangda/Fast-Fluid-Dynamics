@@ -59,10 +59,11 @@ int write_cosim_data(PARA_DATA *para, REAL **var);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param BINDEX pointer to boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_cosim_data(PARA_DATA *para, REAL **var);
+int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Compare the names of boundaries and store the relationship 
@@ -83,3 +84,25 @@ int compare_boundary_names(PARA_DATA *para);
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Assign the Modelica solid surface thermal boundary condition data to FFD
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Assign the Modelica inlet boundary condition data to FFD
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX);

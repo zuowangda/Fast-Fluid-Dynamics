@@ -188,11 +188,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sprintf(msg, "read_sci_input(): para->bc->nb_bc=%d", para->bc->nb_bc);
   ffd_log(msg, FFD_NORMAL);
 
-  // Allocate the memory for bc name and id
-  para->bc->bcname = (char**)malloc(sizeof(char*));
-  para->bc->id = (int *)malloc(sizeof(int)*para->bc->nb_bc);
-  for(i=0; i<para->bc->nb_bc; i++)
-    para->bc->id[i] = -1;
+
   /*---------------------------------------------------------------------------
   | Read the inlet boundary conditions
   ----------------------------------------------------------------------------*/
@@ -205,16 +201,32 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   index=0;
   // Setting inlet boundary
   if(para->bc->nb_inlet != 0) {
+    para->bc->inletName = (char**) malloc(sizeof(char*));
+    if(para->bc->inletName==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->inletName.",
+      FFD_ERROR);
+
+    para->bc->mFloRatInlet = (REAL*) malloc(para->bc->nb_inlet*sizeof(REAL));
+    if(para->bc->mFloRatInlet==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->mFloRatInlet.",
+      FFD_ERROR);
+
+    para->bc->TInlet = (REAL*) malloc(para->bc->nb_inlet*sizeof(REAL));
+    if(para->bc->TInlet==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->TInlet.",
+      FFD_ERROR);
+
+    bcnameid = -1;
     // Loop for each inlet boundary
     for(i=1; i<=para->bc->nb_inlet; i++) {
       fgets(string, 400, file_params);
       sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", name, &SI, &SJ, &SK, &EI, 
              &EJ, &EK, &TMP, &MASS, &U, &V, &W);
       bcnameid ++; // starts from -1, thus the first id will be 0
-      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s", 
-              bcnameid, para->bc->bcname[bcnameid]);
+      para->bc->inletName[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->inletName[bcnameid], name);
+      sprintf(msg, "read_sci_input(): para->bc->inletName[%d]=%s", 
+              bcnameid, para->bc->inletName[bcnameid]);
       ffd_log(msg, FFD_NORMAL);
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
@@ -260,9 +272,6 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     } // End of loop for each inlet boundary
   } // End of setting inlet boundary
     
-  if(para->outp->version == DEBUG) 
-    printf("Last index of inlet B.C. cell: %d\n", index); 
-
   /*---------------------------------------------------------------------------
   | Read the outlet boundary conditions
   ----------------------------------------------------------------------------*/
@@ -271,16 +280,22 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sprintf(msg, "read_sci_input(): para->bc->nb_outlet=%d", para->bc->nb_outlet);
   ffd_log(msg, FFD_NORMAL);
 
+  bcnameid = -1;
   if(para->bc->nb_outlet!=0) {
+    para->bc->outletName = (char**) malloc(sizeof(char*));
+    if(para->bc->outletName==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->outletName.",
+      FFD_ERROR);
+
     for(i=1;i<=para->bc->nb_outlet;i++) {
       fgets(string, 400, file_params);
       sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", &name, &SI, &SJ, &SK, &EI, 
              &EJ, &EK, &TMP, &MASS, &U, &V, &W);
       bcnameid++;
-      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s", 
-              bcnameid, para->bc->bcname[bcnameid]);
+      para->bc->outletName[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->outletName[bcnameid], name);
+      sprintf(msg, "read_sci_input(): para->bc->outletName[%d]=%s", 
+              bcnameid, para->bc->outletName[bcnameid]);
       ffd_log(msg, FFD_NORMAL);      
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
@@ -333,8 +348,14 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sscanf(string, "%d", &para->bc->nb_block); 
   sprintf(msg, "read_sci_input(): para->bc->nb_block=%d", para->bc->nb_block);
   ffd_log(msg, FFD_NORMAL);
+  bcnameid = -1;
 
   if(para->bc->nb_block!=0) {
+    para->bc->blockName = (char**) malloc(sizeof(char*));
+    if(para->bc->blockName==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->blockName.",
+      FFD_ERROR);
+
     for(i=1; i<=para->bc->nb_block; i++) {
       fgets(string, 400, file_params);
       // X_index_start, Y_index_Start, Z_index_Start, 
@@ -343,10 +364,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
                                         &FLTMP, &TMP);
       bcnameid++;
-      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s",
-              bcnameid, para->bc->bcname[bcnameid]);
+      para->bc->blockName[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->blockName[bcnameid], name);
+      sprintf(msg, "read_sci_input(): para->bc->blockName[%d]=%s",
+              bcnameid, para->bc->blockName[bcnameid]);
       ffd_log(msg, FFD_NORMAL);      
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
               U, V, W, FLTMP, TMP, MASS);
@@ -401,6 +422,22 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ffd_log(msg, FFD_NORMAL);
 
   if(para->bc->nb_wall!=0) {
+    // Allocate the memory for bc name and id
+    para->bc->wallName = (char**)malloc(sizeof(char*));
+    para->bc->wallId = (int *)malloc(sizeof(int)*para->bc->nb_wall);
+    for(i=0; i<para->bc->nb_wall; i++)
+      para->bc->wallId[i] = -1;
+
+    para->bc->A = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
+    if(para->bc->A==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->A.",
+      FFD_ERROR);
+
+    para->bc->temHea = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
+    if(para->bc->temHea==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->heaTem.",
+      FFD_ERROR);
+
     // Read wall conditions for each wall
     for(i=1; i<=para->bc->nb_wall; i++) {
       fgets(string, 400, file_params);
@@ -410,10 +447,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, 
              &EJ, &EK, &FLTMP, &TMP);
       bcnameid++;
-      para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(para->bc->bcname[bcnameid], name);
-      sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s",
-              bcnameid, para->bc->bcname[bcnameid]);
+      para->bc->wallName[bcnameid] = (char*)malloc(sizeof(name));
+      strcpy(para->bc->wallName[bcnameid], name);
+      sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=%s",
+              bcnameid, para->bc->wallName[bcnameid]);
       ffd_log(msg, FFD_NORMAL);
       sprintf(msg, "read_sci_input(): ThermalBC=%d, T/q_dot=%f", 
               FLTMP, TMP);
@@ -477,10 +514,10 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     sscanf(string,"%s%d%d%d%d%d%d%f", 
            &name, &SI, &SJ, &SK, &EI, &EJ, &EK, &MASS);
     bcnameid++;
-    para->bc->bcname[bcnameid] = (char*)malloc(sizeof(name));
-    strcpy(para->bc->bcname[bcnameid], name);
-    sprintf(msg, "read_sci_input(): para->bc->bcname[%d]=%s",
-            bcnameid, para->bc->bcname[bcnameid]);
+    para->bc->wallName[bcnameid] = (char*)malloc(sizeof(name));
+    strcpy(para->bc->wallName[bcnameid], name);
+    sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=%s",
+            bcnameid, para->bc->wallName[bcnameid]);
     ffd_log(msg, FFD_NORMAL);
     sprintf(msg, "read_sci_input(): Xi_dot=%f", MASS);
     ffd_log(msg, FFD_NORMAL);

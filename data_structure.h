@@ -266,8 +266,28 @@ typedef struct{
   int nb_wall; // Number of wall boundaries, provided by SCI
   int nb_source; // Number of sources, provided by SCI
   int nb_bc; // Number of boundaries, provided by SCI
-  char** bcname;
-  int *id; // BC id stored in FFD
+  int nSen; // Numver of sensors
+  int nConExtWin; // Nmber of exterior construction with windows
+  int nInlet; // Number of inlet fluid boundaries
+  int nXi; // Number of species // Fixme: Not used
+  int nC; // Number of substances // Fixme: Not used
+  int sha; // 1: have shade ; 0: no shade 
+  char **wallName; // Name of solid boundary (Wall, Window)
+  char **inletName; // Name of inlet boundary
+  char **outletName; // Name of outlet boundary
+  char **blockName; // Name of internal block
+  int *wallId; // Modelica wall boundary ID
+  int *inletId; // Modelica inlet boundary ID
+  REAL *temHea; // Value of thermal conditions
+  REAL *A; // Area of the solide sufaces
+  char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
+  REAL *mFloRatInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
+                      // positive: into the room; neative out of the room
+  REAL *TInlet; // TPor[nInlet] Air temperatures that the medium has if it were flowing into the room
+              // Fixme: Will the element exist if not flowing into the room? 
+              // Fixme: what will it be if not flowing into the room?
+  REAL **XiInlet; // Fixme: Not used: XiPor[nXi][nInlet]: species concentration of inflowing medium
+  REAL **CInlet; // Fixme: Not used: CPor[nC][nInlet]: the trace substances of the inflowing medium
 }BC_DATA;
 
 typedef struct 

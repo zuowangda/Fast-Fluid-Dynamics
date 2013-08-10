@@ -79,7 +79,7 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
     ffd_log(msg, FFD_NORMAL); 
   }
 
-  // Comopare number of boundaries
+  // Compare number of boundaries
   if(para->cosim->para->nSur!=para->bc->nb_wall) {
     sprintf(msg, 
      "read_cosim_parameter(): Modelica(%d) and FFD(%d) have different number of solid surfaces.", 
@@ -135,12 +135,7 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
           para->cosim->ffd->t);
   ffd_log(msg, FFD_NORMAL);
 
-  ffd_log("Thermal conditions for solid surfaces:", FFD_NORMAL);
-  for(i=0; i<para->cosim->para->nSur; i++) { 
-    para->cosim->ffd->temHea[i] = float_feak; 
-    sprintf(msg, "Surface %d: %f", i, para->cosim->ffd->temHea[i]);
-    ffd_log(msg, FFD_NORMAL);
-  }
+
 
   para->cosim->ffd->TRoo = average(para, var[TEMP]) + 273.15; // Need to convert from C to K
   sprintf(msg, "Averaged Room temperature %fK", para->cosim->ffd->TRoo);
@@ -180,7 +175,7 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_cosim_data(PARA_DATA *para, REAL **var) {
+int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i;
   float float_feak;
 
@@ -200,30 +195,19 @@ int read_cosim_data(PARA_DATA *para, REAL **var) {
           para->cosim->modelica->t);
   ffd_log(msg, FFD_NORMAL);
 
-  ffd_log("\tThermal conditions for solid surfaces:", FFD_NORMAL);
-  for(i=0; i<para->cosim->para->nSur; i++) {
-    float_feak = para->cosim->modelica->temHea[i];
-    switch(para->cosim->para->bouCon[i]) {
-      case 1:
-        sprintf(msg, "\t%s: T=%f[K]", para->cosim->para->name[i], 
-            para->cosim->modelica->temHea[i]);
-        ffd_log(msg, FFD_NORMAL);
-        break;
-      case 2:
-        sprintf(msg, "\t%s: Q_dot=%f[W]", para->cosim->para->name[i], 
-            para->cosim->modelica->temHea[i]);  
-        ffd_log(msg, FFD_NORMAL);
-        break;
-      default:
-        sprintf(msg, 
-        "Invalid value (%d) for thermal boundary condition. 1: Fixed T; 2: Fixed heat flux",
-        para->cosim->para->bouCon[i]);        
-        ffd_log(msg, FFD_ERROR);
-        return 1;
-    }
+  //---------------------------------------------------------------------------
+  // Read and assign the thermal boundary conditions
+  //---------------------------------------------------------------------------
+  if(assign_thermal_bc(para,var,BINDEX)!=0) {
+     ffd_log("read_cosim_data(): Could not assign the Modelicathermal data to FFD",
+            FFD_ERROR);
+    return 1;
   }
-  
- 
+
+  //---------------------------------------------------------------------------
+  // Read and assign the shading boundary conditions
+  // Fixme: This is not been used
+  //---------------------------------------------------------------------------
   if(para->cosim->para->sha==1) {
     ffd_log("Shading control signal and absorded radiation by the shade:", FFD_NORMAL);
     for(i=0; i<para->cosim->para->nConExtWin; i++) {
@@ -237,17 +221,14 @@ int read_cosim_data(PARA_DATA *para, REAL **var) {
   else
     ffd_log("\tNo shading devices.", FFD_NORMAL);
 
+  //---------------------------------------------------------------------------
+  // Read and assign the inlet conditions
+  //---------------------------------------------------------------------------
   if(para->cosim->para->nPorts>0) {
-    ffd_log("Flow information at the ports:mdot, T, Xi, C\n", FFD_NORMAL);
-    for(i=0; i<para->cosim->para->nPorts; i++) {
-      float_feak = para->cosim->modelica->mFloRatPor[i];
-      float_feak = para->cosim->modelica->TPor[i] - 273.15;
-      float_feak = para->cosim->modelica->XiPor[i];
-      float_feak = para->cosim->modelica->CPor[i];
-      sprintf(msg, "Port[%d]: %f,\t%fK,\t%f,\t%f\n",
-              i, para->cosim->modelica->mFloRatPor[i], para->cosim->modelica->TPor[i],
-              para->cosim->modelica->XiPor[i], para->cosim->modelica->CPor[i]);
-      ffd_log(msg, FFD_NORMAL);
+    if(assign_inlet_bc(para,var,BINDEX)!=0) {
+      ffd_log(" read_cosim_data(): Could not assign the Modelica inlet BC to FFD",
+      FFD_ERROR);
+      return 1;
     }
   }
   else
@@ -274,7 +255,7 @@ int compare_boundary_names(PARA_DATA *para) {
   int i, j, flag;
 
   char **name1 = para->cosim->para->name;
-  char **name2 = para->bc->bcname;
+  char **name2 = para->bc->wallName;
 
   for(i=0; i<para->cosim->para->nSur; i++) {
     //-------------------------------------------------------------------------
@@ -287,7 +268,7 @@ int compare_boundary_names(PARA_DATA *para) {
       // If found the name
       if(flag==0) {
         // If the same name has been foudn before
-        if(para->bc->id[j]>0) {
+        if(para->bc->wallId[j]>0) {
           sprintf(msg,
           "compare_boundary_names(): Modelica has the same name \"%s\" for two BCs.",
           name1[i]);
@@ -300,7 +281,7 @@ int compare_boundary_names(PARA_DATA *para) {
           "compare_boundary_names(): Matched boundary name \"%s\".",
           name1[i]);
           ffd_log(msg, FFD_NORMAL);
-          para->bc->id[j] = i;
+          para->bc->wallId[j] = i;
         }
       } // End of if(flag==0)
     }
@@ -330,11 +311,9 @@ int compare_boundary_names(PARA_DATA *para) {
 ///////////////////////////////////////////////////////////////////////////////
 int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j;
-  REAL *A0, *A1 = para->cosim->para->are;
+  REAL *A0 = para->bc->A, *A1 = para->cosim->para->are;
 
-  A0 = (REAL *) malloc(sizeof(REAL)*para->bc->nb_wall);
-  
-  if(bounary_area(para, var, BINDEX, A0)!=0) {
+  if(bounary_area(para, var, BINDEX)!=0) {
     ffd_log("compare_boundary_area(): Could not get the boundary area.",
             FFD_ERROR);
     return 1;
@@ -343,15 +322,15 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   ffd_log("compare_boundary_area(): Start to compare the area of solid surfaces.",
           FFD_NORMAL);
   for(i=0; i<para->bc->nb_wall; i++) {
-    j = para->bc->id[i];
+    j = para->bc->wallId[i];
     if(fabs(A0[i]-A1[j])<SMALL) {
       sprintf(msg, "\t%s has the same area of %f[m2]",
-        para->bc->bcname[i], A0[i]);
+        para->bc->wallName[i], A0[i]);
       ffd_log(msg, FFD_NORMAL);
     }
     else {
       sprintf(msg, "compare_boundary_area(): Area of surface %s are different: Modelica (%f[m2]) and FFD (%f[m2])",
-        para->bc->bcname[i], A1[j], A0[i]);
+        para->bc->wallName[i], A1[j], A0[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
@@ -359,3 +338,119 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   return 0;
 } // End of compare_boundary_area()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Assign the Modelica solid surface thermal boundary condition data to FFD
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
+
+  int i, j, k, it, id;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
+  ffd_log("assign_thermal_bc(): Thermal conditions for solid surfaces:",
+          FFD_NORMAL);
+  //---------------------------------------------------------------------------
+  // Convert the data from Modelica oder to FFD order
+  //---------------------------------------------------------------------------
+  for(j=0; j<para->bc->nb_wall; j++) {
+    i = para->bc->wallId[j];
+    switch(para->cosim->para->bouCon[i]) {
+      case 1:
+        para->bc->temHea[j] = para->cosim->modelica->temHea[i] - 273.15;
+        sprintf(msg, "\t%s: T=%f[degC]", 
+          para->bc->wallName[j], 
+          para->bc->temHea[j]);
+        ffd_log(msg, FFD_NORMAL);
+        break;
+      case 2:
+        para->bc->temHea[j] = para->cosim->modelica->temHea[i]/para->bc->A[j];
+        sprintf(msg, "\t%s: Q_dot=%f[W/m2]", 
+          para->bc->wallName[j], 
+          para->bc->temHea[j]);
+        ffd_log(msg, FFD_NORMAL);
+        break;
+      default:
+        sprintf(msg, 
+        "Invalid value (%d) for thermal boundary condition. 1: Fixed T; 2: Fixed heat flux",
+        para->cosim->para->bouCon[i]);        
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+    }
+  }
+  //---------------------------------------------------------------------------
+  // Assign the BC
+  //---------------------------------------------------------------------------
+  for(it=0; it<para->geom->index; it++) {    
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    id = BINDEX[4][it];
+
+    if(var[FLAGP][IX(i,j,k)]==1) 
+      switch(BINDEX[3][it]) {
+        case 1: 
+          // Need to convert the T from K to degC
+          var[TEMPBC][IX(i,j,k)] = para->bc->temHea[id];
+          break;
+        case 0:
+          var[QFLUX][IX(i,j,k)] = para->bc->temHea[id];
+          break;
+        default:
+          sprintf(msg,
+            "assign_thermal_bc(): Thermal bc value BINDEX[3][%d]=%d at [%d,%d,%d] was not valid",
+            it, BINDEX[3][it], i, j, k);
+          ffd_log(msg, FFD_ERROR);
+          return 1;
+    }
+  }
+
+  return 0;
+} // End of assign_thermal_bc()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Assign the Modelica inlet boundary condition data to FFD
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
+  int i, j, k, it, id;
+  REAL float_feak;
+
+  ffd_log("assign_inlet_bc(): Inlet BC:m_dot, T, Xi, C\n", 
+      FFD_NORMAL);
+ 
+  //---------------------------------------------------------------------------
+  // Convert the data from Modelica oder to FFD order
+  //---------------------------------------------------------------------------
+  
+  //---------------------------------------------------------------------------
+  // Assign the BC
+  //---------------------------------------------------------------------------
+  for(i=0; i<para->cosim->para->nPorts; i++) {
+      float_feak = para->cosim->modelica->mFloRatPor[i];
+      float_feak = para->cosim->modelica->TPor[i] - 273.15;
+      float_feak = para->cosim->modelica->XiPor[i];
+      float_feak = para->cosim->modelica->CPor[i];
+
+      sprintf(msg, "\t%s: %f[kg/s],\t%f[degC],\t%f,\t%f\n",
+              para->bc->wallName[i], 
+              para->cosim->modelica->mFloRatPor[i], 
+              para->cosim->modelica->TPor[i],
+              para->cosim->modelica->XiPor[i], 
+              para->cosim->modelica->CPor[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+    return 0;
+} // End of assign_inlet_bc()

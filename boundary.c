@@ -275,6 +275,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     | Solid wall or block
     -------------------------------------------------------------------------*/
     if(flagp[IX(i,j,k)]==1) {
+      // ---------------------------------------------------------------------
       // Constant temperature
       if(BINDEX[3][it]==1) {
         psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
@@ -325,6 +326,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j,k-1)]<0) af[IX(i,j,k-1)] = coeff_h * axy;
         } 
       } // End of contant temperature wall
+      //-----------------------------------------------------------------------
       // Constant heat flux
       if(BINDEX[3][it]==0) {
         // West wall boundary and eastern neighbor is fluid

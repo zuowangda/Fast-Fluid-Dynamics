@@ -144,7 +144,7 @@ REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
+int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
    
   int i, j, k, it, id;
   //int id0;
@@ -153,6 +153,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *flagp = var[FLAGP];
   REAL tmp;
+  REAL *A = para->bc->A;
 
   for(id=0; id<para->bc->nb_wall; id++) A[id]=0;
 
@@ -166,7 +167,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
     /*
     if(id!=id0) {
        sprintf(msg, "bounary_area(): Area of cells on %s are:",
-               para->bc->bcname[id]); 
+               para->bc->wallName[id]); 
        ffd_log(msg, FFD_NORMAL);
        id0 = id;
     }
@@ -202,7 +203,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
     FFD_NORMAL);
 
   for(id=0; id<para->bc->nb_wall; id++) {
-    sprintf(msg, "\t%s: %f[m2]", para->bc->bcname[id], A[id]);
+    sprintf(msg, "\t%s: %f[m2]", para->bc->wallName[id], A[id]);
     ffd_log(msg, FFD_NORMAL);
   }
 

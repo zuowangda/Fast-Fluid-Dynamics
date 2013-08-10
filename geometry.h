@@ -122,8 +122,7 @@ REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
-///\param A Pointer to the array of area
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A);
+int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX);

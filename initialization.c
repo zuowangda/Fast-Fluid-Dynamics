@@ -191,7 +191,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
       return 1;
     }
 
-    flag = read_cosim_data(para, var);
+    flag = read_cosim_data(para, var, BINDEX);
     if(flag!=0) {
       ffd_log("set_initial_data(): Could not read initial data for cosimulaiton.",
               FFD_ERROR);
