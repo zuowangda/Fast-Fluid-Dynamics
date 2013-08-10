@@ -58,7 +58,7 @@ Place the stdlib.h line above the glut.h line in the code.
 
 #define REAL float
 
-#define SMALL 0.000001
+#define SMALL 0.00001
 
 #ifndef max
 	#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )

@@ -202,7 +202,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX, REAL *A) {
     FFD_NORMAL);
 
   for(id=0; id<para->bc->nb_wall; id++) {
-    sprintf(msg, "\t%s: %f [m2]", para->bc->bcname[id], A[id]);
+    sprintf(msg, "\t%s: %f[m2]", para->bc->bcname[id], A[id]);
     ffd_log(msg, FFD_NORMAL);
   }
 
