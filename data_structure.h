@@ -113,7 +113,9 @@ Place the stdlib.h line above the glut.h line in the code.
 #define QFLUXBC 44 // Heat flux on the boundary
 #define QFLUX 45  // Heat flux
 
-typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC,SYMMETRY} BCTYPE;
+typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC, SYMMETRY} BCTYPE;
+
+typedef enum{SOLID, INLET, OUTLET, FLUID} CELLTYPE;
 
 typedef enum{TCONST, QCONST, ADIBATIC} BCTTYPE;
 
@@ -280,7 +282,7 @@ typedef struct{
   int *inletId; // Modelica inlet boundary ID
   REAL *temHea; // Value of thermal conditions
   REAL *AWall; // Area of the solide sufaces
-  REAL *AInlet; 
+  REAL *AInlet; // Area of the inlets
   char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
   REAL *mFloRatInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
                       // positive: into the room; neative out of the room
