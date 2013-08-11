@@ -273,19 +273,29 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
    
   if(para->bc->nb_outlet!=0) {
     outletName = (char**) malloc(para->bc->nb_outlet*sizeof(char*));
-    if(outletName==NULL)
+    if(outletName==NULL) {
       ffd_log("read_sci_input(): Could not allocate memory for outletName.",
       FFD_ERROR);
+      return 1;
+    }
 
-    for(i=1;i<=para->bc->nb_outlet;i++) {
+    for(i=0; i<para->bc->nb_outlet; i++) {
       fgets(string, 400, file_params);
-      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", &name, &SI, &SJ, &SK, &EI, 
+      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", 
+             &name, &SI, &SJ, &SK, &EI, 
              &EJ, &EK, &TMP, &MASS, &U, &V, &W);
       bcnameid++;
-      outletName[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(outletName[bcnameid], name);
+      outletName[i] = (char*)malloc(sizeof(name));
+      if(outletName[i]==NULL) {
+        sprintf(msg, "read_sci_input(): Could not allocate memory "
+          "for outletName[%d].", i);
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+      }
+        
+      strcpy(outletName[i], name);
       sprintf(msg, "read_sci_input(): para->bc->outletName[%d]=%s", 
-              bcnameid, outletName[bcnameid]);
+              i, outletName[i]);
       ffd_log(msg, FFD_NORMAL);      
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
@@ -336,7 +346,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   // Copy the inlet and outlet information to ports
   if(para->bc->nb_port>0) {
     // Allocate memory for ports' names
-    para->bc->portName = (char**) malloc(para->bc->nb_inlet*sizeof(char*));
+    para->bc->portName = (char**) malloc(para->bc->nb_port*sizeof(char*));
     if(para->bc->portName==NULL) {
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->portName.",
       FFD_ERROR);
@@ -346,25 +356,33 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     for(i=0; i<para->bc->nb_inlet; i++) {
       para->bc->portName[i] = (char*) malloc(sizeof(char)*sizeof(inletName[i]));
       if(para->bc->portName[i]==NULL) {
-        ffd_log("read_sci_input(): Could not allocate memory for para->bc->portName.",
+        ffd_log("read_sci_input():"
+                "Could not allocate memory for para->bc->portName.",
         FFD_ERROR);
         return 1;
       }
       else
         strcpy(para->bc->portName[i], inletName[i]);
+        sprintf(msg, "read_sci_input(): Port[%d]:%s", 
+                i, para->bc->portName[i]);
+        ffd_log(msg, FFD_NORMAL);
     }
 
-    j = para->bc->nb_outlet;
+    j = para->bc->nb_inlet;
     // Copy the outlet names
-    for(i=0; i<para->bc->nb_outlet; i++) {
+    for(i=0; i<para->bc->nb_outlet; i++) {      
       para->bc->portName[i+j] = (char*) malloc(sizeof(char)*sizeof(outletName[i]));
       if(para->bc->portName[i+j]==NULL) {
         ffd_log("read_sci_input(): Could not allocate memory for para->bc->portName.",
         FFD_ERROR);
         return 1;
       }
-      else
+      else {
         strcpy(para->bc->portName[i+j], outletName[i]);
+        sprintf(msg, "read_sci_input(): Port[%d]:%s", 
+                i+j, para->bc->portName[i+j]);
+        ffd_log(msg, FFD_NORMAL);
+      }
     }
 
     // Allocate memory for the other variables at port
