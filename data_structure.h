@@ -115,7 +115,7 @@ Place the stdlib.h line above the glut.h line in the code.
 
 typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC, SYMMETRY} BCTYPE;
 
-typedef enum{SOLID, INLET, OUTLET, FLUID} CELLTYPE;
+typedef enum{SOLID=1, INLET=0, OUTLET=2, FLUID=-1} CELLTYPE;
 
 typedef enum{TCONST, QCONST, ADIBATIC} BCTTYPE;
 
@@ -278,13 +278,15 @@ typedef struct{
   char **inletName; // Name of inlet boundary
   char **outletName; // Name of outlet boundary
   char **blockName; // Name of internal block
+  char **sourceName; // Name of the source
   int *wallId; // Modelica wall boundary ID
   int *inletId; // Modelica inlet boundary ID
   REAL *temHea; // Value of thermal conditions
   REAL *AWall; // Area of the solide sufaces
   REAL *AInlet; // Area of the inlets
+  REAL *AOutlet; // Area of the outlets
   char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
-  REAL *mFloRatInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
+  REAL *velInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
                       // positive: into the room; neative out of the room
   REAL *TInlet; // TPor[nInlet] Air temperatures that the medium has if it were flowing into the room
               // Fixme: Will the element exist if not flowing into the room? 

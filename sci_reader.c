@@ -201,19 +201,24 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   index=0;
   // Setting inlet boundary
   if(para->bc->nb_inlet != 0) {
-    para->bc->inletName = (char**) malloc(sizeof(char*));
+    para->bc->inletName = (char**) malloc(para->bc->nb_inlet*sizeof(char*));
     if(para->bc->inletName==NULL)
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->inletName.",
       FFD_ERROR);
 
-    para->bc->mFloRatInlet = (REAL*) malloc(para->bc->nb_inlet*sizeof(REAL));
-    if(para->bc->mFloRatInlet==NULL)
-      ffd_log("read_sci_input(): Could not allocate memory for para->bc->mFloRatInlet.",
+    para->bc->velInlet = (REAL*) malloc(para->bc->nb_inlet*sizeof(REAL));
+    if(para->bc->velInlet==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->velInlet.",
       FFD_ERROR);
 
     para->bc->TInlet = (REAL*) malloc(para->bc->nb_inlet*sizeof(REAL));
     if(para->bc->TInlet==NULL)
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->TInlet.",
+      FFD_ERROR);
+
+    para->bc->AInlet = (REAL*) malloc(para->bc->nb_inlet*sizeof(REAL));
+    if(para->bc->AInlet==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->AInlet.",
       FFD_ERROR);
 
     bcnameid = -1;
@@ -266,7 +271,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
             var[VXBC][IX(ii,ij,ik)] = U; 
             var[VYBC][IX(ii,ij,ik)] = V; 
             var[VZBC][IX(ii,ij,ik)] = W;
-            flagp[IX(ii,ij,ik)] = 0; // Cell flag to be inlet
+            flagp[IX(ii,ij,ik)] = INLET; // Cell flag to be inlet
           } // End of assigning the inlet B.C. for each cell 
 
     } // End of loop for each inlet boundary
@@ -276,13 +281,13 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   | Read the outlet boundary conditions
   ----------------------------------------------------------------------------*/
   fgets(string, 400, file_params);
-  sscanf(string,"%d",&para->bc->nb_outlet); 
+  sscanf(string, "%d", &para->bc->nb_outlet); 
   sprintf(msg, "read_sci_input(): para->bc->nb_outlet=%d", para->bc->nb_outlet);
   ffd_log(msg, FFD_NORMAL);
 
   bcnameid = -1;
   if(para->bc->nb_outlet!=0) {
-    para->bc->outletName = (char**) malloc(sizeof(char*));
+    para->bc->outletName = (char**) malloc(para->bc->nb_outlet*sizeof(char*));
     if(para->bc->outletName==NULL)
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->outletName.",
       FFD_ERROR);
@@ -336,7 +341,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
             var[VXBC][IX(ii,ij,ik)] = U; 
             var[VYBC][IX(ii,ij,ik)] = V; 
             var[VZBC][IX(ii,ij,ik)] = W;
-            flagp[IX(ii,ij,ik)] = 2;
+            flagp[IX(ii,ij,ik)] = OUTLET;
           } // End of assigning the outlet B.C. for each cell 
     } // End of loop for each outlet boundary
   } // End of setting outlet boundary
@@ -408,7 +413,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
             index++;
             if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP;
             if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
-            flagp[IX(ii,ij,ik)] = 1; // Flag for solid
+            flagp[IX(ii,ij,ik)] = SOLID; // Flag for solid
           } // End of assigning value for internal solid block
     }
   }
@@ -438,6 +443,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->heaTem.",
       FFD_ERROR);
 
+    bcnameid = -1;
     // Read wall conditions for each wall
     for(i=1; i<=para->bc->nb_wall; i++) {
       fgets(string, 400, file_params);
@@ -493,7 +499,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
               index++;  
 
               // Set the cell to solid
-              flagp[IX(ii,ij,ik)] = 1; 
+              flagp[IX(ii,ij,ik)] = SOLID; 
               if(FLTMP==1) var[TEMPBC][IX(ii,ij,ik)] = TMP; 
               if(FLTMP==0) var[QFLUXBC][IX(ii,ij,ik)] = TMP;
             }
@@ -510,18 +516,17 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sprintf(msg, "read_sci_input(): para->bc->nb_source=%d", para->bc->nb_source);
   ffd_log(msg, FFD_NORMAL);
 
+  
   if(para->bc->nb_source!=0) {
     sscanf(string,"%s%d%d%d%d%d%d%f", 
            &name, &SI, &SJ, &SK, &EI, &EJ, &EK, &MASS);
     bcnameid++;
-    para->bc->wallName[bcnameid] = (char*)malloc(sizeof(name));
-    strcpy(para->bc->wallName[bcnameid], name);
-    sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=%s",
-            bcnameid, para->bc->wallName[bcnameid]);
-    ffd_log(msg, FFD_NORMAL);
+ 
+    sprintf(msg, "read_sci_input(): Source %s is not used in current version.",
+            name);
+    ffd_log(msg, FFD_WARNING);
     sprintf(msg, "read_sci_input(): Xi_dot=%f", MASS);
     ffd_log(msg, FFD_NORMAL);
-
     // Fixme:Need to add code to assign the BC value as other part does
   }
 
@@ -652,10 +657,10 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
         // mark=1 block cell;mark=0 fluid cell
 
         if(mark==1) {
-          flagp[IX(i,j,k)]=1;
-          BINDEX[0][index]=i;
-          BINDEX[1][index]=j;
-          BINDEX[2][index]=k;
+          flagp[IX(i,j,k)] = SOLID;
+          BINDEX[0][index] = i;
+          BINDEX[1][index] = j;
+          BINDEX[2][index] = k;
           index++;
         }
         delcount++;
@@ -694,23 +699,23 @@ void mark_cell(PARA_DATA *para, REAL **var) {
   REAL *flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
   REAL *flagp = var[FLAGP];
 
-  flagp[IX(0,0,0)]=1;
-  flagp[IX(0,0,kmax+1)]=1;
-  flagp[IX(0,jmax+1,0)]=1;
-  flagp[IX(0,jmax+1,kmax+1)]=1;
-  flagp[IX(imax+1,0,0)]=1;
-  flagp[IX(imax+1,0,kmax+1)]=1;
-  flagp[IX(imax+1,jmax+1,0)]=1;
-  flagp[IX(imax+1,jmax+1,kmax+1)]=1;
+  flagp[IX(0,0,0)] = SOLID;
+  flagp[IX(0,0,kmax+1)] = SOLID;
+  flagp[IX(0,jmax+1,0)] = SOLID;
+  flagp[IX(0,jmax+1,kmax+1)] = SOLID;
+  flagp[IX(imax+1,0,0)] = SOLID;
+  flagp[IX(imax+1,0,kmax+1)] = SOLID;
+  flagp[IX(imax+1,jmax+1,0)] = SOLID;
+  flagp[IX(imax+1,jmax+1,kmax+1)] = SOLID;
 
   FOR_EACH_CELL
 
-  if(flagp[IX(i,j,k)]>=0) continue;
+    if(flagp[IX(i,j,k)]>=0) continue;
 
-  if(flagp[IX(i-1,j,k)]>=0 && flagp[IX(i+1,j,k)]>=0 &&
-     flagp[IX(i,j-1,k)]>=0 && flagp[IX(i,j+1,k)]>=0 &&
-     flagp[IX(i,j,k-1)]>=0 && flagp[IX(i,j,k+1)]>=0 )
-     flagp[IX(i,j,k)]=1;
+    if(flagp[IX(i-1,j,k)]>=0 && flagp[IX(i+1,j,k)]>=0 &&
+      flagp[IX(i,j-1,k)]>=0 && flagp[IX(i,j+1,k)]>=0 &&
+      flagp[IX(i,j,k-1)]>=0 && flagp[IX(i,j,k+1)]>=0 )
+      flagp[IX(i,j,k)] = SOLID;
   END_FOR
 
   FOR_ALL_CELL

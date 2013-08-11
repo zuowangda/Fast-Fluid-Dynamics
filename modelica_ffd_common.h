@@ -18,6 +18,8 @@ typedef struct {
   int nSen; // Numver of sensors
   int nConExtWin; // Nmber of exterior construction with windows
   int nPorts; // Number of fluid ports
+  int nXi; // Number of species
+  int nC; // Number of trace substances 
   int sha; // 1: have shade ; 0: no shade 
   char **name; // *name[nSur]: Name of surfaces and flow ports
   char **portName; // *name[nPorts]: Name of fluid ports
@@ -46,9 +48,9 @@ typedef struct {
   float *TPor; // TPor[nPorts] Air temperatures that the medium has if it were flowing into the room
               // Fixme: Will the element exist if not flowing into the room? 
               // Fixme: what will it be if not flowing into the room?
-  float *XiPor; // XiPor[nPorts*Medium.nXi]: species concentration of inflowing medium at the port
+  float **XiPor; // XiPor[nPorts][Medium.nXi]: species concentration of inflowing medium at the port
              // First Medium.nXi elements are for port 1
-  float *CPor; // CPor[nPorts*medium.nC]: the trace substances of the inflowing medium
+  float **CPor; // CPor[nPorts][Medium.nC]: the trace substances of the inflowing medium
 }ModelicaSharedData;
 
 typedef struct {
@@ -59,9 +61,9 @@ typedef struct {
   float TRoo; // Averaged room air temperature
   float *TSha; // TSha[nConExtWin]: temperature fo the shade if there is a shade
   float *TPor; // TPor[nPorts] Air temperatures that the medium has at the prot
-  float *XiPor; // XiPor[nPorts*Medium.nXi]: species concentration of medium at the prot
+  float **XiPor; // XiPor[nPorts][Medium.nXi]: species concentration of medium at the port
              // First Medium.nXi elements are for port 1
-  float *CPor; // CPor[nPorts*medium.nC]: the trace substances of medium at the port
+  float **CPor; // CPor[nPorts][medium.nC]: the trace substances of medium at the port
 }ffdSharedData;
 
 typedef struct{

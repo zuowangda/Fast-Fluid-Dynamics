@@ -191,15 +191,15 @@ int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         j = BINDEX[1][it];
         k = BINDEX[2][it];
         // Inlet
-        if(flagp[IX(i,j,k)]==0) {
+        if(flagp[IX(i,j,k)]==INLET) {
           psi[IX(i,j,k)] = var[VZBC][IX(i,j,k)];
           if(k!=0) psi[IX(i,j,k-1)] = var[VZBC][IX(i,j,k)];
         }
-        if(flagp[IX(i,j,k)]==1) {
+        if(flagp[IX(i,j,k)]==SOLID) {
           psi[IX(i,j,k)] = 0;
           if(k!=0) psi[IX(i,j,k-1)] = 0;
         }
-        if(flagp[IX(i,j,k)]==2) {
+        if(flagp[IX(i,j,k)]==OUTLET) {
           // West
           if(i==0) aw[IX(i+1,j,k)] = 0;
           // East

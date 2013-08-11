@@ -183,7 +183,15 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
     mark_cell(para, var);
   }
 
+
   if(para->solv->cosimulation==1) {
+    // Calculate the area of boundary
+    if(bounary_area(para, var, BINDEX)!=0) {
+      ffd_log("compare_boundary_area(): Could not get the boundary area.",
+              FFD_ERROR);
+      return 1;
+    }
+
     flag = read_cosim_parameter(para, var, BINDEX);
     if(flag!=0) {
       ffd_log("set_initial_data(): Could not read cosimulaiton parameters.",

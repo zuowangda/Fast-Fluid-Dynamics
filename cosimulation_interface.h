@@ -106,3 +106,14 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX);
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Allocate memory for C and Xi
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int allocate_C_Xi(PARA_DATA *para, REAL **var);

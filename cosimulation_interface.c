@@ -106,6 +106,12 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
     return 1;
   }
   
+  if(allocate_C_Xi(para, var)!=0) {
+    ffd_log("read_cosim_parameter(): Could not allocate memory for C and Xi at inlet.", 
+            FFD_ERROR);
+    return 1;
+  }
+
   return 0;
 } // End of read_cosim_parameter()
 
@@ -256,18 +262,26 @@ int compare_boundary_names(PARA_DATA *para) {
 
   char **name1 = para->cosim->para->name;
   char **name2 = para->bc->wallName;
+  char **name3 = para->cosim->para->portName;
+  char **name4 = para->bc->inletName;
 
+  /****************************************************************************
+  | Compare the names of solid surfaces
+  ****************************************************************************/
   for(i=0; i<para->cosim->para->nSur; i++) {
     //-------------------------------------------------------------------------
     // Assume we do not find the name
+    //-------------------------------------------------------------------------
     flag = 1;
 
     //-------------------------------------------------------------------------
-    for(j=0; j<para->bc->nb_bc&&flag!=0; j++) {
+    // Check the wall names in FFD
+    //-------------------------------------------------------------------------
+    for(j=0; j<para->bc->nb_wall&&flag!=0; j++) {
       flag = strcmp(name1[i], name2[j]);
       // If found the name
       if(flag==0) {
-        // If the same name has been foudn before
+        // If the same name has been found before
         if(para->bc->wallId[j]>0) {
           sprintf(msg,
           "compare_boundary_names(): Modelica has the same name \"%s\" for two BCs.",
@@ -288,14 +302,62 @@ int compare_boundary_names(PARA_DATA *para) {
 
     //-------------------------------------------------------------------------
     // Stop if name is not found 
+    //-------------------------------------------------------------------------
     if(flag!=0) {
       sprintf(msg,
-        "compare_boundary_names(): Could not find the Modelica boundary name \"%s\" in FFD.",
+        "compare_boundary_names(): Could not find the Modelica wall boundary \"%s\" in FFD.",
         name1[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
-  } // Next Modelica BC name
+  } // Next Modelica Wall name
+
+  /****************************************************************************
+  | Compare the names of inlets
+  ****************************************************************************/
+  for(i=0; i<para->cosim->para->nPorts; i++) {
+    //-------------------------------------------------------------------------
+    // Assume we do not find the name
+    //-------------------------------------------------------------------------
+    flag = 1;
+
+    //-------------------------------------------------------------------------
+    // Check the FFD inlet names
+    //-------------------------------------------------------------------------
+    for(j=0; j<para->bc->nb_inlet&&flag!=0; j++) {
+      flag = strcmp(name3[i], name4[j]);
+      // If found the name
+      if(flag==0) {
+        // If the same name has been found before
+        if(para->bc->inletId[j]>0) {
+          sprintf(msg,
+          "compare_boundary_names(): Modelica has the same name \"%s\" for two BCs.",
+          name3[i]);
+          ffd_log(msg, FFD_ERROR);
+          return 1;
+        }
+        // If no same name has been found before, use it
+        else {
+          sprintf(msg,
+          "compare_boundary_names(): Matched boundary name \"%s\".",
+          name3[i]);
+          ffd_log(msg, FFD_NORMAL);
+          para->bc->inletId[j] = i;
+        }
+      } // End of if(flag==0)
+    }
+
+    //-------------------------------------------------------------------------
+    // Stop if name is not found 
+    //-------------------------------------------------------------------------
+    if(flag!=0) {
+      sprintf(msg,
+        "compare_boundary_names(): Could not find the Modelica inlet boundary \"%s\" in FFD.",
+        name3[i]);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+  } // Next Modelica Inlet name
 
   return 0;
 } // End of compare_boundary_names()
@@ -312,12 +374,6 @@ int compare_boundary_names(PARA_DATA *para) {
 int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j;
   REAL *A0 = para->bc->AWall, *A1 = para->cosim->para->are;
-
-  if(bounary_area(para, var, BINDEX)!=0) {
-    ffd_log("compare_boundary_area(): Could not get the boundary area.",
-            FFD_ERROR);
-    return 1;
-  }
 
   ffd_log("compare_boundary_area(): Start to compare the area of solid surfaces.",
           FFD_NORMAL);
@@ -394,7 +450,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
     k = BINDEX[2][it];
     id = BINDEX[4][it];
 
-    if(var[FLAGP][IX(i,j,k)]==1) 
+    if(var[FLAGP][IX(i,j,k)]==SOLID) 
       switch(BINDEX[3][it]) {
         case 1: 
           // Need to convert the T from K to degC
@@ -426,31 +482,134 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///////////////////////////////////////////////////////////////////////////////
 int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j, k, it, id;
-  REAL float_feak;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
-  ffd_log("assign_inlet_bc(): Inlet BC:m_dot, T, Xi, C\n", 
-      FFD_NORMAL);
+  ffd_log("assign_inlet_bc(): Inlet BC:Vel, T, Xi, C\n", FFD_NORMAL);
  
   //---------------------------------------------------------------------------
   // Convert the data from Modelica oder to FFD order
   //---------------------------------------------------------------------------
-  
+  for(j=0; j<para->bc->nb_inlet; j++) {
+    i = para->bc->inletId[j];
+    para->bc->velInlet[j] = para->cosim->modelica->mFloRatPor[i] 
+                              / (para->prob->rho*para->bc->AInlet[j]);
+    para->bc->TInlet[j] = para->cosim->modelica->TPor[i] - 273.15;
+
+    for(k=0; k<para->cosim->para->nXi; k++)
+      para->bc->XiInlet[j][k] = para->cosim->modelica->XiPor[i][k];
+    for(k=0; k<para->cosim->para->nC; k++) 
+      para->bc->CInlet[j][k] = para->cosim->modelica->CPor[i][k];
+
+    sprintf(msg, "\t%s: vel=%f[m/s], T=%f[degC]", 
+          para->bc->inletName[j], para->bc->velInlet[j], 
+          para->bc->TInlet[j]);
+    ffd_log(msg, FFD_NORMAL);
+    
+    for(k=0; k<para->cosim->para->nXi; k++) {
+      sprintf(msg, "\tXi[%d]=%f", k, para->bc->XiInlet[j][k]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+    for(k=0; k<para->cosim->para->nC; k++) {
+      sprintf(msg, "\tC[%d]=%f", k, para->bc->CInlet[j][k]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+  }
+
   //---------------------------------------------------------------------------
   // Assign the BC
   //---------------------------------------------------------------------------
-  for(i=0; i<para->cosim->para->nPorts; i++) {
-      float_feak = para->cosim->modelica->mFloRatPor[i];
-      float_feak = para->cosim->modelica->TPor[i] - 273.15;
-      float_feak = para->cosim->modelica->XiPor[i];
-      float_feak = para->cosim->modelica->CPor[i];
+  for(it=0; it<para->geom->index; it++) {    
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    id = BINDEX[4][it];
 
-      sprintf(msg, "\t%s: %f[kg/s],\t%f[degC],\t%f,\t%f\n",
-              para->bc->wallName[i], 
-              para->cosim->modelica->mFloRatPor[i], 
-              para->cosim->modelica->TPor[i],
-              para->cosim->modelica->XiPor[i], 
-              para->cosim->modelica->CPor[i]);
-      ffd_log(msg, FFD_NORMAL);
+    if(var[FLAGP][IX(i,j,k)]==INLET) {
+      // It is inlet hwen flow into the room
+      if(para->bc->velInlet[id]>0) {
+        var[TEMPBC][IX(i,j,k)] = para->bc->TInlet[id];
+      
+        if(i==0)
+          var[VXBC][IX(i,j,k)] = para->bc->velInlet[id];
+        else if(i==imax+1)
+          var[VXBC][IX(i,j,k)] = -para->bc->velInlet[id];
+
+        if(j==0)
+          var[VYBC][IX(i,j,k)] = para->bc->velInlet[id];
+        else if(j==jmax+1)
+          var[VYBC][IX(i,j,k)] = -para->bc->velInlet[id];
+
+        if(k==0)
+          var[VZBC][IX(i,j,k)] = para->bc->velInlet[id];
+        else if(k==kmax+1)
+          var[VZBC][IX(i,j,k)] = -para->bc->velInlet[id];
+      }
+      // Set it to outlet if flow out of room
+      else
+        var[FLAGP][IX(i,j,k)] = OUTLET;
     }
-    return 0;
+  }
+   
+  return 0;
 } // End of assign_inlet_bc()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Allocate memory for C and Xi
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to the FFD simulaiton variables
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int allocate_C_Xi(PARA_DATA *para, REAL **var) {
+  int i; 
+  //---------------------------------------------------------------------------
+  // Allocate memory for C
+  //---------------------------------------------------------------------------
+  if(para->cosim->para->nC>0) {
+    para->bc->CInlet = (REAL **)malloc(para->cosim->para->nC*sizeof(REAL *));
+    if(para->bc->CInlet==NULL) {
+      ffd_log("assign_inlet_bc(): Could not allocate moemory for para->bc->CInlet",
+              FFD_ERROR);
+      return 1;
+    }
+    
+    for(i=0; i<para->bc->nb_inlet; i++) {
+      para->bc->CInlet[i] = (REAL*)malloc(sizeof(REAL)*para->cosim->para->nC);
+      if(para->bc->CInlet[i]==NULL) {
+        sprintf(msg,
+          "assign_inlet_bc(): Could not allocate moemory for para->bc->CInlet[%d]",
+          i);
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  // Allocate memory for Xi
+  //---------------------------------------------------------------------------
+  if(para->cosim->para->nXi>0) {
+    para->bc->XiInlet = (REAL **)malloc(para->cosim->para->nXi*sizeof(REAL *));
+    if(para->bc->XiInlet==NULL) {
+      ffd_log("assign_inlet_bc(): Could not allocate moemory for para->bc->XiInlet",
+              FFD_ERROR);
+      return 1;
+    }
+  
+    for(i=0; i<para->bc->nb_inlet; i++) {
+      para->bc->XiInlet[i] = (REAL*)malloc(sizeof(REAL)*para->cosim->para->nXi);
+      if(para->bc->XiInlet[i]==NULL) {
+        sprintf(msg,
+          "assign_inlet_bc(): Could not allocate moemory for para->bc->XiInlet[%d]",
+          i);
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+} // End of allocate_C_Xi()
