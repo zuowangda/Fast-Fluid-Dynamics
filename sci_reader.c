@@ -428,9 +428,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     for(i=0; i<para->bc->nb_wall; i++)
       para->bc->wallId[i] = -1;
 
-    para->bc->A = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
-    if(para->bc->A==NULL)
-      ffd_log("read_sci_input(): Could not allocate memory for para->bc->A.",
+    para->bc->AWall = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
+    if(para->bc->AWall==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->AWall.",
       FFD_ERROR);
 
     para->bc->temHea = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));

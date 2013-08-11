@@ -153,7 +153,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *flagp = var[FLAGP];
   REAL tmp;
-  REAL *A = para->bc->A;
+  REAL *A = para->bc->AWall;
 
   for(id=0; id<para->bc->nb_wall; id++) A[id]=0;
 

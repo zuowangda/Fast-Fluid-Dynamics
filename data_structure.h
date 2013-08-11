@@ -279,7 +279,8 @@ typedef struct{
   int *wallId; // Modelica wall boundary ID
   int *inletId; // Modelica inlet boundary ID
   REAL *temHea; // Value of thermal conditions
-  REAL *A; // Area of the solide sufaces
+  REAL *AWall; // Area of the solide sufaces
+  REAL *AInlet; 
   char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
   REAL *mFloRatInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
                       // positive: into the room; neative out of the room

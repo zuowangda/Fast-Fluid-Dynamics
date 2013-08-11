@@ -311,7 +311,7 @@ int compare_boundary_names(PARA_DATA *para) {
 ///////////////////////////////////////////////////////////////////////////////
 int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j;
-  REAL *A0 = para->bc->A, *A1 = para->cosim->para->are;
+  REAL *A0 = para->bc->AWall, *A1 = para->cosim->para->are;
 
   if(bounary_area(para, var, BINDEX)!=0) {
     ffd_log("compare_boundary_area(): Could not get the boundary area.",
@@ -371,7 +371,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
         ffd_log(msg, FFD_NORMAL);
         break;
       case 2:
-        para->bc->temHea[j] = para->cosim->modelica->temHea[i]/para->bc->A[j];
+        para->bc->temHea[j] = para->cosim->modelica->temHea[i]/para->bc->AWall[j];
         sprintf(msg, "\t%s: Q_dot=%f[W/m2]", 
           para->bc->wallName[j], 
           para->bc->temHea[j]);
