@@ -263,7 +263,7 @@ int compare_boundary_names(PARA_DATA *para) {
   char **name1 = para->cosim->para->name;
   char **name2 = para->bc->wallName;
   char **name3 = para->cosim->para->portName;
-  char **name4 = para->bc->inletName;
+  char **name4 = para->bc->portName;
 
   /****************************************************************************
   | Compare the names of solid surfaces
@@ -312,6 +312,7 @@ int compare_boundary_names(PARA_DATA *para) {
     }
   } // Next Modelica Wall name
 
+  ffd_log("Start to compare port names", FFD_NORMAL);
   /****************************************************************************
   | Compare the names of fluid ports
   ****************************************************************************/
@@ -320,16 +321,21 @@ int compare_boundary_names(PARA_DATA *para) {
     // Assume we do not find the name
     //-------------------------------------------------------------------------
     flag = 1;
-
+    sprintf(msg, "name3[%d]=%s", i, name3[i]);
+    ffd_log(msg, FFD_NORMAL);
     //-------------------------------------------------------------------------
     // Check the FFD inlet and outlet names
     //-------------------------------------------------------------------------
     for(j=0; j<para->bc->nb_port&&flag!=0; j++) {
       flag = strcmp(name3[i], name4[j]);
+      sprintf(msg, "name4[%d]=%s", j, name4[j]);
+      ffd_log(msg, FFD_NORMAL);
+      sprintf(msg, "portId[%d]=%d", j, para->bc->portId[j]);
+      ffd_log(msg, FFD_NORMAL);
       // If found the name
       if(flag==0) {
         // If the same name has been found before
-        if(para->bc->inletId[j]>0) {
+        if(para->bc->portId[j]>0) {
           sprintf(msg,
           "compare_boundary_names(): Modelica has the same name \"%s\" for two BCs.",
           name3[i]);
@@ -356,7 +362,7 @@ int compare_boundary_names(PARA_DATA *para) {
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
-  } // Next Modelica Inlet name
+  } // Next Modelica port name
 
   return 0;
 } // End of compare_boundary_names()

@@ -406,6 +406,14 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       FFD_ERROR);
       return 1;
     }    
+    
+    para->bc->portId = (int*) malloc(para->bc->nb_port*sizeof(int));
+    if(para->bc->portId==NULL) {
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->portId.",
+      FFD_ERROR);
+      return 1;
+    }
+
   }
 
   /*---------------------------------------------------------------------------
