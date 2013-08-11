@@ -159,7 +159,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   if(para->bc->nb_wall>0)
     for(id=0; id<para->bc->nb_wall; id++) AWall[id] = 0;
   if(para->bc->nb_port>0)
-    for(id=0; id<para->bc->nb_inlet; id++) APort[id] = 0;
+    for(id=0; id<para->bc->nb_port; id++) APort[id] = 0;
 
   //id0 = -1;
   for(it=0; it<index; it++) {
