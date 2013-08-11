@@ -501,7 +501,7 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   int nPort = para->bc->nb_inlet + para->bc->nb_outlet;
 
-  ffd_log("assign_inlet_bc(): Inlet BC:Vel, T, Xi, C\n", FFD_NORMAL);
+  ffd_log("assign_port_bc():", FFD_NORMAL);
 
   //---------------------------------------------------------------------------
   // Convert the data from Modelica order to FFD order for the Predefinded Inlet
@@ -518,7 +518,7 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
       para->bc->CPort[j][k] = para->cosim->modelica->CPor[i][k];
 
     sprintf(msg, "\t%s: vel=%f[m/s], T=%f[degC]", 
-          para->bc->inletName[j], para->bc->velPort[j], 
+          para->bc->portName[j], para->bc->velPort[j], 
           para->bc->TPort[j]);
     ffd_log(msg, FFD_NORMAL);
     
