@@ -261,7 +261,7 @@ typedef struct{
   REAL Temp_Buoyancy; // Reference temperature for calucating buoyancy force
 }PROB_DATA;
 
-typedef struct{
+typedef struct {
   int nb_inlet; // Number of inlet boundaries, provided by SCI
   int nb_outlet; // Number of outlet boundaries, provided by SCI
   int nb_block; // Number of internal block boundaries, provided by SCI
@@ -270,21 +270,22 @@ typedef struct{
   int nb_bc; // Number of boundaries, provided by SCI
   int nSen; // Numver of sensors
   int nConExtWin; // Nmber of exterior construction with windows
-  int nInlet; // Number of inlet fluid boundaries
+  int nb_port; // nPort = nInlet + nOutlet
   int nXi; // Number of species // Fixme: Not used
   int nC; // Number of substances // Fixme: Not used
   int sha; // 1: have shade ; 0: no shade 
   char **wallName; // Name of solid boundary (Wall, Window)
   char **inletName; // Name of inlet boundary
-  char **outletName; // Name of outlet boundary
+  char **portName; // Name of ports
   char **blockName; // Name of internal block
   char **sourceName; // Name of the source
   int *wallId; // Modelica wall boundary ID
   int *inletId; // Modelica inlet boundary ID
+  int *portId; // Modelica outlet boundary ID
   REAL *temHea; // Value of thermal conditions
   REAL *AWall; // Area of the solide sufaces
   REAL *AInlet; // Area of the inlets
-  REAL *AOutlet; // Area of the outlets
+  REAL *APort; // Area of the outlets
   char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
   REAL *velInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
                       // positive: into the room; neative out of the room
@@ -293,10 +294,14 @@ typedef struct{
               // Fixme: what will it be if not flowing into the room?
   REAL **XiInlet; // Fixme: Not used: XiPor[nXi][nInlet]: species concentration of inflowing medium
   REAL **CInlet; // Fixme: Not used: CPor[nC][nInlet]: the trace substances of the inflowing medium
+  REAL *velPort; // mFloRatPor[nPort]: Mass flow rates into the room
+                      // positive: into the room; neative out of the room
+  REAL *TPort; // TPor[nPort] Air temperatures that the medium has if it were flowing into the room
+  REAL **XiPort; // Fixme: Not used: XiPor[nXi][nPort]: species concentration of inflowing medium
+  REAL **CPort; // Fixme: Not used: CPor[nC][nPort]: the trace substances of the inflowing medium
 }BC_DATA;
 
-typedef struct 
-{
+typedef struct {
   double dt; // FFD simulation time step size
   double t; // Internal: current time
   REAL t_steady; // Necessary time for reaching the steady state from initial condition

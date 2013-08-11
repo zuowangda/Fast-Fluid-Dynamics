@@ -97,7 +97,16 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX);
 int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Assign the Modelica inlet boundary condition data to FFD
+/// Assign the Modelica inlet and outlet boundary condition data to FFD
+///
+/// The inlet and outlet boundaries are not fixed and they can change during 
+/// the simulation. The reason is that the Modelica uses acausal modeling
+/// and the flow direction can change during the simulation depending on the 
+/// pressure difference. As a result, the FFD has to change its inlet and outlet
+/// boundry condition accordingly. The inlet or outlet boundary is decided 
+/// according to the flow rate para->cosim->modelica->mFloRarPor. The port is
+/// inlet if mFloRarPor>0 and outlet if mFloRarPor<0. We will need to reset the 
+/// var[FLAGP][IX(i,j,k)] to apply the change of boundary conditions.
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to the FFD simulaiton variables
@@ -105,8 +114,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX);
-
+int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Allocate memory for C and Xi

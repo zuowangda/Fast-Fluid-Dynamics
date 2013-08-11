@@ -231,7 +231,7 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   // Read and assign the inlet conditions
   //---------------------------------------------------------------------------
   if(para->cosim->para->nPorts>0) {
-    if(assign_inlet_bc(para,var,BINDEX)!=0) {
+    if(assign_port_bc(para,var,BINDEX)!=0) {
       ffd_log(" read_cosim_data(): Could not assign the Modelica inlet BC to FFD",
       FFD_ERROR);
       return 1;
@@ -313,7 +313,7 @@ int compare_boundary_names(PARA_DATA *para) {
   } // Next Modelica Wall name
 
   /****************************************************************************
-  | Compare the names of inlets
+  | Compare the names of fluid ports
   ****************************************************************************/
   for(i=0; i<para->cosim->para->nPorts; i++) {
     //-------------------------------------------------------------------------
@@ -322,9 +322,9 @@ int compare_boundary_names(PARA_DATA *para) {
     flag = 1;
 
     //-------------------------------------------------------------------------
-    // Check the FFD inlet names
+    // Check the FFD inlet and outlet names
     //-------------------------------------------------------------------------
-    for(j=0; j<para->bc->nb_inlet&&flag!=0; j++) {
+    for(j=0; j<para->bc->nb_port&&flag!=0; j++) {
       flag = strcmp(name3[i], name4[j]);
       // If found the name
       if(flag==0) {
@@ -342,7 +342,7 @@ int compare_boundary_names(PARA_DATA *para) {
           "compare_boundary_names(): Matched boundary name \"%s\".",
           name3[i]);
           ffd_log(msg, FFD_NORMAL);
-          para->bc->inletId[j] = i;
+          para->bc->portId[j] = i;
         }
       } // End of if(flag==0)
     }
@@ -351,9 +351,8 @@ int compare_boundary_names(PARA_DATA *para) {
     // Stop if name is not found 
     //-------------------------------------------------------------------------
     if(flag!=0) {
-      sprintf(msg,
-        "compare_boundary_names(): Could not find the Modelica inlet boundary \"%s\" in FFD.",
-        name3[i]);
+      sprintf(msg, "compare_boundary_names(): Could not find"
+        "the Modelica fluid port boundary \"%s\" in FFD.", name3[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
@@ -472,7 +471,16 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 } // End of assign_thermal_bc()
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Assign the Modelica inlet boundary condition data to FFD
+/// Assign the Modelica inlet and outlet boundary condition data to FFD
+///
+/// The inlet and outlet boundaries are not fixed and they can change during 
+/// the simulation. The reason is that the Modelica uses acausal modeling
+/// and the flow direction can change during the simulation depending on the 
+/// pressure difference. As a result, the FFD has to change its inlet and outlet
+/// boundry condition accordingly. The inlet or outlet boundary is decided 
+/// according to the flow rate para->cosim->modelica->mFloRarPor. The port is
+/// inlet if mFloRarPor>0 and outlet if mFloRarPor<0. We will need to reset the 
+/// var[FLAGP][IX(i,j,k)] to apply the change of boundary conditions.
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to the FFD simulaiton variables
@@ -480,39 +488,40 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
+int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j, k, it, id;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  int nPort = para->bc->nb_inlet + para->bc->nb_outlet;
 
   ffd_log("assign_inlet_bc(): Inlet BC:Vel, T, Xi, C\n", FFD_NORMAL);
- 
+
   //---------------------------------------------------------------------------
-  // Convert the data from Modelica oder to FFD order
+  // Convert the data from Modelica order to FFD order for the Predefinded Inlet
   //---------------------------------------------------------------------------
-  for(j=0; j<para->bc->nb_inlet; j++) {
-    i = para->bc->inletId[j];
-    para->bc->velInlet[j] = para->cosim->modelica->mFloRatPor[i] 
-                              / (para->prob->rho*para->bc->AInlet[j]);
-    para->bc->TInlet[j] = para->cosim->modelica->TPor[i] - 273.15;
+  for(j=0; j<para->bc->nb_port; j++) {
+    i = para->bc->portId[j];
+    para->bc->velPort[j] = para->cosim->modelica->mFloRatPor[i] 
+                              / (para->prob->rho*para->bc->APort[j]);
+    para->bc->TPort[j] = para->cosim->modelica->TPor[i] - 273.15;
 
     for(k=0; k<para->cosim->para->nXi; k++)
-      para->bc->XiInlet[j][k] = para->cosim->modelica->XiPor[i][k];
+      para->bc->XiPort[j][k] = para->cosim->modelica->XiPor[i][k];
     for(k=0; k<para->cosim->para->nC; k++) 
-      para->bc->CInlet[j][k] = para->cosim->modelica->CPor[i][k];
+      para->bc->CPort[j][k] = para->cosim->modelica->CPor[i][k];
 
     sprintf(msg, "\t%s: vel=%f[m/s], T=%f[degC]", 
-          para->bc->inletName[j], para->bc->velInlet[j], 
-          para->bc->TInlet[j]);
+          para->bc->inletName[j], para->bc->velPort[j], 
+          para->bc->TPort[j]);
     ffd_log(msg, FFD_NORMAL);
     
     for(k=0; k<para->cosim->para->nXi; k++) {
-      sprintf(msg, "\tXi[%d]=%f", k, para->bc->XiInlet[j][k]);
+      sprintf(msg, "\tXi[%d]=%f", k, para->bc->XiPort[j][k]);
       ffd_log(msg, FFD_NORMAL);
     }
     for(k=0; k<para->cosim->para->nC; k++) {
-      sprintf(msg, "\tC[%d]=%f", k, para->bc->CInlet[j][k]);
+      sprintf(msg, "\tC[%d]=%f", k, para->bc->CPort[j][k]);
       ffd_log(msg, FFD_NORMAL);
     }
   }
@@ -526,25 +535,24 @@ int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
     k = BINDEX[2][it];
     id = BINDEX[4][it];
 
-    if(var[FLAGP][IX(i,j,k)]==INLET) {
-      // It is inlet hwen flow into the room
-      if(para->bc->velInlet[id]>0) {
-        var[TEMPBC][IX(i,j,k)] = para->bc->TInlet[id];
-      
+    if(var[FLAGP][IX(i,j,k)]==INLET || var[FLAGP][IX(i,j,k)]==OUTLET) {
+      if(para->bc->velPort[id]>=0) {
+        var[FLAGP][IX(i,j,k)] = INLET;
+        var[TEMPBC][IX(i,j,k)] = para->bc->TPort[id];
         if(i==0)
-          var[VXBC][IX(i,j,k)] = para->bc->velInlet[id];
+          var[VXBC][IX(i,j,k)] = para->bc->velPort[id];
         else if(i==imax+1)
-          var[VXBC][IX(i,j,k)] = -para->bc->velInlet[id];
+          var[VXBC][IX(i,j,k)] = -para->bc->velPort[id];
 
         if(j==0)
-          var[VYBC][IX(i,j,k)] = para->bc->velInlet[id];
+          var[VYBC][IX(i,j,k)] = para->bc->velPort[id];
         else if(j==jmax+1)
-          var[VYBC][IX(i,j,k)] = -para->bc->velInlet[id];
+          var[VYBC][IX(i,j,k)] = -para->bc->velPort[id];
 
         if(k==0)
-          var[VZBC][IX(i,j,k)] = para->bc->velInlet[id];
+          var[VZBC][IX(i,j,k)] = para->bc->velPort[id];
         else if(k==kmax+1)
-          var[VZBC][IX(i,j,k)] = -para->bc->velInlet[id];
+          var[VZBC][IX(i,j,k)] = -para->bc->velPort[id];
       }
       // Set it to outlet if flow out of room
       else
@@ -553,7 +561,7 @@ int assign_inlet_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
   }
    
   return 0;
-} // End of assign_inlet_bc()
+} // End of assign_inlet_outlet_bc()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Allocate memory for C and Xi

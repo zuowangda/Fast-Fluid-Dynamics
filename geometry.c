@@ -154,13 +154,12 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *flagp = var[FLAGP];
   REAL tmp;
   REAL *AWall = para->bc->AWall;
-  REAL *AInlet = para->bc->AInlet;
-  REAL *AOutlet = para->bc->AOutlet;
+  REAL *APort = para->bc->APort;
 
   if(para->bc->nb_wall>0)
-    for(id=0; id<para->bc->nb_wall; id++) AWall[id]=0;
-  if(para->bc->nb_inlet>0)
-    for(id=0; id<para->bc->nb_inlet; id++) AInlet[id]=0;
+    for(id=0; id<para->bc->nb_wall; id++) AWall[id] = 0;
+  if(para->bc->nb_port>0)
+    for(id=0; id<para->bc->nb_inlet; id++) APort[id] = 0;
 
   //id0 = -1;
   for(it=0; it<index; it++) {
@@ -207,57 +206,29 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
     //-------------------------------------------------------------------------
     // Calcuate inlets
     //-------------------------------------------------------------------------
-    if(flagp[IX(i,j,k)]==INLET) {
+    if(flagp[IX(i,j,k)]==INLET||flagp[IX(i,j,k)]==OUTLET) {
       // West or East Boundary
       if(i==0 || i==imax+1) {
         tmp = area_yz(para, var, i, j, k, IMAX, IJMAX);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
-        AInlet[id] += tmp;
+        APort[id] += tmp;
       }
       // South and Norht Boundary
       if(j==0 || j==jmax+1) {
         tmp = area_zx(para, var, i, j, k, IMAX, IJMAX);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
-        AInlet[id] += tmp;
+        APort[id] += tmp;
       }
       // Ceiling and Floor Boundary
       if(k==0 || k==kmax+1) {
         tmp = area_xy(para, var, i, j, k, IMAX, IJMAX);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
-        AInlet[id] += tmp;
+        APort[id] += tmp;
       }
     }
-
-    //-------------------------------------------------------------------------
-    // Calcuate outlets
-    //-------------------------------------------------------------------------
-    if(flagp[IX(i,j,k)]==OUTLET) {
-      // West or East Boundary
-      if(i==0 || i==imax+1) {
-        tmp = area_yz(para, var, i, j, k, IMAX, IJMAX);
-        //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
-        //ffd_log(msg, FFD_NORMAL);
-        AOutlet[id] += tmp;
-      }
-      // South and Norht Boundary
-      if(j==0 || j==jmax+1) {
-        tmp = area_zx(para, var, i, j, k, IMAX, IJMAX);
-        //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
-        //ffd_log(msg, FFD_NORMAL);
-        AOutlet[id] += tmp;
-      }
-      // Ceiling and Floor Boundary
-      if(k==0 || k==kmax+1) {
-        tmp = area_xy(para, var, i, j, k, IMAX, IJMAX);
-        //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
-        //ffd_log(msg, FFD_NORMAL);
-        AOutlet[id] += tmp;
-      }
-    }
-
   } // End of for(it=0; it<index; it++)
 
   ffd_log("bounary_area(): Calculated surface area for FFD boundaryies are:",
@@ -274,15 +245,15 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   if(para->bc->nb_inlet>0) {
     ffd_log("\tInlet boundaries:", FFD_NORMAL);
     for(id=0; id<para->bc->nb_inlet; id++) {
-      sprintf(msg, "\t\t%s: %f[m2]", para->bc->inletName[id], AInlet[id]);
+      sprintf(msg, "\t\t%s: %f[m2]", para->bc->portName[id], APort[id]);
       ffd_log(msg, FFD_NORMAL);
     }
   }
 
   if(para->bc->nb_outlet>0) {
-    ffd_log("\tInlet boundaries:", FFD_NORMAL);
-    for(id=0; id<para->bc->nb_outlet; id++) {
-      sprintf(msg, "\t\t%s: %f[m2]", para->bc->outletName[id], AOutlet[id]);
+    ffd_log("\tOutlet boundaries:", FFD_NORMAL);
+    for(id=para->bc->nb_inlet; id<para->bc->nb_port; id++) {
+      sprintf(msg, "\t\t%s: %f[m2]", para->bc->portName[id], APort[id]);
       ffd_log(msg, FFD_NORMAL);
     }
   }
