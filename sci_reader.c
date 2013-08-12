@@ -568,6 +568,11 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     if(para->bc->temHeaAve==NULL)
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->temHeaAve.",
       FFD_ERROR);
+    
+    para->bc->temHeaMean = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
+    if(para->bc->temHeaMean==NULL)
+      ffd_log("read_sci_input(): Could not allocate memory for para->bc->temHeaMean.",
+      FFD_ERROR);
 
     bcnameid = -1;
     // Read wall conditions for each wall

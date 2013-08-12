@@ -408,12 +408,11 @@ int average_time(PARA_DATA *para, REAL **var) {
     para->bc->TPortMean[i] = para->bc->TPortMean[i] / step;
     para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
     para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
-    /*
+    
     for(j=0; j<para->bc->nb_Xi; j++) 
-      para->XiPortMean[i][j] = para->XiPortMean[i][j] / step;
+      para->bc->XiPortMean[i][j] = para->bc->XiPortMean[i][j] / step;
     for(j=0; j<para->bc->nb_C; j++) 
-      para->CPortMean[i][j] = para->CPortMean[i][j] / step;
-    */
+      para->bc->CPortMean[i][j] = para->bc->CPortMean[i][j] / step;    
   }
 
   // Sensor data
@@ -454,13 +453,12 @@ int reset_time_averaged_data (PARA_DATA *para, REAL **var) {
   for(i=0; i<para->bc->nb_port; i++) {
     para->bc->TPortMean[i] = 0;
     para->bc->velPortMean[i] = 0;
-    para->bc->velPortMean[i] = 0;
-    /*
+    
     for(j=0; j<para->bc->nb_Xi; j++) 
-      para->XiPortMean[i][j] = 0;
+      para->bc->XiPortMean[i][j] = 0;
     for(j=0; j<para->bc->nb_C; j++) 
-      para->CPortMean[i][j] = 0;
-    */
+      para->bc->CPortMean[i][j] = 0;
+    
   }
 
   // Sensor data
@@ -500,20 +498,19 @@ int add_time_averaged_data(PARA_DATA *para, REAL **var) {
   // Wall surfaces
   for(i=0; i<para->bc->nb_wall; i++) 
     para->bc->temHeaMean[i] += para->bc->temHeaAve[i];
-  
+
   // Fluid ports
   for(i=0; i<para->bc->nb_port; i++) {
     para->bc->TPortMean[i] += para->bc->TPortAve[i];
     para->bc->velPortMean[i] += para->bc->velPortAve[i];
-    para->bc->velPortMean[i] += para->bc->velPortAve[i];
-    /*
-    for(j=0; j<para->bc->nb_Xi; j++) 
-      para->XiPortMean[i][j] += para->XiPortAve[i][j];
-    for(j=0; j<para->bc->nb_C; j++) 
-      para->CPortMean[i][j] += para->CPortAve[i][j];
-    */
-  }
     
+    for(j=0; j<para->bc->nb_Xi; j++) 
+      para->bc->XiPortMean[i][j] += para->bc->XiPortAve[i][j];
+    for(j=0; j<para->bc->nb_C; j++) 
+      para->bc->CPortMean[i][j] += para->bc->CPortAve[i][j];
+    
+  }
+
   // Sensor data
   para->sens->TRooMean += para->sens->TRoo;
   for(j=0; j<para->sens->nb_sensor; j++) 
@@ -629,11 +626,6 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX) {
   return qwall;
 
 } // End of qwall()
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Free memory for BINDEX

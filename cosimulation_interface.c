@@ -124,31 +124,41 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int write_cosim_data(PARA_DATA *para, REAL **var) {
-  int i;
-  int int_feak = 1;
-  float float_feak=1.0;
+  int i, j, id;
 
-  // Wait if the previosu data hasnot been read by the other program
+  /****************************************************************************
+  | Wait if the previosu data has not been read by Modelica
+  ****************************************************************************/
   while(para->cosim->ffd->flag==1) {
-    ffd_log("write_cosim_data(): Previosu data is not taken by Modelica", 
-             FFD_NORMAL);
+    ffd_log("write_cosim_data(): Wait since previosu data is not taken "
+            "by Modelica", FFD_NORMAL);
     Sleep(1000);
   }
 
+  /****************************************************************************
+  | Write new data
+  ****************************************************************************/
   para->cosim->ffd->t = para->mytime->t;
 
-  sprintf(msg, "write_cosim_data(): Start to end FFD data to Modelica at t=%f[s]", 
+  sprintf(msg, "write_cosim_data(): Start to update FFD data at t=%f[s]", 
           para->cosim->ffd->t);
   ffd_log(msg, FFD_NORMAL);
-
-  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMP]) + 273.15; // Need to convert from C to K
+  
+  /*--------------------------------------------------------------------------
+  | Set the time and space averaged temperature of space
+  | Convert T from degC to K
+  ---------------------------------------------------------------------------*/
+  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMPM]) + 273.15; 
   sprintf(msg, "\tAveraged Room temperature %f[K]", para->cosim->ffd->TRoo);
   ffd_log(msg, FFD_NORMAL);
 
+  /*--------------------------------------------------------------------------
+  | Set temperature of shading devices
+  ---------------------------------------------------------------------------*/
   if(para->cosim->para->sha==1) {
     ffd_log("\tTemperature of the shade:", FFD_NORMAL);
     for(i=0; i<para->cosim->para->nConExtWin; i++) {
-      //Fixme: The shade feature is to be implemented
+      //Waring: The shade feature is to be implemented
       para->cosim->ffd->TSha[i] = 20 + 273.15; 
       sprintf(msg, "\t\tSurface %d: %f[K]\n",
               i, para->cosim->ffd->TSha[i]);
@@ -156,15 +166,26 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
     }
   }
 
-  ffd_log("\tFlow information at the ports: T, Xi, C", FFD_NORMAL);
-  for(i=0; i<para->cosim->para->nPorts; i++) {
-    para->cosim->ffd->TPor[i] = 20 + 273.15;
-    para->cosim->ffd->XiPor[i] = 0;
-    para->cosim->ffd->CPor[i] = 0;
-    sprintf(msg, "%s: %f[K],\t%f,\t%f",
-            para->cosim->para->portName[i], para->cosim->ffd->TPor[i],
-            para->cosim->ffd->XiPor[i], para->cosim->ffd->CPor[i]);
+  /*--------------------------------------------------------------------------
+  | Set data for fluid ports
+  ---------------------------------------------------------------------------*/
+  ffd_log("\tFlow information at the ports:", FFD_NORMAL);
+  for(i=0; i<para->bc->nb_port; i++) {
+    // Get the corresponding ID in modelica
+    id = para->bc->portId[i];
+    // Assign the temperature
+    para->cosim->ffd->TPor[id] = para->bc->TPortMean[i] + 273.15;
+    sprintf(msg, "%s: %f[K]",
+            para->cosim->para->portName[i], para->cosim->ffd->TPor[i]);
     ffd_log(msg, FFD_NORMAL);
+
+    // Assign the Xi
+    for(j=0; j<para->bc->nb_Xi; j++)
+      para->cosim->ffd->XiPor[id][j] = para->bc->XiPortMean[i][j];
+    // Assign the C
+    for(j=0; j<para->bc->nb_C; j++)
+      para->cosim->ffd->CPor[id][j] = para->bc->CPortMean[i][j];
+ 
   }
 
   para->cosim->ffd->flag = 1;
@@ -181,8 +202,10 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
 ///////////////////////////////////////////////////////////////////////////////
 int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i;
-  float float_feak;
+  REAL float_feak;
 
+  ffd_log("-------------------------------------------------------------------",
+          FFD_NORMAL);
   ffd_log("read_cosim_data(): Start to read data from shared memory.", 
           FFD_NORMAL);
   // Wait for data to be updated by the other program
@@ -199,35 +222,37 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
           para->cosim->modelica->t);
   ffd_log(msg, FFD_NORMAL);
 
-  //---------------------------------------------------------------------------
-  // Read and assign the thermal boundary conditions
-  //---------------------------------------------------------------------------
+  /****************************************************************************
+  | Read and assign the thermal boundary conditions
+  ****************************************************************************/
   if(assign_thermal_bc(para,var,BINDEX)!=0) {
      ffd_log("read_cosim_data(): Could not assign the Modelicathermal data to FFD",
             FFD_ERROR);
     return 1;
   }
 
-  //---------------------------------------------------------------------------
-  // Read and assign the shading boundary conditions
-  // Fixme: This is not been used
-  //---------------------------------------------------------------------------
+  /****************************************************************************
+  | Read and assign the shading boundary conditions
+  | Warning: This is not been used
+  ****************************************************************************/
   if(para->cosim->para->sha==1) {
-    ffd_log("Shading control signal and absorded radiation by the shade:", FFD_NORMAL);
+    ffd_log("Shading control signal and absorded radiation by the shade:",
+            FFD_NORMAL);
     for(i=0; i<para->cosim->para->nConExtWin; i++) {
       float_feak = para->cosim->modelica->shaConSig[i];
       float_feak = para->cosim->modelica->shaAbsRad[i];
       sprintf(msg, "Surface[%d]: %f,\t%f\n",
-              i, para->cosim->modelica->shaConSig[i], para->cosim->modelica->shaAbsRad[i]);
+              i, para->cosim->modelica->shaConSig[i], 
+              para->cosim->modelica->shaAbsRad[i]);
       ffd_log(msg, FFD_NORMAL);
     }
   }
   else
     ffd_log("\tNo shading devices.", FFD_NORMAL);
 
-  //---------------------------------------------------------------------------
-  // Read and assign the inlet conditions
-  //---------------------------------------------------------------------------
+  /****************************************************************************
+  | Read and assign the inlet conditions
+  ****************************************************************************/
   if(para->cosim->para->nPorts>0) {
     if(assign_port_bc(para,var,BINDEX)!=0) {
       ffd_log(" read_cosim_data(): Could not assign the Modelica inlet BC to FFD",
@@ -238,7 +263,9 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   else
     ffd_log("\tNo fluid ports.", FFD_NORMAL);
 
-
+  /****************************************************************************
+  | Post-Process after reading the data
+  ****************************************************************************/
   // Change the flag to indicate that the data has been read
   para->cosim->modelica->flag = 0;
   printf("para->cosim->modelica->flag=%d\n", para->cosim->modelica->flag);
@@ -267,23 +294,22 @@ int compare_boundary_names(PARA_DATA *para) {
   | Compare the names of solid surfaces
   ****************************************************************************/
   for(i=0; i<para->cosim->para->nSur; i++) {
-    //-------------------------------------------------------------------------
-    // Assume we do not find the name
-    //-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
+    | Assume we do not find the name
+    -------------------------------------------------------------------------*/
     flag = 1;
 
-    //-------------------------------------------------------------------------
-    // Check the wall names in FFD
-    //-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
+    | Check the wall names in FFD
+    -------------------------------------------------------------------------*/
     for(j=0; j<para->bc->nb_wall&&flag!=0; j++) {
       flag = strcmp(name1[i], name2[j]);
       // If found the name
       if(flag==0) {
         // If the same name has been found before
         if(para->bc->wallId[j]>0) {
-          sprintf(msg,
-          "compare_boundary_names(): Modelica has the same name \"%s\" for two BCs.",
-          name1[i]);
+          sprintf(msg, "compare_boundary_names(): Modelica has "
+            "the same name \"%s\" for two BCs.", name1[i]);
           ffd_log(msg, FFD_ERROR);
           return 1;
         }
@@ -296,34 +322,33 @@ int compare_boundary_names(PARA_DATA *para) {
           para->bc->wallId[j] = i;
         }
       } // End of if(flag==0)
-    }
+    } // End of for(j=0; j<para->bc->nb_wall&&flag!=0; j++)
 
-    //-------------------------------------------------------------------------
-    // Stop if name is not found 
-    //-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
+    | Stop if name is not found 
+    -------------------------------------------------------------------------*/
     if(flag!=0) {
-      sprintf(msg,
-        "compare_boundary_names(): Could not find the Modelica wall boundary \"%s\" in FFD.",
-        name1[i]);
+      sprintf(msg, "compare_boundary_names(): Could not find the Modelica "
+        " wall boundary \"%s\" in FFD.", name1[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
   } // Next Modelica Wall name
 
-  ffd_log("Start to compare port names", FFD_NORMAL);
   /****************************************************************************
   | Compare the names of fluid ports
   ****************************************************************************/
+  ffd_log("Start to compare port names", FFD_NORMAL);
   for(i=0; i<para->cosim->para->nPorts; i++) {
-    //-------------------------------------------------------------------------
-    // Assume we do not find the name
-    //-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
+    | Assume we do not find the name
+    -------------------------------------------------------------------------*/
     flag = 1;
     sprintf(msg, "name3[%d]=%s", i, name3[i]);
     ffd_log(msg, FFD_NORMAL);
-    //-------------------------------------------------------------------------
-    // Check the FFD inlet and outlet names
-    //-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
+    | Check the FFD inlet and outlet names
+    -------------------------------------------------------------------------*/
     for(j=0; j<para->bc->nb_port&&flag!=0; j++) {
       flag = strcmp(name3[i], name4[j]);
       sprintf(msg, "name4[%d]=%s", j, name4[j]);
@@ -351,9 +376,9 @@ int compare_boundary_names(PARA_DATA *para) {
       } // End of if(flag==0)
     }
 
-    //-------------------------------------------------------------------------
-    // Stop if name is not found 
-    //-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
+    | Stop if name is not found 
+    -------------------------------------------------------------------------*/
     if(flag!=0) {
       sprintf(msg, "compare_boundary_names(): Could not find"
         "the Modelica fluid port boundary \"%s\" in FFD.", name3[i]);

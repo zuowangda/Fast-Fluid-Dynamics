@@ -23,7 +23,8 @@
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int assign_parameter(PARA_DATA *para, char *string) {
-  char tmp[400], tmp2[10];
+  char tmp[400], tmp2[100];
+  int senId = -1;
 
   sscanf(string, "%s", tmp);
 
@@ -323,6 +324,59 @@ int assign_parameter(PARA_DATA *para, char *string) {
     sscanf(string, "%s%d", tmp, &para->solv->cosimulation);
     sprintf(msg, "assign_parameter(): %s=%d", tmp, para->solv->cosimulation);
     ffd_log(msg, FFD_NORMAL);
+  }
+  /****************************************************************************
+  | get the number of sensor
+  ****************************************************************************/
+  else if(!strcmp(tmp, "sensor.nb_sensor")) {
+    sscanf(string, "%s%d", tmp, &para->sens->nb_sensor);
+    sprintf(msg, "assign_parameter(): %s=%d", tmp, para->sens->nb_sensor);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  /****************************************************************************
+  | get the sensor names
+  ****************************************************************************/
+  else if(!strcmp(tmp, "sensor.name")) {
+    /*------------------------------------------------------------------------
+    | if it is the first name, allocate memory for para->sens->sensorName
+    ------------------------------------------------------------------------*/
+    if(para->sens->sensorName==NULL) {
+      // The number of sensor must be defined before we allocate memory for 
+      // para->sens->sensorName
+      if(para->sens->nb_sensor==0) {
+        sprintf(msg, "assign_parameter(): Must define the number of sensors "
+          "before giving the sensor names");
+        ffd_log(msg, FFD_ERROR);
+        return 1;
+      } // End of if(para->sens->nb_sensor==0)
+      else {
+        para->sens->sensorName = (char **) malloc(para->sens->nb_sensor*sizeof(char *));
+        if(para->sens->sensorName==NULL) {
+          ffd_log("assign_parameter(): Could not allocate memory for "
+                  "para->sens->sensorName", FFD_ERROR);
+          return 1;
+        }
+      } // End of else
+
+    } // End of if(para->sens->nb_sensor==0)
+
+    /*------------------------------------------------------------------------
+    | Copy the sensor name 
+    ------------------------------------------------------------------------*/
+    sscanf(string, "%s%s", tmp, &tmp2);
+    senId++;
+    para->sens->sensorName[senId] = (char *) malloc(sizeof(tmp2)*sizeof(char));
+    if(para->sens->sensorName[senId]==NULL) {
+      sprintf(msg, "assign_parameter(): Could not allocate memory for %s",
+              tmp2);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    else {
+      strcpy(para->sens->sensorName[senId], tmp2);
+      sprintf(msg, "assign_parameter(): %s=%s", tmp,  para->sens->sensorName[senId]);
+      ffd_log(msg, FFD_NORMAL);
+    }
   }
 
   return 0;

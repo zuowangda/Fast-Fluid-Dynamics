@@ -103,6 +103,10 @@ void set_default_parameter(PARA_DATA *para) {
   para->outp->j_N        = 1;
   para->outp->tstep_display = 10; // Update the display for every 10 time steps
 
+  para->bc->nb_port = 0;
+  para->bc->nb_Xi = 0;
+  para->bc->nb_C = 0;
+  para->sens->nb_sensor = 0; // Number of sensors
 } // End of set_default_parameter
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,6 +128,9 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   para->mytime->step_current = 0;
   para->outp->cal_mean = 0;
 
+  /****************************************************************************
+  | Set inital value for FFD variables
+  ****************************************************************************/
   for(i=0; i<size; i++) {
     var[GX][i]     = 0.0;
     var[GY][i]     = 0.0;
@@ -168,7 +175,9 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
     var[QFLUX][i]  = 0.0;
   }
 
-  // Read the configurations defined by SCI 
+  /****************************************************************************
+  | Read the configurations defined by SCI 
+  ****************************************************************************/
   if(para->inpu->parameter_file_format == SCI) {
     if(read_sci_input(para, var, BINDEX)) {
       sprintf(msg, "set_inital_data(): Could not read file %s", 
@@ -183,36 +192,124 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
     mark_cell(para, var);
   }
 
+  /****************************************************************************
+  | Allocate memory for sensor data if there is at least one sensor
+  ****************************************************************************/
+  if(para->sens->nb_sensor>0) {
+    para->sens->senVal = (REAL *) malloc(para->sens->nb_sensor*sizeof(REAL));
+    if(para->sens->senVal==NULL) {
+      ffd_log("set_initial_data(): Coudl not allocate memory for "
+        "para->sens->senVal", FFD_ERROR);
+      return 1;
+    }
+    para->sens->senValMean = (REAL *) malloc(para->sens->nb_sensor*sizeof(REAL));
+    if(para->sens->senValMean==NULL) {
+      ffd_log("set_initial_data(): Coudl not allocate memory for "
+        "para->sens->senValMean", FFD_ERROR);
+      return 1;
+    }
+  }
 
-  if(para->solv->cosimulation==1) {
-    // Calculate the area of boundary
-    if(bounary_area(para, var, BINDEX)!=0) {
-      ffd_log("compare_boundary_area(): Could not get the boundary area.",
+  /****************************************************************************
+  | Allocate memory for Xi
+  ****************************************************************************/
+  if(para->bc->nb_port>0&&para->bc->nb_Xi>0) {
+    para->bc->XiPort = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
+    para->bc->XiPortAve = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
+    para->bc->XiPortMean = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
+    if(para->bc->XiPort==NULL || para->bc->XiPortAve==NULL 
+       || para->bc->XiPortMean) {
+      ffd_log("set_initial_data(): Could not allocate memory for XiPort.",
               FFD_ERROR);
       return 1;
     }
+    
+    for(i=0; i<para->bc->nb_port; i++) {
+      para->bc->XiPort[i] = (REAL *) malloc(sizeof(REAL)*para->bc->nb_Xi);
+      para->bc->XiPortAve[i] = (REAL *) malloc(sizeof(REAL)*para->bc->nb_Xi);
+      para->bc->XiPortMean[i] = (REAL *) malloc(sizeof(REAL)*para->bc->nb_Xi);
+      if(para->bc->XiPort[i]==NULL || para->bc->XiPortAve[i]==NULL 
+         || para->bc->XiPortMean[i]) {
+        ffd_log("set_initial_data(): Could not allocate memory for XiPort[i].",
+                FFD_ERROR);
+        return 1;
+      }
+    }
+  }
 
-    flag = read_cosim_parameter(para, var, BINDEX);
-    if(flag!=0) {
+  /****************************************************************************
+  | Allocate memory for C
+  ****************************************************************************/
+  if(para->bc->nb_port>0&&para->bc->nb_C>0) {
+    para->bc->CPort = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
+    para->bc->CPortAve = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
+    para->bc->CPortMean = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
+    if(para->bc->CPort==NULL || para->bc->CPortAve==NULL 
+       || para->bc->CPortMean) {
+      ffd_log("set_initial_data(): Could not allocate memory for CPort.",
+              FFD_ERROR);
+      return 1;
+    }
+    
+    for(i=0; i<para->bc->nb_port; i++) {
+      para->bc->CPort[i] = (REAL *) malloc(sizeof(REAL)*para->bc->nb_C);
+      para->bc->CPortAve[i] = (REAL *) malloc(sizeof(REAL)*para->bc->nb_C);
+      para->bc->CPortMean[i] = (REAL *) malloc(sizeof(REAL)*para->bc->nb_C);
+      if(para->bc->CPort[i]==NULL || para->bc->CPortAve[i]==NULL 
+         || para->bc->CPortMean[i]) {
+        ffd_log("set_initial_data(): Could not allocate memory for CPort[i].",
+                FFD_ERROR);
+        return 1;
+      }
+    }
+  }
+
+  /****************************************************************************
+  | Conduct the data exchange at the inital state of cosimulation 
+  ****************************************************************************/
+  if(para->solv->cosimulation==1) {
+    /*------------------------------------------------------------------------
+    | Calculate the area of boundary
+    ------------------------------------------------------------------------*/
+    if(bounary_area(para, var, BINDEX)!=0) {
+      ffd_log("set_initial_data(): Could not get the boundary area.",
+              FFD_ERROR);
+      return 1;
+    }
+    /*------------------------------------------------------------------------
+    | Read the cosimulation parameter data (Only need once)
+    ------------------------------------------------------------------------*/
+    if(read_cosim_parameter(para, var, BINDEX) != 0) {
       ffd_log("set_initial_data(): Could not read cosimulaiton parameters.",
               FFD_ERROR);
       return 1;
     }
-
-    flag = read_cosim_data(para, var, BINDEX);
-    if(flag!=0) {
-      ffd_log("set_initial_data(): Could not read initial data for cosimulaiton.",
-              FFD_ERROR);
+    /*------------------------------------------------------------------------
+    | Read the cosimulation data
+    ------------------------------------------------------------------------*/
+    if(read_cosim_data(para, var, BINDEX) !=0) {
+      ffd_log("set_initial_data(): Could not read initial data for "
+               "cosimulaiton.", FFD_ERROR);
       return 1;
     }
-
-    flag = write_cosim_data(para, var);
-    if(flag!=0) {
-      ffd_log("set_initial_data(): Could not write initial data for cosimulaiton.",
-              FFD_ERROR);
+    /*------------------------------------------------------------------------
+    | Write the cosimulation data
+    ------------------------------------------------------------------------*/
+    if(write_cosim_data(para, var) != 0) {
+      ffd_log("set_initial_data(): Could not write initial data for "
+              "cosimulaiton.", FFD_ERROR);
       return 1;
     }
   }
+  /****************************************************************************
+  | Set all the averaged data to 0
+  ****************************************************************************/
+  if(reset_time_averaged_data(para, var)!=0) {
+    ffd_log("FFD_solver(): Could not reset averaged data.",
+      FFD_ERROR);
+    return 1;
+  }
+
   return 0;
 } // set_initial_data()
 
