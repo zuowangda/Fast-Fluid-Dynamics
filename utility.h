@@ -163,7 +163,7 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX);
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var);
+void average_time(PARA_DATA *para, REAL **var);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Free memory for BINDEX

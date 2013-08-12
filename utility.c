@@ -491,7 +491,7 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var) {
+void average_time(PARA_DATA *para, REAL **var) {
   int i, j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -522,7 +522,12 @@ void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var) {
     */
   }
 
-} // End of calcuate_time_averaged_variable()
+  // Sensor data
+  para->sens->TRooMean = para->sens->TRooMean / step;
+  for(i=0; i<para->sens->nb_sensor; i++) 
+    para->sens->senValMean[i] = para->sens->senValMean[i] / step;
+
+} // End of average_time()
 
 
 

@@ -401,7 +401,7 @@ DWORD WINAPI ffd(PVOID p){
   ---------------------------------------------------------------------------*/
   // Calculate mean value
   if(para.outp->cal_mean == 1)
-    calcuate_time_averaged_variable(&para, var);
+    average_time(&para, var);
   
   // Fixme: Simulaiton stops here
   //if(write_unsteady(&para, var, "unsteady")!=0) {

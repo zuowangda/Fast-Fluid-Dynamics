@@ -95,7 +95,7 @@ void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX) {
   temp_step(para, var, BINDEX);
 
   if(para->outp->cal_mean == 1)
-    calcuate_time_averaged_variable(para, var);
+    average_time(para, var);
 
   // Update the visualization results after a few tiem steps 
   // to save the time for visualization
@@ -158,7 +158,7 @@ void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX,
     case 's':
     case 'S':
       if(para->outp->cal_mean == 1)
-        calcuate_time_averaged_variable(para, var);
+        average_time(para, var);
       write_tecplot_data(para, var, "result"); 
       break;
     // Reduce the drawed length of veloity
