@@ -71,11 +71,10 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         w_mean[i] += w[i];
       }
 
-    //-----------------------------------------------------------------------
-    // A cosimulation is performed
+    //-------------------------------------------------------------------------
+    // Exchange data for cosimulation
+    //-------------------------------------------------------------------------
     if(para->solv->cosimulation == 1) {
-      sprintf(msg, "\n\nLast received Modelica time=%f, \tModleica dt=%f", para->cosim->modelica->t, para->cosim->modelica->dt); 
-      ffd_log(msg, FFD_NORMAL);
       sprintf(msg, "ffd_solver(): para->cosim->para->flag=%d", para->cosim->para->flag);
       ffd_log(msg, FFD_NORMAL);
 
@@ -83,8 +82,6 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       if(fabs(para->cosim->para->flag)<SMALL) {
         // Stop the solver
         flag = 0; 
-        // Inform Modelica the stopping command has been received 
-        para->cosim->para->flag = 1; 
         sprintf(msg, 
                 "ffd_solver(): Received stop command from Modelica at t = %f[s]",
                 para->mytime->t);
@@ -94,14 +91,15 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       // Check if synchronization point is reached
       else if(fabs(para->mytime->t - t_cosim)<SMALL) {
         //Exchange the data for cosimulation
-        read_cosimulation_data(para, var);
-        write_cosimulation_data(para, var);
-        sprintf(msg, "ffd_solver(): Synchronized data at t=%f\n", para->mytime->t);
+        read_cosim_data(para, var, BINDEX);
+        write_cosim_data(para, var);
+        sprintf(msg, "ffd_solver(): Synchronized data at t=%f[s]\n", para->mytime->t);
         ffd_log(msg, FFD_NORMAL);
+
         // set the next synchronization time
         t_cosim += para->cosim->modelica->dt;
         // Move to next synchronization point
-        flag = 1;
+        continue;
       }
       // Missied the synchronization point
       else if (para->mytime->t-t_cosim>SMALL) {
@@ -114,7 +112,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         return 1;
       }
       else 
-        flag = 1; // Continue
+        continue; // Continue
     }
     //-----------------------------------------------------------------------
     // FFD internal control if it is not cosimulation
@@ -135,8 +133,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void temp_step(PARA_DATA *para, REAL **var, int **BINDEX)
-{
+void temp_step(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *T = var[TEMP], *T0 = var[TMP1];
   
   advect(para, var, TEMP, T0, T, BINDEX); 

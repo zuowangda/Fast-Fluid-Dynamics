@@ -253,6 +253,7 @@ return tmp;
 ///\param para Pointer to FFD parameters
 ///\param psi Pointer to the variable
 ///
+///\return Non-weighted average
 ///////////////////////////////////////////////////////////////////////////////
 REAL average(PARA_DATA *para, REAL *psi) {
   int imax = para->geom->imax, jmax = para->geom->jmax; 
@@ -269,6 +270,34 @@ REAL average(PARA_DATA *para, REAL *psi) {
 
 }// End of average( )
 
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate volume weighted averaged value of psi in a space
+///
+/// The average is weighted by volume of each cell
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param psi Pointer to the variable
+///
+///\return Volume weighted average
+///////////////////////////////////////////////////////////////////////////////
+REAL average_volume(PARA_DATA *para, REAL **var, REAL *psi) {
+  int imax = para->geom->imax, jmax = para->geom->jmax; 
+  int kmax = para->geom->kmax;
+  int i, j, k;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL tmp1 = 0, tmp2 = 0, tmp3 = 0;
+
+
+  FOR_EACH_CELL
+    tmp1 = vol(para, var, i, j, k);
+    tmp2 += psi[IX(i,j,k)]*tmp1;
+    tmp3 += tmp1;
+  END_FOR
+    
+  return tmp2 / tmp3;
+
+}// End of average_volume( )
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Check the energy transfer rate through the wall to the air

@@ -424,6 +424,10 @@ DWORD WINAPI ffd(PVOID p){
   // End the simulation
   if(para.outp->version==DEBUG || para.outp->version==DEMO) {}//getchar();
 
+  if(para.solv->cosimulation==1)
+    // Inform Modelica the stopping command has been received 
+    para.cosim->para->flag = 2; 
+
   ffd_log("ffd(): Exit successfully.", FFD_NORMAL);
   //exit (0);
   return 0;

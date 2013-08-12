@@ -29,7 +29,10 @@
 int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i;
 
-  ffd_log("read_cosim_parameter(): Received the following cosimulation parameters:",
+  ffd_log("-------------------------------------------------------------------",
+          FFD_NORMAL);
+  ffd_log("read_cosim_parameter(): "
+          "Received the following cosimulation parameters:",
            FFD_NORMAL);
 
   sprintf(msg, "\tnSur=%d", para->cosim->para->nSur);
@@ -62,8 +65,9 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
         break;
       default:
         sprintf(msg, 
-        "Invalid value (%d) for thermal boundary condition. 1: Fixed T; 2: Fixed heat flux",
-        para->cosim->para->bouCon[i]);        
+        "Invalid value (%d) for thermal boundary condition. "
+        "1: Fixed T; 2: Fixed heat flux",
+        para->cosim->para->bouCon[i]);
         ffd_log(msg, FFD_ERROR);
         return 1;
     }
@@ -82,15 +86,17 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
   // Compare number of boundaries
   if(para->cosim->para->nSur!=para->bc->nb_wall) {
     sprintf(msg, 
-     "read_cosim_parameter(): Modelica(%d) and FFD(%d) have different number of solid surfaces.", 
-      para->cosim->para->nSur, para->bc->nb_wall);
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of solid surfaces.", 
+            para->cosim->para->nSur, para->bc->nb_wall);
     ffd_log(msg, FFD_ERROR);
     return 1;
   }
   else if(para->cosim->para->nPorts!=(para->bc->nb_inlet+para->bc->nb_outlet)) {
     sprintf(msg, 
-      "read_cosim_parameter(): Modelica(%d) and FFD(%d) have different number of fluid ports.", 
-    para->cosim->para->nPorts, para->bc->nb_inlet+para->bc->nb_outlet);
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of fluid ports.", 
+            para->cosim->para->nPorts, para->bc->nb_inlet+para->bc->nb_outlet);
     ffd_log(msg, FFD_ERROR);
     return 1;
   }
@@ -107,7 +113,8 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
   }
   
   if(allocate_C_Xi(para, var)!=0) {
-    ffd_log("read_cosim_parameter(): Could not allocate memory for C and Xi at inlet.", 
+    ffd_log("read_cosim_parameter(): "
+            "Could not allocate memory for C and Xi at inlet.", 
             FFD_ERROR);
     return 1;
   }
@@ -137,39 +144,37 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
 
   para->cosim->ffd->t = para->mytime->t;
 
-  sprintf(msg, "cosimulation_interfce.c: Sent FFD data to Modelica at t=%fs", 
+  sprintf(msg, "write_cosim_data(): Start to end FFD data to Modelica at t=%f[s]", 
           para->cosim->ffd->t);
   ffd_log(msg, FFD_NORMAL);
 
-
-
-  para->cosim->ffd->TRoo = average(para, var[TEMP]) + 273.15; // Need to convert from C to K
-  sprintf(msg, "Averaged Room temperature %fK", para->cosim->ffd->TRoo);
+  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMP]) + 273.15; // Need to convert from C to K
+  sprintf(msg, "\tAveraged Room temperature %f[K]", para->cosim->ffd->TRoo);
   ffd_log(msg, FFD_NORMAL);
 
   if(para->cosim->para->sha==1) {
-    ffd_log("Temperature of the shade:\n", FFD_NORMAL);
+    ffd_log("\tTemperature of the shade:", FFD_NORMAL);
     for(i=0; i<para->cosim->para->nConExtWin; i++) {
-      para->cosim->ffd->TSha[i] = 20 + 273.15;
-      sprintf(msg, "Surface %d: %fK\n",
+      //Fixme: The shade feature is to be implemented
+      para->cosim->ffd->TSha[i] = 20 + 273.15; 
+      sprintf(msg, "\t\tSurface %d: %f[K]\n",
               i, para->cosim->ffd->TSha[i]);
       ffd_log(msg, FFD_NORMAL);
     }
   }
 
-  ffd_log("Flow information at the ports: T, Xi, C\n", FFD_NORMAL);
+  ffd_log("\tFlow information at the ports: T, Xi, C", FFD_NORMAL);
   for(i=0; i<para->cosim->para->nPorts; i++) {
     para->cosim->ffd->TPor[i] = 20 + 273.15;
     para->cosim->ffd->XiPor[i] = 0;
     para->cosim->ffd->CPor[i] = 0;
-    sprintf(msg, "Port %d: %f,\t%f,\t%f\n",
-            i, para->cosim->ffd->TPor[i],
+    sprintf(msg, "%s: %f[K],\t%f,\t%f",
+            para->cosim->para->portName[i], para->cosim->ffd->TPor[i],
             para->cosim->ffd->XiPor[i], para->cosim->ffd->CPor[i]);
     ffd_log(msg, FFD_NORMAL);
   }
 
   para->cosim->ffd->flag = 1;
-  ffd_log("cosimulation_interace.c: wrote data to shared memory", FFD_NORMAL);
   return 0;
 } // End of write_cosim_data()
 

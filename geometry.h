@@ -26,6 +26,19 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Calculate the volume of of control volume (i,j,k)
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param i I-index of the control volume
+///\param j J-index of the control volume
+///\param K K-index of the control volume
+///
+///\return Volume
+///////////////////////////////////////////////////////////////////////////////
+REAL vol(PARA_DATA *para, REAL **var, int i, int j, int k);
+
+///////////////////////////////////////////////////////////////////////////////
 /// Calculate the XY area of control volume (i,j,k)
 ///
 ///\param para Pointer to FFD parameters
@@ -33,12 +46,10 @@
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Area of XY surface
 ///////////////////////////////////////////////////////////////////////////////
-REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the YZ area of control volume (i,j,k)
@@ -48,12 +59,10 @@ REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJM
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Area of YZ surface
 ///////////////////////////////////////////////////////////////////////////////
-REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the ZX area of control volume (i,j,k)
@@ -63,12 +72,10 @@ REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJM
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Area of ZX surface
 ///////////////////////////////////////////////////////////////////////////////
-REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the X-length of control volume (i,j,k)
@@ -83,7 +90,7 @@ REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJM
 ///
 ///\return Length in X-direction
 ///////////////////////////////////////////////////////////////////////////////
-REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the Y-length of control volume (i,j,k)
@@ -93,12 +100,10 @@ REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJ
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Length in Y-direction
 ///////////////////////////////////////////////////////////////////////////////
-REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJMAX);
+REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the Z-length of control volume (i,j,k)
@@ -108,13 +113,10 @@ REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k, int IMAX, int IJ
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Length in Z-direction
 ///////////////////////////////////////////////////////////////////////////////
-REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
-              int IMAX, int IJMAX);
+REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the area of boundary surface

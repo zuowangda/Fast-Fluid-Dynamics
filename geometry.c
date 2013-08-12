@@ -15,6 +15,24 @@
 #include "geometry.h"
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Calculate the volume of of control volume (i,j,k)
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param i I-index of the control volume
+///\param j J-index of the control volume
+///\param K K-index of the control volume
+///
+///\return Volume
+///////////////////////////////////////////////////////////////////////////////
+REAL vol(PARA_DATA *para, REAL **var, int i, int j, int k) {
+
+  return area_xy(para, var, i, j, k) 
+       * length_z(para, var, i, j, k);
+} // End of vol()
+
+
+///////////////////////////////////////////////////////////////////////////////
 /// Calculate the XY area of control volume (i,j,k)
 ///
 ///\param para Pointer to FFD parameters
@@ -22,15 +40,12 @@
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Area of XY surface
 ///////////////////////////////////////////////////////////////////////////////
-REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k, 
-             int IMAX, int IJMAX) {
-  return length_x(para, var, i, j, k, IMAX, IJMAX) 
-       * length_y(para, var, i, j, k, IMAX, IJMAX);
+REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k) {
+  return length_x(para, var, i, j, k) 
+       * length_y(para, var, i, j, k);
 } // End of area_xy()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,15 +56,12 @@ REAL area_xy(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Area of YZ surface
 ///////////////////////////////////////////////////////////////////////////////
-REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k, 
-             int IMAX, int IJMAX) {
-  return length_y(para, var, i, j, k, IMAX, IJMAX) 
-       * length_z(para, var, i, j, k, IMAX, IJMAX);
+REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k) {
+  return length_y(para, var, i, j, k) 
+       * length_z(para, var, i, j, k);
 } // End of area_yz();
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,15 +72,12 @@ REAL area_yz(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Area of ZX surface
 ///////////////////////////////////////////////////////////////////////////////
-REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k, 
-             int IMAX, int IJMAX) {
-  return length_z(para, var, i, j, k, IMAX, IJMAX) 
-       * length_x(para, var, i, j, k, IMAX, IJMAX);
+REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k) {
+  return length_z(para, var, i, j, k) 
+       * length_x(para, var, i, j, k);
 } // End of area_zx()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,13 +88,13 @@ REAL area_zx(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Length in X-direction
 ///////////////////////////////////////////////////////////////////////////////
-REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k, 
-              int IMAX, int IJMAX) {
+REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k) {
+  int imax = para->geom->imax, jmax = para->geom->jmax; 
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
   if(i==0)
     return 0;
   else
@@ -100,13 +109,13 @@ REAL length_x(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Length in Y-direction
 ///////////////////////////////////////////////////////////////////////////////
-REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k,
-              int IMAX, int IJMAX) {
+REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k) {
+  int imax = para->geom->imax, jmax = para->geom->jmax; 
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
   if(j==0)
     return 0;
   else 
@@ -121,13 +130,13 @@ REAL length_y(PARA_DATA *para, REAL **var, int i, int j, int k,
 ///\param i I-index of the control volume
 ///\param j J-index of the control volume
 ///\param K K-index of the control volume
-///\param IMAX Value of imax+2
-///\param IMAX Value of (imax+2)*(jmax+2)
 ///
 ///\return Length in Z-direction
 ///////////////////////////////////////////////////////////////////////////////
-REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k,
-              int IMAX, int IJMAX) {
+REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k) {
+  int imax = para->geom->imax, jmax = para->geom->jmax; 
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
   if(k==0)
     return 0;
   else 
@@ -151,6 +160,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   int index= para->geom->index, imax = para->geom->imax,
       jmax = para->geom->jmax, kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
   REAL *flagp = var[FLAGP];
   REAL tmp;
   REAL *AWall = para->bc->AWall;
@@ -182,21 +192,21 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
     if(flagp[IX(i,j,k)]==SOLID) {
       // West or East Boundary
       if(i==0 || i==imax+1) {
-        tmp = area_yz(para, var, i, j, k, IMAX, IJMAX);
+        tmp = area_yz(para, var, i, j, k);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
         AWall[id] += tmp;
       }
       // South and Norht Boundary
       if(j==0 || j==jmax+1) {
-        tmp = area_zx(para, var, i, j, k, IMAX, IJMAX);
+        tmp = area_zx(para, var, i, j, k);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
         AWall[id] += tmp;
       }
       // Ceiling and Floor Boundary
       if(k==0 || k==kmax+1) {
-        tmp = area_xy(para, var, i, j, k, IMAX, IJMAX);
+        tmp = area_xy(para, var, i, j, k);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
         AWall[id] += tmp;
@@ -209,21 +219,21 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
     if(flagp[IX(i,j,k)]==INLET||flagp[IX(i,j,k)]==OUTLET) {
       // West or East Boundary
       if(i==0 || i==imax+1) {
-        tmp = area_yz(para, var, i, j, k, IMAX, IJMAX);
+        tmp = area_yz(para, var, i, j, k);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
         APort[id] += tmp;
       }
       // South and Norht Boundary
       if(j==0 || j==jmax+1) {
-        tmp = area_zx(para, var, i, j, k, IMAX, IJMAX);
+        tmp = area_zx(para, var, i, j, k);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
         APort[id] += tmp;
       }
       // Ceiling and Floor Boundary
       if(k==0 || k==kmax+1) {
-        tmp = area_xy(para, var, i, j, k, IMAX, IJMAX);
+        tmp = area_xy(para, var, i, j, k);
         //sprintf(msg, "Cell(%d,%d,%d):\t %f", i, j, k, tmp);
         //ffd_log(msg, FFD_NORMAL);
         APort[id] += tmp;

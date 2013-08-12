@@ -23,6 +23,13 @@
 #define _DATA_STRUCTURE_H
 #include "data_structure.h"
 #endif
+
+#ifndef _GEOMETRY_H
+#define _GEOMETRY_H
+#include "geometry.h"
+#endif
+
+
 FILE *file_log;
 
 
@@ -107,6 +114,19 @@ REAL check_max( PARA_DATA *para, REAL *psi, int ci,int cj,int ck);
 ///
 ///////////////////////////////////////////////////////////////////////////////
 REAL average(PARA_DATA *para, REAL *psi);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate volume weighted averaged value of psi in a space
+///
+/// The average is weighted by volume of each cell
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param psi Pointer to the variable
+///
+///\return Volume weighted average
+///////////////////////////////////////////////////////////////////////////////
+REAL average_volume(PARA_DATA *para, REAL **var, REAL *psi);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Check the energy transfer rate through the wall to the air
