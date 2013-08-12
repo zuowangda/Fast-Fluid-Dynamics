@@ -111,13 +111,6 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
     FFD_ERROR);
     return 1;
   }
-  
-  if(allocate_C_Xi(para, var)!=0) {
-    ffd_log("read_cosim_parameter(): "
-            "Could not allocate memory for C and Xi at inlet.", 
-            FFD_ERROR);
-    return 1;
-  }
 
   return 0;
 } // End of read_cosim_parameter()
@@ -573,62 +566,3 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
    
   return 0;
 } // End of assign_inlet_outlet_bc()
-
-///////////////////////////////////////////////////////////////////////////////
-/// Allocate memory for C and Xi
-///
-///\param para Pointer to FFD parameters
-///\param var Pointer to the FFD simulaiton variables
-///
-///\return 0 if no error occurred
-///////////////////////////////////////////////////////////////////////////////
-int allocate_C_Xi(PARA_DATA *para, REAL **var) {
-  int i; 
-  //---------------------------------------------------------------------------
-  // Allocate memory for C
-  //---------------------------------------------------------------------------
-  if(para->cosim->para->nC>0) {
-    para->bc->CInlet = (REAL **)malloc(para->cosim->para->nC*sizeof(REAL *));
-    if(para->bc->CInlet==NULL) {
-      ffd_log("assign_inlet_bc(): Could not allocate moemory for para->bc->CInlet",
-              FFD_ERROR);
-      return 1;
-    }
-    
-    for(i=0; i<para->bc->nb_inlet; i++) {
-      para->bc->CInlet[i] = (REAL*)malloc(sizeof(REAL)*para->cosim->para->nC);
-      if(para->bc->CInlet[i]==NULL) {
-        sprintf(msg,
-          "assign_inlet_bc(): Could not allocate moemory for para->bc->CInlet[%d]",
-          i);
-        ffd_log(msg, FFD_ERROR);
-        return 1;
-      }
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  // Allocate memory for Xi
-  //---------------------------------------------------------------------------
-  if(para->cosim->para->nXi>0) {
-    para->bc->XiInlet = (REAL **)malloc(para->cosim->para->nXi*sizeof(REAL *));
-    if(para->bc->XiInlet==NULL) {
-      ffd_log("assign_inlet_bc(): Could not allocate moemory for para->bc->XiInlet",
-              FFD_ERROR);
-      return 1;
-    }
-  
-    for(i=0; i<para->bc->nb_inlet; i++) {
-      para->bc->XiInlet[i] = (REAL*)malloc(sizeof(REAL)*para->cosim->para->nXi);
-      if(para->bc->XiInlet[i]==NULL) {
-        sprintf(msg,
-          "assign_inlet_bc(): Could not allocate moemory for para->bc->XiInlet[%d]",
-          i);
-        ffd_log(msg, FFD_ERROR);
-        return 1;
-      }
-    }
-  }
-
-  return 0;
-} // End of allocate_C_Xi()

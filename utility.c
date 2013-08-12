@@ -271,6 +271,76 @@ REAL average(PARA_DATA *para, REAL *psi) {
 }// End of average( )
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Calculate area weighted averaged value of psi on a boundary surface
+///
+/// The average is weighted by area of each cell
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to the boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int average_bc_area(PARA_DATA *para, REAL **var, int **BINDEX) {
+  int imax = para->geom->imax, jmax = para->geom->jmax; 
+  int kmax = para->geom->kmax;
+  int i, j, k, it, bcid;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL vel_tmp, A_tmp; 
+
+  for(it=0; it<para->geom->index; it++) {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    bcid = BINDEX[4][it];
+
+    if(i==0 || i==imax+1) {
+      vel_tmp = var[VX][IX(i,j,k)];
+      A_tmp = area_yz(para, var, i, j, k);
+    }
+    else if(j==0 || j==jmax+1) {
+      vel_tmp = var[VY][IX(i,j,k)];
+      A_tmp = area_zx(para, var, i, j, k);
+    }
+    else if(k==0 || k==kmax+1) {
+      vel_tmp = var[VZ][IX(i,j,k)];
+      A_tmp = area_xy(para, var, i, j, k);
+    }
+
+    if(var[FLAGP][IX(i,j,k)]==SOLID) {
+      switch(BINDEX[3][it]) {
+        case 0:
+          para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
+          break;
+        case 1:
+          para->bc->temHeaAve[bcid] += var[TEMP][IX(i,j,k)]*A_tmp;
+          break;
+        default:
+          sprintf(msg, "average_bc_area(): Thermal boundary (%d)"
+                 "for cell (%d,%d,%d) was not defined",
+                 BINDEX[3][it], i, j, k);
+          ffd_log(msg, FFD_ERROR);
+          return 1;
+      }
+    }
+    else if(var[FLAGP][IX(i,j,k)]==INLET||var[FLAGP][IX(i,j,k)]==OUTLET) {
+      para->bc->TPortAve[bcid] += var[TEMP][IX(i,j,k)]*A_tmp;
+      para->bc->velPortAve[bcid] += vel_tmp * A_tmp;
+    }
+  } // End of for(it=0; it<para->geom->index; it++)
+
+  for(i=0; i<para->bc->nb_wall; i++)
+    para->bc->temHeaAve[i] = para->bc->temHeaAve[i] / para->bc->AWall[i];
+
+  for(i=0; i<para->bc->nb_port; i++) {
+    para->bc->TPortAve[i] = para->bc->TPortAve[i] / para->bc->APort[i];
+    para->bc->velPortAve[i] = para->bc->velPortAve[i] / para->bc->APort[i];
+  }
+
+  return 0;
+} // End of average_bc_area()
+
+///////////////////////////////////////////////////////////////////////////////
 /// Calculate volume weighted averaged value of psi in a space
 ///
 /// The average is weighted by volume of each cell
@@ -290,13 +360,19 @@ REAL average_volume(PARA_DATA *para, REAL **var, REAL *psi) {
 
 
   FOR_EACH_CELL
-    tmp1 = vol(para, var, i, j, k);
-    tmp2 += psi[IX(i,j,k)]*tmp1;
-    tmp3 += tmp1;
+    if(var[FLAGP][IX(i,j,k)]==FLUID) {
+      tmp1 = vol(para, var, i, j, k);
+      tmp2 += psi[IX(i,j,k)]*tmp1;
+      tmp3 += tmp1;
+    }
+    else 
+      continue;
   END_FOR
-    
-  return tmp2 / tmp3;
-
+  
+  if(tmp3==0)
+    return 0;
+  else
+    return tmp2 / tmp3;
 }// End of average_volume( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,7 +400,7 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX) {
   REAL *flagp = var[FLAGP];
 
   for(it=0;it<index;it++) {
-	  i=BINDEX[0][it];
+    i=BINDEX[0][it];
     j=BINDEX[1][it];
     k=BINDEX[2][it];
 
@@ -420,13 +496,32 @@ void calcuate_time_averaged_variable(PARA_DATA *para, REAL **var) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  int step = para->mytime->step_current;
 
   FOR_ALL_CELL
-      var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / para->mytime->step_current;
-      var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / para->mytime->step_current;
-      var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / para->mytime->step_current;
-      var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / para->mytime->step_current;
+    var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / step;
+    var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / step;
+    var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / step;
+    var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / step;
   END_FOR
+  
+  // Wall surfaces
+  for(i=0; i<para->bc->nb_wall; i++) 
+    para->bc->temHeaMean[i] = para->bc->temHeaMean[i] / step;
+
+  // Fluid ports
+  for(i=0; i<para->bc->nb_port; i++) {
+    para->bc->TPortMean[i] = para->bc->TPortMean[i] / step;
+    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
+    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
+    /*
+    for(j=0; j<para->bc->nb_Xi; j++) 
+      para->XiPortMean[i][j] = para->XiPortMean[i][j] / step;
+    for(j=0; j<para->bc->nb_C; j++) 
+      para->CPortMean[i][j] = para->CPortMean[i][j] / step;
+    */
+  }
+
 } // End of calcuate_time_averaged_variable()
 
 

@@ -135,8 +135,7 @@ typedef enum{FFD_WARNING, FFD_ERROR, FFD_NORMAL, FFD_NEW} FFD_MSG_TYPE;
 
 
 // Parameter for geometry and mesh
-typedef struct 
-{
+typedef struct {
   REAL  Lx; // Domain size in x-direction (meter)
   REAL  Ly; // Domain size in y-direction (meter)
   REAL  Lz; // Domain size in z-direction (meter)
@@ -268,38 +267,48 @@ typedef struct {
   int nb_wall; // Number of wall boundaries, provided by SCI
   int nb_source; // Number of sources, provided by SCI
   int nb_bc; // Number of boundaries, provided by SCI
-  int nSen; // Numver of sensors
-  int nConExtWin; // Nmber of exterior construction with windows
+  int nb_ConExtWin; // Nmber of exterior construction with windows
   int nb_port; // nPort = nInlet + nOutlet
-  int nXi; // Number of species // Fixme: Not used
-  int nC; // Number of substances // Fixme: Not used
+  int nb_Xi; // Number of species // Fixme: Not used
+  int nb_C; // Number of substances // Fixme: Not used
   int sha; // 1: have shade ; 0: no shade 
-  char **wallName; // Name of solid boundary (Wall, Window)
-  char **inletName; // Name of inlet boundary
-  char **portName; // Name of ports
-  char **blockName; // Name of internal block
-  char **sourceName; // Name of the source
-  int *wallId; // Modelica wall boundary ID
-  int *inletId; // Modelica inlet boundary ID
-  int *portId; // Modelica outlet boundary ID
-  REAL *temHea; // Value of thermal conditions
-  REAL *AWall; // Area of the solide sufaces
-  REAL *AInlet; // Area of the inlets
-  REAL *APort; // Area of the outlets
-  char **sensorName; // *sensorName[nSen]: Name of sensor in FFD
-  REAL *velInlet; // mFloRatPor[nInlet]: Mass flow rates into the room
+  char **wallName; // *wallName[nb_wall]: Name of solid boundary (Wall, Window)
+  char **inletName; // *inletName[nb_inlet]: Name of inlet boundary
+  char **portName; // *portName[nb_port]: Name of ports
+  char **blockName; // *blockName[nb_block]: Name of internal block
+  char **sourceName; // *sourceName[nb_source]: Name of the source
+  int *wallId; // wallId[nb_wall]: Modelica wall boundary ID
+  //int *inletId; // Modelica inlet boundary ID
+  int *portId; // portId[nb_port]: Modelica outlet boundary ID
+  REAL *AWall; // AWall[nb_wall]: Area of the solide sufaces
+  REAL *APort; // APort[nb_port]: Area of the outlets
+  REAL *temHea; // temHea[nb_wall]: Value of thermal conditions at solid surface
+  REAL *temHeaAve; // temHeaAve[nb_wall]: Surface averaged value of temHea
+  REAL *temHeaMean; // temHeaMean[nb_wall]: Time averaged value of temHeaAve
+  REAL *velPort; // velPort[nb_port]: Velocity of air into the room
                       // positive: into the room; neative out of the room
-  REAL *TInlet; // TPor[nInlet] Air temperatures that the medium has if it were flowing into the room
-              // Fixme: Will the element exist if not flowing into the room? 
-              // Fixme: what will it be if not flowing into the room?
-  REAL **XiInlet; // Fixme: Not used: XiPor[nXi][nInlet]: species concentration of inflowing medium
-  REAL **CInlet; // Fixme: Not used: CPor[nC][nInlet]: the trace substances of the inflowing medium
-  REAL *velPort; // mFloRatPor[nPort]: Mass flow rates into the room
-                      // positive: into the room; neative out of the room
-  REAL *TPort; // TPor[nPort] Air temperatures that the medium has if it were flowing into the room
-  REAL **XiPort; // Fixme: Not used: XiPor[nXi][nPort]: species concentration of inflowing medium
-  REAL **CPort; // Fixme: Not used: CPor[nC][nPort]: the trace substances of the inflowing medium
+  REAL *velPortAve; // velPortAve[nb_port]: Surface averaged value of velPort
+  REAL *velPortMean; // velPortMean[nb_port]: Time averaged value of velPortAve
+  REAL *TPort; // TPort[nb_port] Air temperatures that the medium has if it were flowing into the room
+  REAL *TPortAve; // TPortAve[nb_port] Surface averaged value of TPort
+  REAL *TPortMean; // TPortMean[nb_port] Time averaged value of TPortAve
+  REAL **XiPort; // XiPor[nb_port][nb_Xi]: species concentration of inflowing medium
+  REAL **XiPortAve; // XiPortAve[nb_port][nb_Xi]: Surface averaged value of XiPort
+  REAL **XiPortMean; // XiPortAve[nb_port][nb_Xi]: Time averaged value of XiPortAve
+  REAL **CPort; // CPor[nb_port][nb_C]: the trace substances of the inflowing medium
+  REAL **CPortAve; // CPortAve[nb_port][nb_C]: Surface averaged value of CPort
+  REAL **CPortMean; // CPortMean[nb_port][nb_C]: Time averaged value of CPort
 }BC_DATA;
+
+typedef struct {
+  int nb_sensor; // Numver of sensors
+  char **sensorName; // *sensorName[nb_sensor]: Name of sensor in FFD
+  int **senIndex; // senIndex[nb_sensor][3]: i, j, k Index of sensors
+  REAL *senVal; // senVal[nb_sensor]: Instanteniate valeu of sensor point
+  REAL *senValMean; // snValMean[nb_sensor]: Time averaged value of senVal;
+  REAL TRoo; // Volumed averaged value of temperature in the space
+  REAL TRooMean; // Time averaged value of TRoo;
+} SENSOR_DATA;
 
 typedef struct {
   double dt; // FFD simulation time step size
@@ -311,8 +320,7 @@ typedef struct {
   clock_t t_end; // Internal: clock time when simulaiton ends
 }TIME_DATA;
 
-typedef struct 
-{
+typedef struct {
   SOLVERTYPE solver;  // Solver type: GS, TDMA
   int check_residual; // 1: check, 0: donot check
   ADVECTION advection_solver; // Tyep of advection solver: SEMI, LAX, UPWIND, UPWIND_NEW 
@@ -321,8 +329,7 @@ typedef struct
   int nextstep; // Internal: 1: yes; 0: no, wait
 }SOLV_DATA;
 
-typedef struct 
-{
+typedef struct {
   GEOM_DATA  *geom;
   INPU_DATA  *inpu;
   OUTP_DATA  *outp;
@@ -331,6 +338,7 @@ typedef struct
   BC_DATA    *bc;
   SOLV_DATA  *solv;
   CosimulationData *cosim;
+  SENSOR_DATA *sens;
 }PARA_DATA;
 
 typedef struct {

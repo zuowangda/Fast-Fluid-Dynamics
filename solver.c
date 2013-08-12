@@ -47,39 +47,28 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   if(para->solv->cosimulation == 1)
     t_cosim = para->mytime->t + para->cosim->modelica->dt;
 
-  /*---------------------------------------------------------------------------
+  /***************************************************************************
   | Solver Loop
-  ---------------------------------------------------------------------------*/
+  ***************************************************************************/
   flag = 1;
   while(flag==1) {
+    //-------------------------------------------------------------------------
+    // Integration
+    //-------------------------------------------------------------------------
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);
     //den_step(para, var, BINDEX);
     timing(para);
 
-    // Start to record data for calculating mean velocity if needed
-    if(para->mytime->t>t_steady && cal_mean==0) {
-      cal_mean = 1;
-      step_current += 1;
-      ffd_log("FFD_solver(): Start to calculate mean properties.", FFD_NORMAL);
-    }   
-
-    if(cal_mean == 1)
-      for(i=0; i<size; i++) {
-        u_mean[i] += u[i];
-        v_mean[i] += v[i];
-        w_mean[i] += w[i];
-      }
-
     //-------------------------------------------------------------------------
-    // Exchange data for cosimulation
+    // Process for Cosimulation
     //-------------------------------------------------------------------------
     if(para->solv->cosimulation == 1) {
       sprintf(msg, "ffd_solver(): para->cosim->para->flag=%d", para->cosim->para->flag);
       ffd_log(msg, FFD_NORMAL);
 
       // Modelica asks to stop the simulation
-      if(fabs(para->cosim->para->flag)<SMALL) {
+      if(para->cosim->para->flag==0) {
         // Stop the solver
         flag = 0; 
         sprintf(msg, 
@@ -87,9 +76,13 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
                 para->mytime->t);
         ffd_log(msg, FFD_NORMAL);
       }
-
+      
       // Check if synchronization point is reached
-      else if(fabs(para->mytime->t - t_cosim)<SMALL) {
+      if(fabs(para->mytime->t - t_cosim)<SMALL) {
+        // Average the FFD simulation data
+        // Fixme: To be added
+
+
         //Exchange the data for cosimulation
         read_cosim_data(para, var, BINDEX);
         write_cosim_data(para, var);
@@ -98,29 +91,79 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
 
         // set the next synchronization time
         t_cosim += para->cosim->modelica->dt;
+        // Reset all the averaged data
+        for(i=0; i<size; i++) {
+          u_mean[i] = 0;
+          v_mean[i] = 0;
+          w_mean[i] = 0;
+          var[TEMPM][i] = 0;
+        }
+        for(i=0; i<para->bc->nb_wall; i++) 
+          para->bc->temHeaAve[i] = 0;
+        for(i=0; i<para->bc->nb_port; i++) {
+          para->bc->TPort[i] = 0;
+          para->bc->velPortAve[i] = 0;
+          para->bc->XiPortAve[i] = 0;
+          para->bc->CPortAve[i] = 0;
+        }
         // Move to next synchronization point
         continue;
       }
       // Missied the synchronization point
       else if (para->mytime->t-t_cosim>SMALL) {
         sprintf(msg, 
-                "ffd_solver(): Mis-matched synchronization step at %fs with t_cosim=%f, dt_syn=%fs, dt_ffd=%fs.",
-                para->mytime->t, t_cosim, para->cosim->modelica->dt, para->mytime->dt);
+          "ffd_solver(): Mis-matched synchronization step with "
+                "t_ffd=%f[s], t_cosim=%f[s], dt_syn=%f[s], dt_ffd=%f[s].",
+                para->mytime->t, t_cosim, 
+                para->cosim->modelica->dt, para->mytime->dt);
         ffd_log(msg, FFD_ERROR);
         sprintf(msg, "para->mytime->t - t_cosim=%lf", para->mytime->t - t_cosim);
         ffd_log(msg, FFD_ERROR);
         return 1;
       }
-      else 
-        continue; // Continue
+      // Added data for future average
+      else {
+        // Average the data on the boundary surface
+        if(average_bc_area(para, var, BINDEX)!=0) {
+          ffd_log("FFD_solver(): "
+            "Could not average the data on boundary.",
+            FFD_ERROR);
+          return 1;
+        }
+        for(i=0; i<size; i++) {
+          u_mean[i] += u[i];
+          v_mean[i] += v[i];
+          w_mean[i] += w[i];
+          var[TEMPM][i] += var[TEMP][i];
+        }
+
+
+
+
+      }
     }
-    //-----------------------------------------------------------------------
-    // FFD internal control if it is not cosimulation
-    else
+    //-------------------------------------------------------------------------
+    // Process for single simulation
+    //-------------------------------------------------------------------------
+    else {
+      // Start to record data for calculating mean velocity if needed
+      if(para->mytime->t>t_steady && cal_mean==0) {
+        cal_mean = 1;
+        step_current += 1;
+        ffd_log("FFD_solver(): Start to calculate mean properties.", FFD_NORMAL);
+      }   
+
+      if(cal_mean==1)
+        for(i=0; i<size; i++) {
+          u_mean[i] += u[i];
+          v_mean[i] += v[i];
+          w_mean[i] += w[i];
+        }
+      
       flag = para->mytime->step_current < step_total ? 1 : 0;
+    }    
   } // End of While loop  
 
-  
   return 0;
 } // End of FFD_solver( ) 
 

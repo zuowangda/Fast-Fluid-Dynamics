@@ -41,6 +41,7 @@ static INPU_DATA inpu;
 static OUTP_DATA outp1;
 static BC_DATA bc;
 static SOLV_DATA solv;
+static SENSOR_DATA sens;
 
 clock_t start, end;
 
@@ -356,6 +357,7 @@ DWORD WINAPI ffd(PVOID p){
   para.mytime = &mytime;
   para.bc     = &bc;
   para.solv   = &solv;
+  para.sens   = &sens;
   para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
   para.cosim = (CosimulationData *) p;
 
