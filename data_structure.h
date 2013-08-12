@@ -316,6 +316,7 @@ typedef struct {
   REAL t_steady; // Necessary time for reaching the steady state from initial condition
   int step_total; // The interval of iteration step to output data
   int step_current; // Internal: current iteration step
+  int step_mean; // Internal: steps for time average
   clock_t t_start; // Internal: clock time when simulation starts
   clock_t t_end; // Internal: clock time when simulaiton ends
 }TIME_DATA;

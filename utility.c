@@ -376,6 +376,156 @@ REAL average_volume(PARA_DATA *para, REAL **var, REAL *psi) {
 }// End of average_volume( )
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Calcuate time averaged value
+///
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int average_time(PARA_DATA *para, REAL **var) {
+  int i, j, k;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  int step = para->mytime->step_mean;
+
+  FOR_ALL_CELL
+    var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / step;
+    var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / step;
+    var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / step;
+    var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / step;
+  END_FOR
+  
+  // Wall surfaces
+  for(i=0; i<para->bc->nb_wall; i++) 
+    para->bc->temHeaMean[i] = para->bc->temHeaMean[i] / step;
+
+  // Fluid ports
+  for(i=0; i<para->bc->nb_port; i++) {
+    para->bc->TPortMean[i] = para->bc->TPortMean[i] / step;
+    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
+    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
+    /*
+    for(j=0; j<para->bc->nb_Xi; j++) 
+      para->XiPortMean[i][j] = para->XiPortMean[i][j] / step;
+    for(j=0; j<para->bc->nb_C; j++) 
+      para->CPortMean[i][j] = para->CPortMean[i][j] / step;
+    */
+  }
+
+  // Sensor data
+  para->sens->TRooMean = para->sens->TRooMean / step;
+  for(i=0; i<para->sens->nb_sensor; i++) 
+    para->sens->senValMean[i] = para->sens->senValMean[i] / step;
+
+  return 0;
+} // End of average_time()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Reset time averaged value to 0
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int reset_time_averaged_data (PARA_DATA *para, REAL **var) {
+  int i, j, k;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+
+  FOR_ALL_CELL
+    var[VXM][IX(i,j,k)] = 0;
+    var[VYM][IX(i,j,k)] = 0;
+    var[VZM][IX(i,j,k)] = 0;
+    var[TEMPM][IX(i,j,k)] = 0;
+  END_FOR
+  
+  // Wall surfaces
+  for(i=0; i<para->bc->nb_wall; i++) 
+    para->bc->temHeaMean[i] = 0;
+
+  // Fluid ports
+  for(i=0; i<para->bc->nb_port; i++) {
+    para->bc->TPortMean[i] = 0;
+    para->bc->velPortMean[i] = 0;
+    para->bc->velPortMean[i] = 0;
+    /*
+    for(j=0; j<para->bc->nb_Xi; j++) 
+      para->XiPortMean[i][j] = 0;
+    for(j=0; j<para->bc->nb_C; j++) 
+      para->CPortMean[i][j] = 0;
+    */
+  }
+
+  // Sensor data
+  para->sens->TRooMean = 0;
+  for(i=0; i<para->sens->nb_sensor; i++) 
+    para->sens->senValMean[i] = 0;
+
+  //Reset the time step to 0
+  para->mytime->step_mean = 0;
+  return 0;
+} // End of reset_time_averaged_data()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Add time averaged value for the time average later on
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int add_time_averaged_data(PARA_DATA *para, REAL **var) {
+  int i, j;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  int size = (imax+2) * (jmax+2) * (kmax+2);
+
+  // All the cells
+  for(i=0; i<size; i++) {
+    var[VXM][i] += var[VX][i];
+    var[VYM][i] += var[VY][i];
+    var[VZM][i] += var[VZ][i];
+    var[TEMPM][i] += var[TEMP][i];
+  }
+
+  // Wall surfaces
+  for(i=0; i<para->bc->nb_wall; i++) 
+    para->bc->temHeaMean[i] += para->bc->temHeaAve[i];
+  
+  // Fluid ports
+  for(i=0; i<para->bc->nb_port; i++) {
+    para->bc->TPortMean[i] += para->bc->TPortAve[i];
+    para->bc->velPortMean[i] += para->bc->velPortAve[i];
+    para->bc->velPortMean[i] += para->bc->velPortAve[i];
+    /*
+    for(j=0; j<para->bc->nb_Xi; j++) 
+      para->XiPortMean[i][j] += para->XiPortAve[i][j];
+    for(j=0; j<para->bc->nb_C; j++) 
+      para->CPortMean[i][j] += para->CPortAve[i][j];
+    */
+  }
+    
+  // Sensor data
+  para->sens->TRooMean += para->sens->TRoo;
+  for(j=0; j<para->sens->nb_sensor; j++) 
+    para->sens->senValMean[j] += para->sens->senVal[j];
+
+  // Update the step
+  para->mytime->step_mean++;
+
+  return 0;
+} // End of add_time_averaged_data()
+
+///////////////////////////////////////////////////////////////////////////////
 /// Check the energy transfer rate through the wall to the air
 ///
 ///
@@ -481,53 +631,7 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX) {
 } // End of qwall()
 
 
-///////////////////////////////////////////////////////////////////////////////
-/// Calcuate time averaged value
-///
-///
-///\param para Pointer to FFD parameters
-///\param var Pointer to FFD simulation variables
-///
-///
-///\return 0 if no error occurred
-///////////////////////////////////////////////////////////////////////////////
-void average_time(PARA_DATA *para, REAL **var) {
-  int i, j, k;
-  int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int step = para->mytime->step_current;
 
-  FOR_ALL_CELL
-    var[VXM][IX(i,j,k)] = var[VXM][IX(i,j,k)] / step;
-    var[VYM][IX(i,j,k)] = var[VYM][IX(i,j,k)] / step;
-    var[VZM][IX(i,j,k)] = var[VZM][IX(i,j,k)] / step;
-    var[TEMPM][IX(i,j,k)] = var[TEMPM][IX(i,j,k)] / step;
-  END_FOR
-  
-  // Wall surfaces
-  for(i=0; i<para->bc->nb_wall; i++) 
-    para->bc->temHeaMean[i] = para->bc->temHeaMean[i] / step;
-
-  // Fluid ports
-  for(i=0; i<para->bc->nb_port; i++) {
-    para->bc->TPortMean[i] = para->bc->TPortMean[i] / step;
-    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
-    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
-    /*
-    for(j=0; j<para->bc->nb_Xi; j++) 
-      para->XiPortMean[i][j] = para->XiPortMean[i][j] / step;
-    for(j=0; j<para->bc->nb_C; j++) 
-      para->CPortMean[i][j] = para->CPortMean[i][j] / step;
-    */
-  }
-
-  // Sensor data
-  para->sens->TRooMean = para->sens->TRooMean / step;
-  for(i=0; i<para->sens->nb_sensor; i++) 
-    para->sens->senValMean[i] = para->sens->senValMean[i] / step;
-
-} // End of average_time()
 
 
 
