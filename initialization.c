@@ -265,6 +265,15 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
   }
 
   /****************************************************************************
+  | Set all the averaged data to 0
+  ****************************************************************************/
+  if(reset_time_averaged_data(para, var)!=0) {
+    ffd_log("FFD_solver(): Could not reset averaged data.",
+      FFD_ERROR);
+    return 1;
+  }
+
+  /****************************************************************************
   | Conduct the data exchange at the inital state of cosimulation 
   ****************************************************************************/
   if(para->solv->cosimulation==1) {
@@ -301,14 +310,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
       return 1;
     }
   }
-  /****************************************************************************
-  | Set all the averaged data to 0
-  ****************************************************************************/
-  if(reset_time_averaged_data(para, var)!=0) {
-    ffd_log("FFD_solver(): Could not reset averaged data.",
-      FFD_ERROR);
-    return 1;
-  }
+  
 
   return 0;
 } // set_initial_data()

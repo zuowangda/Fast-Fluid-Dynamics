@@ -35,16 +35,81 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
           "Received the following cosimulation parameters:",
            FFD_NORMAL);
 
-  sprintf(msg, "\tnSur=%d", para->cosim->para->nSur);
-  ffd_log(msg, FFD_NORMAL);
+  /****************************************************************************
+  | Read and compare the numbers of BC
+  ****************************************************************************/
+  // Compare number of wall boundaries
+  if(para->cosim->para->nSur==para->bc->nb_wall) {
+    sprintf(msg, "\tnSur=%d", para->cosim->para->nSur);
+    ffd_log(msg, FFD_NORMAL);
     
-  sprintf(msg, "\tnSen=%d", para->cosim->para->nSen);
-  ffd_log(msg, FFD_NORMAL);
+  }
+  else {
+    sprintf(msg, 
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of solid surfaces.", 
+            para->cosim->para->nSur, para->bc->nb_wall);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
+
+  // Compare the num ber of fluid ports
+  if(para->cosim->para->nPorts==para->bc->nb_port) {
+    sprintf(msg, "\tnPorts=%d", para->cosim->para->nPorts);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else {
+    sprintf(msg, 
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of fluid ports.", 
+            para->cosim->para->nPorts, para->bc->nb_port);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
+
+  // Compare the number of sensors
+  if(para->cosim->para->nSen==para->sens->nb_sensor) {
+    sprintf(msg, "\tnSen=%d", para->cosim->para->nSen);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else {
+    sprintf(msg, 
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of sensors.", 
+            para->cosim->para->nSen, para->sens->nb_sensor);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
+
+  // Compare the number of Xi
+  if(para->cosim->para->nXi==para->bc->nb_Xi) {
+    sprintf(msg, "\tnXi=%d", para->cosim->para->nXi);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else {
+    sprintf(msg, 
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of species.", 
+            para->cosim->para->nXi, para->bc->nb_Xi);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
+
+  // Compare the number of Xi
+  if(para->cosim->para->nC==para->bc->nb_C) {
+    sprintf(msg, "\tnC=%d", para->cosim->para->nC);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else {
+    sprintf(msg, 
+            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
+            "have different number of species.", 
+            para->cosim->para->nC, para->bc->nb_C);
+    ffd_log(msg, FFD_ERROR);
+    return 1;
+  }
 
   sprintf(msg, "\tnConExtWin=%d", para->cosim->para->nConExtWin);
-  ffd_log(msg, FFD_NORMAL);
-
-  sprintf(msg, "\tnPorts=%d", para->cosim->para->nPorts);
   ffd_log(msg, FFD_NORMAL);
 
   sprintf(msg, "\tsha=%d", para->cosim->para->sha);
@@ -83,24 +148,6 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
     ffd_log(msg, FFD_NORMAL); 
   }
 
-  // Compare number of boundaries
-  if(para->cosim->para->nSur!=para->bc->nb_wall) {
-    sprintf(msg, 
-            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
-            "have different number of solid surfaces.", 
-            para->cosim->para->nSur, para->bc->nb_wall);
-    ffd_log(msg, FFD_ERROR);
-    return 1;
-  }
-  else if(para->cosim->para->nPorts!=(para->bc->nb_inlet+para->bc->nb_outlet)) {
-    sprintf(msg, 
-            "read_cosim_parameter(): Modelica(%d) and FFD(%d) "
-            "have different number of fluid ports.", 
-            para->cosim->para->nPorts, para->bc->nb_inlet+para->bc->nb_outlet);
-    ffd_log(msg, FFD_ERROR);
-    return 1;
-  }
-  
   if(compare_boundary_names(para)!=0) {
     ffd_log("read_cosim_parameter(): The boundary names were not consistent.",
     FFD_ERROR);
@@ -125,6 +172,12 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///////////////////////////////////////////////////////////////////////////////
 int write_cosim_data(PARA_DATA *para, REAL **var) {
   int i, j, id;
+  
+  ffd_log("-------------------------------------------------------------------",
+          FFD_NORMAL);
+  ffd_log("writed_cosim_parameter(): "
+          "Start to write the following cosimulation data:",
+           FFD_NORMAL);
 
   /****************************************************************************
   | Wait if the previosu data has not been read by Modelica
@@ -144,17 +197,17 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
           para->cosim->ffd->t);
   ffd_log(msg, FFD_NORMAL);
   
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Set the time and space averaged temperature of space
   | Convert T from degC to K
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   para->cosim->ffd->TRoo = average_volume(para, var, var[TEMPM]) + 273.15; 
   sprintf(msg, "\tAveraged Room temperature %f[K]", para->cosim->ffd->TRoo);
   ffd_log(msg, FFD_NORMAL);
 
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Set temperature of shading devices
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   if(para->cosim->para->sha==1) {
     ffd_log("\tTemperature of the shade:", FFD_NORMAL);
     for(i=0; i<para->cosim->para->nConExtWin; i++) {
@@ -166,29 +219,43 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
     }
   }
 
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Set data for fluid ports
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   ffd_log("\tFlow information at the ports:", FFD_NORMAL);
   for(i=0; i<para->bc->nb_port; i++) {
     // Get the corresponding ID in modelica
     id = para->bc->portId[i];
     // Assign the temperature
     para->cosim->ffd->TPor[id] = para->bc->TPortMean[i] + 273.15;
-    sprintf(msg, "%s: %f[K]",
+    sprintf(msg, "\t\t%s: %f[K]",
             para->cosim->para->portName[i], para->cosim->ffd->TPor[i]);
     ffd_log(msg, FFD_NORMAL);
-
     // Assign the Xi
     for(j=0; j<para->bc->nb_Xi; j++)
       para->cosim->ffd->XiPor[id][j] = para->bc->XiPortMean[i][j];
     // Assign the C
     for(j=0; j<para->bc->nb_C; j++)
-      para->cosim->ffd->CPor[id][j] = para->bc->CPortMean[i][j];
- 
+      para->cosim->ffd->CPor[id][j] = para->bc->CPortMean[i][j]; 
   }
 
+  /****************************************************************************
+  | Set data for solid surfaces
+  ****************************************************************************/
+  ffd_log("\tInformation at solid surfaces:", FFD_NORMAL);
+  for(i=0; i<para->bc->nb_wall; i++) {
+    id = para->bc->wallId[i];
+    para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i];
+    sprintf(msg, "\t\t%s: %f",
+            para->bc->wallName[i], para->bc->temHeaMean[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  /****************************************************************************
+  | Inform Modelica know the data is updated
+  ****************************************************************************/
   para->cosim->ffd->flag = 1;
+
   return 0;
 } // End of write_cosim_data()
 
