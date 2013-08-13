@@ -249,7 +249,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL *af = var[AF], *ab = var[AB],*b=var[B], *q = var[QFLUX];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
   REAL axy, ayz, azx; // Area of surfaces
-  REAL coeff_h=para->prob->coeff_h;
+  REAL coeff_h = para->prob->coeff_h;
 
   REAL coeq = (REAL) 0.001; // Fixme: Check why times 0.001 for heat flux
 
@@ -268,39 +268,40 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     | Inlet boundary
     | 0: Inlet, -1: Fluid,  1: Solid Wall or Block, 2: Outlet
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==0) psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
+    if(flagp[IX(i,j,k)]==INLET) psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
     /*-------------------------------------------------------------------------
     | Solid wall or block
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==1) {
-      // ---------------------------------------------------------------------
-      // Constant temperature
+    if(flagp[IX(i,j,k)]==SOLID) {
+      /*......................................................................
+      | Constant temperature
+      ......................................................................*/
       if(BINDEX[3][it]==1) {
         psi[IX(i,j,k)] = var[TEMPBC][IX(i,j,k)];
 
         // West boundary wall and eastern neighbor cell is fluid
         if(i==0) {  
-          if(flagp[IX(i+1,j,k)]<0) aw[IX(i+1,j,k)] = coeff_h * ayz;
+          if(flagp[IX(i+1,j,k)]==FLUID) aw[IX(i+1,j,k)] = coeff_h * ayz;
         }
         // East boundary wall and western neigbor cell is fluid
         else if(i==imax+1) {
-          if(flagp[IX(i-1,j,k)]<0) ae[IX(i-1,j,k)] = coeff_h * ayz;
+          if(flagp[IX(i-1,j,k)]==FLUID) ae[IX(i-1,j,k)] = coeff_h * ayz;
         }
         // Between West and East
         else {
           // Eastern neighbor cell is fluid
-          if(flagp[IX(i+1,j,k)]<0) aw[IX(i+1,j,k)] = coeff_h * ayz;
+          if(flagp[IX(i+1,j,k)]==FLUID) aw[IX(i+1,j,k)] = coeff_h * ayz;
           // Western neigbor cell is fluid
-          if(flagp[IX(i-1,j,k)]<0) ae[IX(i-1,j,k)] = coeff_h * ayz;
+          if(flagp[IX(i-1,j,k)]==FLUID) ae[IX(i-1,j,k)] = coeff_h * ayz;
         }
         // South wall boundary and northern neighbor is fluid
         if(j==0) {
-          if(flagp[IX(i,j+1,k)]<0) as[IX(i,j+1,k)] = coeff_h * azx;
+          if(flagp[IX(i,j+1,k)]==FLUID) as[IX(i,j+1,k)] = coeff_h * azx;
         }
         // North wall boundary and southern neighbor is fluid
         else if(j==jmax+1) {
-          if(flagp[IX(i,j-1,k)]<0) an[IX(i,j-1,k)] = coeff_h * azx;
+          if(flagp[IX(i,j-1,k)]==FLUID) an[IX(i,j-1,k)] = coeff_h * azx;
         }
         // Between South and North
         else {
@@ -325,8 +326,9 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           if(flagp[IX(i,j,k-1)]<0) af[IX(i,j,k-1)] = coeff_h * axy;
         } 
       } // End of contant temperature wall
-      //-----------------------------------------------------------------------
-      // Constant heat flux
+      /*.......................................................................
+      | Constant heat flux
+      .......................................................................*/
       if(BINDEX[3][it]==0) {
         // West wall boundary and eastern neighbor is fluid
         if(i==0) {
@@ -427,7 +429,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     /*-------------------------------------------------------------------------
     | Outlet boundary
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==2) {
+    if(flagp[IX(i,j,k)]==OUTLET) {
       // West
       if(i==0) {
         aw[IX(i+1,j,k)] = 0;
