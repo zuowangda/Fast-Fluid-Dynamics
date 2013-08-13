@@ -245,9 +245,17 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
   ffd_log("\tInformation at solid surfaces:", FFD_NORMAL);
   for(i=0; i<para->bc->nb_wall; i++) {
     id = para->bc->wallId[i];
-    para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i];
-    sprintf(msg, "\t\t%s: %f",
-            para->bc->wallName[i], para->bc->temHeaMean[i]);
+
+    if(para->cosim->para->bouCon[id]==2) {
+      para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i];
+      sprintf(msg, "\t\t%s: %f[K]",
+              para->bc->wallName[i], para->bc->temHeaMean[i]);
+    }
+    else {
+      para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i] * para->bc->AWall[i];
+      sprintf(msg, "\t\t%s: %f[W]",
+              para->bc->wallName[i], para->cosim->ffd->temHea[id]);
+    }
     ffd_log(msg, FFD_NORMAL);
   }
 
@@ -500,68 +508,86 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
-
   int i, j, k, it, id;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *temHea;
 
-  ffd_log("assign_thermal_bc(): Thermal conditions for solid surfaces:",
+  /****************************************************************************
+  | Assign the boundary conditon if there is a solid surface
+  ****************************************************************************/
+  if(para->bc->nb_wall>0) {
+    ffd_log("assign_thermal_bc(): Thermal conditions for solid surfaces:",
           FFD_NORMAL);
-  //---------------------------------------------------------------------------
-  // Convert the data from Modelica oder to FFD order
-  //---------------------------------------------------------------------------
-  for(j=0; j<para->bc->nb_wall; j++) {
-    i = para->bc->wallId[j];
-    switch(para->cosim->para->bouCon[i]) {
-      case 1:
-        para->bc->temHea[j] = para->cosim->modelica->temHea[i] - 273.15;
-        sprintf(msg, "\t%s: T=%f[degC]", 
-          para->bc->wallName[j], 
-          para->bc->temHea[j]);
-        ffd_log(msg, FFD_NORMAL);
-        break;
-      case 2:
-        para->bc->temHea[j] = para->cosim->modelica->temHea[i]/para->bc->AWall[j];
-        sprintf(msg, "\t%s: Q_dot=%f[W/m2]", 
-          para->bc->wallName[j], 
-          para->bc->temHea[j]);
-        ffd_log(msg, FFD_NORMAL);
-        break;
-      default:
-        sprintf(msg, 
-        "Invalid value (%d) for thermal boundary condition. 1: Fixed T; 2: Fixed heat flux",
-        para->cosim->para->bouCon[i]);        
-        ffd_log(msg, FFD_ERROR);
-        return 1;
+    temHea = (REAL *) malloc(para->bc->nb_wall*sizeof(REAL));
+    if(temHea==NULL) {
+      ffd_log("assign_thermal_bc(): Could not allocate memory for temHea.",
+              FFD_ERROR);
+      return 1;
     }
-  }
-  //---------------------------------------------------------------------------
-  // Assign the BC
-  //---------------------------------------------------------------------------
-  for(it=0; it<para->geom->index; it++) {    
-    i = BINDEX[0][it];
-    j = BINDEX[1][it];
-    k = BINDEX[2][it];
-    id = BINDEX[4][it];
-
-    if(var[FLAGP][IX(i,j,k)]==SOLID) 
-      switch(BINDEX[3][it]) {
-        case 1: 
-          // Need to convert the T from K to degC
-          var[TEMPBC][IX(i,j,k)] = para->bc->temHea[id];
+    //-------------------------------------------------------------------------
+    // Convert the data from Modelica order to FFD order
+    //-------------------------------------------------------------------------
+    for(j=0; j<para->bc->nb_wall; j++) {
+      i = para->bc->wallId[j];
+      switch(para->cosim->para->bouCon[i]) {
+        case 1: // Temperature
+          temHea[j] = para->cosim->modelica->temHea[i] - 273.15;
+          sprintf(msg, "\t%s: T=%f[degC]", 
+            para->bc->wallName[j], temHea[j]);
+          ffd_log(msg, FFD_NORMAL);
           break;
-        case 0:
-          var[QFLUX][IX(i,j,k)] = para->bc->temHea[id];
+        case 2: // Heat flow rate
+          temHea[j] = para->cosim->modelica->temHea[i] / para->bc->AWall[j];
+          sprintf(msg, "\t%s: Q_dot=%f[W/m2]", 
+            para->bc->wallName[j], temHea[j]);
+          ffd_log(msg, FFD_NORMAL);
           break;
         default:
-          sprintf(msg,
-            "assign_thermal_bc(): Thermal bc value BINDEX[3][%d]=%d at [%d,%d,%d] was not valid",
-            it, BINDEX[3][it], i, j, k);
+          sprintf(msg, 
+          "Invalid value (%d) for thermal boundary condition. "
+          "Expected value are 1->Fixed T; 2->Fixed heat flux",
+          para->cosim->para->bouCon[i]);        
           ffd_log(msg, FFD_ERROR);
           return 1;
+      }
     }
-  }
+    //-------------------------------------------------------------------------
+    // Assign the BC
+    //-------------------------------------------------------------------------
+    for(it=0; it<para->geom->index; it++) {    
+      i = BINDEX[0][it];
+      j = BINDEX[1][it];
+      k = BINDEX[2][it];
+      id = BINDEX[4][it];
+
+      if(var[FLAGP][IX(i,j,k)]==SOLID) 
+        switch(BINDEX[3][it]) {
+          case 1: 
+            // Need to convert the T from K to degC
+            var[TEMPBC][IX(i,j,k)] = temHea[id];
+            break;
+          case 0:
+            var[QFLUX][IX(i,j,k)] = temHea[id];
+            break;
+          default:
+            sprintf(msg,
+              "assign_thermal_bc(): Thermal bc value BINDEX[3][%d]=%d "
+              "at [%d,%d,%d] was not valid.",
+              it, BINDEX[3][it], i, j, k);
+            ffd_log(msg, FFD_ERROR);
+            return 1;
+      } // End of switch(BINDEX[3][it])
+    }
+
+    free(temHea);
+  } // End of if(para->bc->nb_wall>0) 
+  /****************************************************************************
+  | No action since there is not a solid surface
+  ****************************************************************************/
+  else
+    ffd_log("assign_thermal_bc(): No solid surfaces:", FFD_NORMAL);
 
   return 0;
 } // End of assign_thermal_bc()

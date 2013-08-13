@@ -307,13 +307,25 @@ int average_bc_area(PARA_DATA *para, REAL **var, int **BINDEX) {
       A_tmp = area_xy(para, var, i, j, k);
     }
 
+    /*-------------------------------------------------------------------------
+    | Set the thermal conditions data for Modelica.
+    | In FFD simulation, the BINDEX[3][it] indicates: 1->T, 0->Heat Flux.
+    | Those BINDEX[3][it] will be reset according to the Modelica data 
+    | para->comsim->para->bouCon (1->Heat Flux, 2->T). 
+    | Here is to give the Modelica the missing data (For instance, if Modelica 
+    | send FFD Temperature, FFD should then send Modelica Heat Flux).
+    -------------------------------------------------------------------------*/
     if(var[FLAGP][IX(i,j,k)]==SOLID) {
       switch(BINDEX[3][it]) {
-        case 0:
-          para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
-          break;
-        case 1:
+        // FFD uses heat flux as BC to compute temperature
+        // Then send Modelica the tempearture
+        case 0: 
           para->bc->temHeaAve[bcid] += var[TEMP][IX(i,j,k)]*A_tmp;
+          break;
+        // FFD uses temperature as BC to compute heat flux
+        // Then send Modelica the heat flux
+        case 1: 
+          para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
           break;
         default:
           sprintf(msg, "average_bc_area(): Thermal boundary (%d)"

@@ -88,8 +88,7 @@ int set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
-                int **BINDEX)
-{
+                int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;

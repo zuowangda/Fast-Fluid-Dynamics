@@ -108,7 +108,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       |             but already miss the synchronization point
       | Action:     Stop simulation
       .......................................................................*/
-      else if (para->mytime->t-t_cosim>SMALL) {
+      else if(para->mytime->t-t_cosim>SMALL) {
         sprintf(msg, 
           "ffd_solver(): Mis-matched synchronization step with "
                 "t_ffd=%f[s], t_cosim=%f[s], dt_syn=%f[s], dt_ffd=%f[s].",
