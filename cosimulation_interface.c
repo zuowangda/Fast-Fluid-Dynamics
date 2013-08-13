@@ -281,15 +281,34 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   ffd_log("-------------------------------------------------------------------",
           FFD_NORMAL);
-  ffd_log("read_cosim_data(): Start to read data from shared memory.", 
+  ffd_log("read_cosim_data(): Start to read data from Modelica.", 
           FFD_NORMAL);
-  // Wait for data to be updated by the other program
+  /****************************************************************************
+  | Wait for data to be updated by the other program
+  ****************************************************************************/
   while(para->cosim->modelica->flag==0) {
-    sprintf(msg, 
-            "read_cosim_data(): Data is not ready with flag=%d",
-            para->cosim->modelica->flag);
-    ffd_log(msg, FFD_NORMAL);
-    Sleep(1000);
+    /*-------------------------------------------------------------------------
+    | Modelica calls to stop the simulation
+    -------------------------------------------------------------------------*/
+    if(para->cosim->para->flag==0) {
+      sprintf(msg, 
+              "read_cosim_data(): Modelica stops the simulation with "
+              "para->cosim->para->flag=%d",
+              para->cosim->para->flag);
+      ffd_log(msg, FFD_NORMAL);
+      return 2;
+    }
+    /*-------------------------------------------------------------------------
+    | Otherwise, continue waiting for data
+    -------------------------------------------------------------------------*/
+    else {
+      sprintf(msg, 
+              "read_cosim_data(): Data is not ready with "
+              "para->cosim->modelica->flag=%d",
+              para->cosim->modelica->flag);
+      ffd_log(msg, FFD_NORMAL);
+      Sleep(1000);
+    }
   }
 
   sprintf(msg, 
@@ -569,7 +588,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
             var[TEMPBC][IX(i,j,k)] = temHea[id];
             break;
           case 0:
-            var[QFLUX][IX(i,j,k)] = temHea[id];
+            var[QFLUXBC][IX(i,j,k)] = temHea[id];
             break;
           default:
             sprintf(msg,

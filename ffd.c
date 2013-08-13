@@ -404,20 +404,20 @@ DWORD WINAPI ffd(void *p){
     average_time(&para, var);
   
   // Fixme: Simulaiton stops here
-  //if(write_unsteady(&para, var, "unsteady")!=0) {
-  //  ffd_log("FFD_solver(): Could not write the file unsteady.plt.", FFD_ERROR);
-  //}
+  if(write_unsteady(&para, var, "unsteady")!=0) {
+    ffd_log("FFD_solver(): Could not write the file unsteady.plt.", FFD_ERROR);
+  }
 
-  //if(write_tecplot_data(&para, var, "result")!=0) {
-  //  ffd_log("FFD_solver(): Could not write the file result.plt.", FFD_ERROR);
-  //}
+  if(write_tecplot_data(&para, var, "result")!=0) {
+    ffd_log("FFD_solver(): Could not write the file result.plt.", FFD_ERROR);
+  }
 
 
-  //if(para.outp->version == DEBUG)
-  //  write_tecplot_all_data(&para, var, "result_all");
+  if(para.outp->version == DEBUG)
+    write_tecplot_all_data(&para, var, "result_all");
 
-  // Wrtie the data in SCI format
-  //write_SCI(&para, var, "output");
+  // Write the data in SCI format
+  write_SCI(&para, var, "output");
 
   // Free the memory
   free_data(var);
@@ -426,9 +426,11 @@ DWORD WINAPI ffd(void *p){
   // End the simulation
   if(para.outp->version==DEBUG || para.outp->version==DEMO) {}//getchar();
 
-  if(para.solv->cosimulation==1)
-    // Inform Modelica the stopping command has been received 
+  // Inform Modelica the stopping command has been received 
+  if(para.solv->cosimulation==1) {
     para.cosim->para->flag = 2; 
+    ffd_log("ffd(): Sent stopping signal to Modelica", FFD_NORMAL);
+  }
 
   ffd_log("ffd(): Exit successfully.", FFD_NORMAL);
   //exit (0);

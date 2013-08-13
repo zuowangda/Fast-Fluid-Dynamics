@@ -42,7 +42,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
   double t_cosim;
-  int flag;
+  int flag, tmp;
 
   if(para->solv->cosimulation == 1)
     t_cosim = para->mytime->t + para->cosim->modelica->dt;
@@ -75,6 +75,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
                 "ffd_solver(): Received stop command from Modelica at t = %f[s]",
                 para->mytime->t);
         ffd_log(msg, FFD_NORMAL);
+        continue;
       }
       
       /*.......................................................................
@@ -83,13 +84,24 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       .......................................................................*/
       if(fabs(para->mytime->t - t_cosim)<SMALL) {
         // Average the FFD simulation data
-        if(average_time(para, var)!=0)
+        if(average_time(para, var)!=0) {
           ffd_log("FFD_solver(): Could not average the data over time.",
             FFD_ERROR);
           return 1;
+        }
 
         //Exchange the data for cosimulation
-        read_cosim_data(para, var, BINDEX);
+        tmp = read_cosim_data(para, var, BINDEX);
+        if(tmp==2) {
+          flag = 0;
+          ffd_log("FFD_solver(): Modelica stops the cosimulation.", FFD_NORMAL);
+          continue;
+        }
+        else if(tmp!=0) {
+          ffd_log("FFD_solver(): Could not read cosimulation data.", FFD_ERROR);
+          return 1;
+        }
+
         write_cosim_data(para, var);
         sprintf(msg, "ffd_solver(): Synchronized data at t=%f[s]\n", para->mytime->t);
         ffd_log(msg, FFD_NORMAL);
