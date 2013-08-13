@@ -243,7 +243,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
       END_FOR
       break;
     /*-------------------------------------------------------------------------
-    | Z-velocity
+    | Scalar Variable
     -------------------------------------------------------------------------*/
     case TEMP:
     case DEN:

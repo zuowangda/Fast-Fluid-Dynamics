@@ -39,6 +39,11 @@
 #include "utility.h"
 #endif
 
+#ifndef _CHEN_ZERO_EQU_MODEL_H
+#define _CHEN_ZERO_EQU_MODEL_H
+#include "chen_zero_equ_model.h"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Entrance of setting boundary conditions
 ///
@@ -128,3 +133,17 @@ int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX);
 ///\return Mass flow difference divided by the outflow area
 ///////////////////////////////////////////////////////////////////////////////
 REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Calculate convective hrat transfer coefficient
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param i I-index of the cell
+///\param j J-index of the cell
+///\param k K-index of the cell
+///\param D distance from the cell center to the wall
+///
+///\return Mass flow difference divided by the outflow area
+///////////////////////////////////////////////////////////////////////////////
+REAL h_coef(PARA_DATA *para, REAL **var, int i, int j, int k, REAL D);

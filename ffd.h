@@ -59,7 +59,7 @@
 #endif
 
 #ifdef _MSC_VER
-DWORD WINAPI ffd(PVOID p);
+DWORD WINAPI ffd(void* p);
 #else // Fixme: Add function for linux?
 
 #endif

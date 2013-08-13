@@ -344,7 +344,7 @@ static void reshape_func(int width, int height) {
    ffd --- main routine
 ******************************************************************************/
 //int main(){
-DWORD WINAPI ffd(PVOID p){ 
+DWORD WINAPI ffd(void *p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
   
   printf("Entered WorkerThreadProc with tid %lu\n", workerID);
