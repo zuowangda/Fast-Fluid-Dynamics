@@ -246,11 +246,13 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
-  REAL *af = var[AF], *ab = var[AB],*b=var[B], *q = var[QFLUX];
+  REAL *af = var[AF], *ab = var[AB], *b=var[B], 
+       *qflux = var[QFLUX], *qfluxbc = var[QFLUXBC];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
   REAL axy, ayz, azx; // Area of surfaces
-  REAL coeff_h, D;
-  REAL coeq = (REAL) 0.001; // Fixme: Check why times 0.001 for heat flux
+  REAL h;
+  REAL rhoCp_1 = 1/ (para->prob->rho * para->prob->Cp);
+  REAL D;
 
   REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
        *flagv = var[FLAGV], *flagw = var[FLAGW];
@@ -287,20 +289,18 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         if(i==0) { 
           if(flagp[IX(i+1,j,k)]==FLUID) {
             D = 0.5 * length_x(para,var,i+1,j,k);
-            coeff_h = h_coef(para,var,i+1,j,k,D);
-            aw[IX(i+1,j,k)] = coeff_h * ayz;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i+1,j,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i+1,j,k,D);
+            aw[IX(i+1,j,k)] = h * rhoCp_1 * ayz;
+            qflux[IX(i,j,k)] = h * (psi[IX(i+1,j,k)]-psi[IX(i,j,k)]);
           }
         } // End of if(i==0)
         // East boundary wall and western neigbor cell is fluid
         else if(i==imax+1) {
           if(flagp[IX(i-1,j,k)]==FLUID) {
             D = 0.5 * length_x(para,var,i-1,j,k);
-            coeff_h = h_coef(para,var,i-1,j,k,D);
-            ae[IX(i-1,j,k)] = coeff_h * ayz;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i-1,j,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i-1,j,k,D);
+            ae[IX(i-1,j,k)] = h * rhoCp_1 * ayz;
+            qflux[IX(i,j,k)] = h * (psi[IX(i-1,j,k)]-psi[IX(i,j,k)]);
           }
         } // End of else if(i==imax+1)
         // Between West and East
@@ -309,38 +309,34 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           // Eastern neighbor cell is fluid
           if(flagp[IX(i+1,j,k)]==FLUID) {
             D = 0.5 * length_x(para,var,i+1,j,k);
-            coeff_h = h_coef(para,var,i+1,j,k,D);
-            aw[IX(i+1,j,k)] = coeff_h * ayz;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i+1,j,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i+1,j,k,D);
+            aw[IX(i+1,j,k)] = h * rhoCp_1 * ayz;
+            qflux[IX(i,j,k)] = h * (psi[IX(i+1,j,k)]-psi[IX(i,j,k)]);
           }
           // Western neigbor cell is fluid
           if(flagp[IX(i-1,j,k)]==FLUID) {
             D = 0.5 * length_x(para,var,i-1,j,k);
-            coeff_h = h_coef(para,var,i-1,j,k,D);
-            ae[IX(i-1,j,k)] = coeff_h * ayz;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i-1,j,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i-1,j,k,D);
+            ae[IX(i-1,j,k)] = h * rhoCp_1 * ayz;
+            qflux[IX(i,j,k)] = h * (psi[IX(i-1,j,k)]-psi[IX(i,j,k)]);
           }
         } // End of 0<i<imax+1
         // South wall boundary and northern neighbor is fluid
         if(j==0) {
           if(flagp[IX(i,j+1,k)]==FLUID) {
             D = 0.5 * length_y(para,var,i,j+1,k);
-            coeff_h = h_coef(para,var,i,j+1,k,D);
-            as[IX(i,j+1,k)] = coeff_h * azx;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j+1,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j+1,k,D);
+            as[IX(i,j+1,k)] = h * rhoCp_1 * azx;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j+1,k)]-psi[IX(i,j,k)]);
           }
         }
         // North wall boundary and southern neighbor is fluid
         else if(j==jmax+1) {
           if(flagp[IX(i,j-1,k)]==FLUID) {
             D = 0.5 * length_y(para,var,i,j-1,k);
-            coeff_h = h_coef(para,var,i,j-1,k,D);
-            an[IX(i,j-1,k)] = coeff_h * azx;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j-1,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j-1,k,D);
+            an[IX(i,j-1,k)] = h * rhoCp_1 * azx;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j-1,k)]-psi[IX(i,j,k)]);
           }
         }
         // Between South and North
@@ -348,38 +344,34 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           // Southern neighbor is fluid
           if(flagp[IX(i,j-1,k)]==FLUID) {
             D = 0.5 * length_y(para,var,i,j-1,k);
-            coeff_h = h_coef(para,var,i,j-1,k,D);
-            an[IX(i,j-1,k)] = coeff_h * azx;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j-1,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j-1,k,D);
+            an[IX(i,j-1,k)] = h * rhoCp_1 * azx;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j-1,k)]-psi[IX(i,j,k)]);
           }
           // Northern neighbor is fluid
           if(flagp[IX(i,j+1,k)]==FLUID) {
             D = 0.5 * length_y(para,var,i,j+1,k);
-            coeff_h = h_coef(para,var,i,j+1,k,D);
-            as[IX(i,j+1,k)] = coeff_h * azx;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j+1,k)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j+1,k,D);
+            as[IX(i,j+1,k)] = h * rhoCp_1 * azx;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j+1,k)]-psi[IX(i,j,k)]);
           }
         } 
         // Floor and ceiling neighbor is fluid
         if(k==0) {
           if(flagp[IX(i,j,k+1)]==FLUID) {
             D = 0.5 * length_z(para,var,i,j,k+1);
-            coeff_h = h_coef(para,var,i,j,k+1,D);
-            ab[IX(i,j,k+1)] = coeff_h * axy;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j,k+1)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j,k+1,D);
+            ab[IX(i,j,k+1)] = h * rhoCp_1 * axy;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j,k+1)]-psi[IX(i,j,k)]);
           }
         }
         // Ceilling and floor neighbor is fluid
         else if(k==kmax+1) {
           if(flagp[IX(i,j,k-1)]==FLUID) {
             D = 0.5 * length_z(para,var,i,j,k-1);
-            coeff_h = h_coef(para,var,i,j,k-1,D);
-            af[IX(i,j,k-1)] = coeff_h * axy; 
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j,k-1)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j,k-1,D);
+            af[IX(i,j,k-1)] = h * rhoCp_1 * axy; 
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j,k-1)]-psi[IX(i,j,k)]);
           }
         }
         // Between Floor and Ceiling
@@ -387,18 +379,16 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
           // Ceiling neighbor is fluid
           if(flagp[IX(i,j,k+1)]==FLUID) {
             D = 0.5 * length_z(para,var,i,j,k+1);
-            coeff_h = h_coef(para,var,i,j,k+1,D);
-            ab[IX(i,j,k+1)] = coeff_h * axy;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j,k+1)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j,k+1,D);
+            ab[IX(i,j,k+1)] = h * rhoCp_1 * axy;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j,k+1)]-psi[IX(i,j,k)]);
           }
           // Floor neighbor is fluid
           if(flagp[IX(i,j,k-1)]==FLUID) {
             D = 0.5 * length_z(para,var,i,j,k-1);
-            coeff_h = h_coef(para,var,i,j,k-1,D);
-            af[IX(i,j,k-1)] = coeff_h * axy;
-            var[QFLUX][IX(i,j,k)] = coeff_h 
-                                  * (psi[IX(i,j,k-1)]-psi[IX(i,j,k)]);
+            h = h_coef(para,var,i,j,k-1,D);
+            af[IX(i,j,k-1)] = h * rhoCp_1 * axy;
+            qflux[IX(i,j,k)] = h * (psi[IX(i,j,k-1)]-psi[IX(i,j,k)]);
           }
         } 
       } // End of contant temperature wall
@@ -410,93 +400,129 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         if(i==0) {
           if(flagp[IX(i+1,j,k)]==FLUID) {
             aw[IX(i+1,j,k)] = 0;
-            b[IX(i+1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)]);
+            D = 0.5 * length_z(para,var,i+1,j,k);
+            h = h_coef(para,var,i+1,j,k,D);
+            b[IX(i+1,j,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * ayz;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i+1,j,k)];
           }
         } // End of if(i==0)
         // East wall bounary and western neighbor is fluid
         else if(i==imax+1) {
           if(flagp[IX(i-1,j,k)]==FLUID) { 
             ae[IX(i-1,j,k)] = 0;
-            b[IX(i-1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i-1,j,k)]);
+            D = 0.5 * length_z(para,var,i-1,j,k);
+            h = h_coef(para,var,i-1,j,k,D);
+            b[IX(i-1,j,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * ayz;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i-1,j,k)];
           }
         } // End of else if(i==imax+1)
         // Between West and East
         else {
-          // Eastern neighbot is fluid
+          // Eastern neighbor is fluid
           if(flagp[IX(i+1,j,k)]==FLUID) {
             aw[IX(i+1,j,k)] = 0; 
-            b[IX(i+1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0+psi[IX(i+1,j,k)]);
+            D = 0.5 * length_z(para,var,i+1,j,k);
+            h = h_coef(para,var,i+1,j,k,D);
+            b[IX(i+1,j,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * ayz;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i+1,j,k)];
           }
           // Western neighbor is fluid
           if(flagp[IX(i-1,j,k)]==FLUID) {
             ae[IX(i-1,j,k)] = 0;
-            b[IX(i-1,j,k)] += coeq * q[IX(i,j,k)] * ayz;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i+1,j,k)]);
+            D = 0.5 * length_z(para,var,i-1,j,k);
+            h = h_coef(para,var,i-1,j,k,D);
+            b[IX(i-1,j,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * ayz;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i-1,j,k)];
           }
         } // End of else
         // South wall boundary and northern neighbor is fluid
         if(j==0) {
           if(flagp[IX(i,j+1,k)]==FLUID) {
             as[IX(i,j+1,k)] = 0;
-            b[IX(i,j+1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)]);
+            D = 0.5 * length_z(para,var,i,j+1,k);
+            h = h_coef(para,var,i,j+1,k,D);
+            b[IX(i,j+1,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * azx;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j+1,k)];
           }
         } 
         // North wall boundary and southern neighbor is fluid
         else if(j==jmax+1) {
           if(flagp[IX(i,j-1,k)]==FLUID) { 
-            an[IX(i,j-1,k)] = 0; 
-            b[IX(i,j-1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)]);
+            an[IX(i,j-1,k)] = 0;
+            D = 0.5 * length_z(para,var,i,j-1,k);
+            h = h_coef(para,var,i,j-1,k,D);
+            b[IX(i,j-1,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * azx;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j-1,k)];
           }
         }
         // Between South and North
         else {
           // Southern neighbor is fluid
           if(flagp[IX(i,j-1,k)]==FLUID) { 
-            an[IX(i,j-1,k)] =0; 
-            b[IX(i,j-1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j-1,k)]);
+            an[IX(i,j-1,k)] = 0;
+            D = 0.5 * length_z(para,var,i,j-1,k);
+            h = h_coef(para,var,i,j-1,k,D);
+            b[IX(i,j-1,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * azx;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j-1,k)];
           }
           // Northern neighbor is fluid
           if(flagp[IX(i,j+1,k)]==FLUID) { 
-            as[IX(i,j+1,k)] = 0; 
-            b[IX(i,j+1,k)] += coeq * q[IX(i,j,k)] * azx;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j+1,k)]);
+            as[IX(i,j+1,k)] = 0;
+            D = 0.5 * length_z(para,var,i,j+1,k);
+            h = h_coef(para,var,i,j+1,k,D);
+            b[IX(i,j+1,k)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * azx;
+            // get the temperature of solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j+1,k)];
           }
         } 
         // Floor boundary and ceiling neighbor is fluid
         if(k==0) {
           if(flagp[IX(i,j,k+1)]==FLUID) { 
             ab[IX(i,j,k+1)] = 0;
-            b[IX(i,j,k+1)] += coeq * q[IX(i,j,k)] * axy;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0+psi[IX(i,j,k+1)]);
+            D = 0.5 * length_z(para,var,i,j,k+1);
+            h = h_coef(para,var,i,j,k+1,D);
+            b[IX(i,j,k+1)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * axy;
+            // Get the temperature on the solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j,k+1)];
           }
         }
         // Ceiling boundary and floor neighbor is fluid
         else if(k==kmax+1) {
           if(flagp[IX(i,j,k-1)]==FLUID) { 
             af[IX(i,j,k-1)] = 0;
-            b[IX(i,j,k-1)] += coeq * q[IX(i,j,k)] *axy;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)]);
+            D = 0.5 * length_z(para,var,i,j,k-1);
+            h = h_coef(para,var,i,j,k-1,D);
+            b[IX(i,j,k-1)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * axy;
+            // Get the temperature on the solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j,k-1)];
           }
         }
         // Between Floor and Ceiling
         else {
           // Ceiling neighbor is fluid
           if(flagp[IX(i,j,k+1)]==FLUID) { 
-            ab[IX(i,j,k+1)] = 0; 
-            b[IX(i,j,k+1)] += coeq * q[IX(i,j,k)] * axy;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j,k+1)]);
+            ab[IX(i,j,k+1)] = 0;
+            D = 0.5 * length_z(para,var,i,j,k+1);
+            h = h_coef(para,var,i,j,k+1,D);
+            b[IX(i,j,k+1)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * axy;
+            // Get the temperature on the solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j,k+1)];
           } 
           // Floor neighbor is fluid
           if(flagp[IX(i,j,k-1)]==FLUID) { 
             af[IX(i,j,k-1)] = 0;
-            b[IX(i,j,k-1)] += coeq * q[IX(i,j,k)] * axy;
-            psi[IX(i,j,k)] = (REAL) (q[IX(i,j,k)]/4.0 + psi[IX(i,j,k-1)]);
+            D = 0.5 * length_z(para,var,i,j,k-1);
+            h = h_coef(para,var,i,j,k-1,D);
+            b[IX(i,j,k-1)] += rhoCp_1 * qfluxbc[IX(i,j,k)] * axy;
+            // Get the temperature on the solid surface
+            psi[IX(i,j,k)] = qfluxbc[IX(i,j,k)]/h + psi[IX(i,j,k-1)];
           } 
         } 
       } // End of constant heat flux
@@ -767,7 +793,7 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
 } // End of adjust_velocity()
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Calculate convective hrat transfer coefficient
+/// Calculate convective hrat transfer coefficient divided by 
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
