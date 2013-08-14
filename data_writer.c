@@ -157,6 +157,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
   fprintf(dataFile, "GX, GY, GZ, ");
   fprintf(dataFile, "FLAGU, FLAGV, FLAGW, FLAGP, ");
   fprintf(dataFile, "VXBC, VYBC, VZBV, TEMPBC, ");
+  fprintf(dataFile, "QFLUX, QFLUXBC, ");
   fprintf(dataFile, "AP, AN, AS, AW, AE, AF, AB, B, AP0, PP");
   fprintf(dataFile, "\n");
   fprintf(dataFile, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
@@ -189,6 +190,10 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
     fprintf(dataFile, "%f\t%f\t%f\t%f\t",
             var[VXBC][IX(i,j,k)], var[VYBC][IX(i,j,k)], 
             var[VZBC][IX(i,j,k)], var[TEMPBC][IX(i,j,k)]);
+    // Heat flux
+    fprintf(dataFile, "%f\t%f\t",
+            var[QFLUX][IX(i,j,k)], var[QFLUXBC][IX(i,j,k)]);
+
     // Coefficients
     fprintf(dataFile, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",
             var[AP][IX(i,j,k)], var[AN][IX(i,j,k)], var[AS][IX(i,j,k)], 
@@ -414,6 +419,11 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
     return 1;
   }
 
+  /****************************************************************************
+  | Identify the output varaible: 1 Yes; 0 No.
+  | IPR: Pressure; IU,IV,IW: velocity in x,y,z direction; 
+  | IT: Temperature; IC1,IC2,IC3,IC4,IC5,IC6,IC6: other scalars
+  ****************************************************************************/
   IPR = 1;
   IU = 1;
   IV = 1;
@@ -427,6 +437,9 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
   IC6 = 0;
   IC7 = 0;
 
+  /****************************************************************************
+  | Convert varaible value from cell surface to cell center
+  ****************************************************************************/
   for(j=0; j<=jmax+1; j++) {
     for(k=0; k<=kmax+1; k++) {
       u[IX(imax+1,j,k)] = u[IX(imax,j,k)];
@@ -459,7 +472,10 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
       }
     }
   }
-  
+
+  /****************************************************************************
+  | Compute pressure value for the cornor of the domian
+  ****************************************************************************/
   //W-S-B
   p[IX(0,0,0)] = (p[IX(0,1,0)]+p[IX(1,0,0)]+p[IX(0,0,1)]) / (REAL) 3.0;
   //W-N-B
@@ -485,12 +501,23 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
   p[IX(imax+1,jmax+1,kmax+1)] = ( p[IX(imax,jmax+1,0)]+p[IX(imax+1,jmax,0)]
                                  +p[IX(imax+1,jmax+1,kmax)]) / (REAL) 3.0;
 
-
+  /****************************************************************************
+  | Output domain length in x, y, z direction
+  ****************************************************************************/
   fprintf(dataFile, "%e\t%e\t%e\n", para->geom->Lx, para->geom->Ly, para->geom->Lz);
+  /****************************************************************************
+  | Output maximum cell number in x, y, z direction
+  ****************************************************************************/
   fprintf(dataFile, "%d\t%d\t%d\n", imax, jmax, kmax);
+  /****************************************************************************
+  | Output the varaibles needs to be exported
+  ****************************************************************************/
   fprintf(dataFile, "%d\t%d\t%d\t%d\t%d\t%d\n", IPR, IU, IV, IW, IT, IC1);
   fprintf(dataFile, "%d\t%d\t%d\t%d\t%d\t%d\n", IC2, IC3, IC4, IC5, IC6, IC7);
 
+   /****************************************************************************
+  | Output the cooridates of cell center in x, y, z direction
+  ****************************************************************************/ 
   for(i=1; i<=imax; i++)
     fprintf(dataFile, "%e\t", x[IX(i,j,k)]);
   fprintf(dataFile, "\n");
@@ -501,6 +528,14 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
     fprintf(dataFile, "%e\t", z[IX(i,j,k)]);
   fprintf(dataFile, "\n");
 
+   /****************************************************************************
+  | Output the variables
+  | p: Pressure          
+  | U: Velocity in X direction
+  | V: Velocity in Y direction
+  | W: Velocity in Z direction
+  | T: Temperature
+  ****************************************************************************/ 
   for(j=1; j<=jmax; j++)
     for(i=1; i<=imax; i++) {
       fprintf(dataFile, "%d\t%d\n", i,j);
@@ -530,9 +565,11 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
           fprintf(dataFile, "%e\t", T[IX(i,j,k)]);
         fprintf(dataFile, "\n");
       }
-      for(k=1;k<=kmax;k++)
-        fprintf(dataFile, "%e\t", T[IX(i,j,k)]);
-      fprintf(dataFile, "\n");
+
+      for(k=1; k<=kmax; k++)
+          fprintf(dataFile, "%e\t", T[IX(i,j,k)]);
+        fprintf(dataFile, "\n");
+       // Extra line because SCI reads turbulence intensity data
     }
 
   fclose(dataFile);
