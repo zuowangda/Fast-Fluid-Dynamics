@@ -115,3 +115,22 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Integrate the cosimulation exchange data over the surfaces 
+///
+/// Fluid port: 
+///   - T/Xi/C: sum(u*T*dA)
+///   - m_dot:  sum(u*dA)
+///
+/// Solid Surface Boundary:
+///   - T:      sum(T*dA)
+///   - Q_dot:  sum(q_dot*dA)
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to the boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX);

@@ -42,7 +42,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
   double t_cosim;
-  int flag, tmp;
+  int flag;
 
   if(para->solv->cosimulation == 1)
     t_cosim = para->mytime->t + para->cosim->modelica->dt;
@@ -64,9 +64,6 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
     // Process for Cosimulation
     //-------------------------------------------------------------------------
     if(para->solv->cosimulation == 1) {
-      sprintf(msg, "ffd_solver(): para->cosim->para->flag=%d", para->cosim->para->flag);
-      ffd_log(msg, FFD_NORMAL);
-
       /*.......................................................................
       | Conditon 1: If synchronization point is reached, 
       | Action:     Do data exchange
@@ -120,8 +117,8 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       | Action:     Do FFD internal simulation and add data for future average
       .......................................................................*/
       else {
-        // Average the data on the boundary surface
-        if(average_bc_area(para, var, BINDEX)!=0) {
+        // Integrate the data on the boundary surface
+        if(surface_integrate(para, var, BINDEX)!=0) {
           ffd_log("FFD_solver(): "
             "Could not average the data on boundary.",
             FFD_ERROR);

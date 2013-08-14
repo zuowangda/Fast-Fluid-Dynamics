@@ -115,18 +115,6 @@ REAL check_max( PARA_DATA *para, REAL *psi, int ci,int cj,int ck);
 ///////////////////////////////////////////////////////////////////////////////
 REAL average(PARA_DATA *para, REAL *psi);
 
-///////////////////////////////////////////////////////////////////////////////
-/// Calculate area weighted averaged value of psi on a boundary surface
-///
-/// The average is weighted by area of each cell
-///
-///\param para Pointer to FFD parameters
-///\param var Pointer to FFD simulation variables
-///\param BINDEX Pointer to the boundary index
-///
-///\return 0 if no error occurred
-///////////////////////////////////////////////////////////////////////////////
-int average_bc_area(PARA_DATA *para, REAL **var, int **BINDEX); 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate volume weighted averaged value of psi in a space

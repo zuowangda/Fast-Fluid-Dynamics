@@ -163,111 +163,6 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
 } // End of read_cosim_parameter()
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Write the FFD data for Modelica
-///
-///\param para Pointer to FFD parameters
-///\param var Pointer to FFD simulation variables
-///
-///\return 0 if no error occurred
-///////////////////////////////////////////////////////////////////////////////
-int write_cosim_data(PARA_DATA *para, REAL **var) {
-  int i, j, id;
-  
-  ffd_log("-------------------------------------------------------------------",
-          FFD_NORMAL);
-  ffd_log("writed_cosim_parameter(): "
-          "Start to write the following cosimulation data:",
-           FFD_NORMAL);
-
-  /****************************************************************************
-  | Wait if the previosu data has not been read by Modelica
-  ****************************************************************************/
-  while(para->cosim->ffd->flag==1) {
-    ffd_log("write_cosim_data(): Wait since previosu data is not taken "
-            "by Modelica", FFD_NORMAL);
-    Sleep(1000);
-  }
-
-  /****************************************************************************
-  | Write new data
-  ****************************************************************************/
-  para->cosim->ffd->t = para->mytime->t;
-
-  sprintf(msg, "write_cosim_data(): Start to update FFD data at t=%f[s]", 
-          para->cosim->ffd->t);
-  ffd_log(msg, FFD_NORMAL);
-  
-  /****************************************************************************
-  | Set the time and space averaged temperature of space
-  | Convert T from degC to K
-  ****************************************************************************/
-  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMPM]) + 273.15; 
-  sprintf(msg, "\tAveraged Room temperature %f[K]", para->cosim->ffd->TRoo);
-  ffd_log(msg, FFD_NORMAL);
-
-  /****************************************************************************
-  | Set temperature of shading devices
-  ****************************************************************************/
-  if(para->cosim->para->sha==1) {
-    ffd_log("\tTemperature of the shade:", FFD_NORMAL);
-    for(i=0; i<para->cosim->para->nConExtWin; i++) {
-      //Waring: The shade feature is to be implemented
-      para->cosim->ffd->TSha[i] = 20 + 273.15; 
-      sprintf(msg, "\t\tSurface %d: %f[K]\n",
-              i, para->cosim->ffd->TSha[i]);
-      ffd_log(msg, FFD_NORMAL);
-    }
-  }
-
-  /****************************************************************************
-  | Set data for fluid ports
-  ****************************************************************************/
-  ffd_log("\tFlow information at the ports:", FFD_NORMAL);
-  for(i=0; i<para->bc->nb_port; i++) {
-    // Get the corresponding ID in modelica
-    id = para->bc->portId[i];
-    // Assign the temperature
-    para->cosim->ffd->TPor[id] = para->bc->TPortMean[i] + 273.15;
-    sprintf(msg, "\t\t%s: %f[K]",
-            para->cosim->para->portName[i], para->cosim->ffd->TPor[i]);
-    ffd_log(msg, FFD_NORMAL);
-    // Assign the Xi
-    for(j=0; j<para->bc->nb_Xi; j++)
-      para->cosim->ffd->XiPor[id][j] = para->bc->XiPortMean[i][j];
-    // Assign the C
-    for(j=0; j<para->bc->nb_C; j++)
-      para->cosim->ffd->CPor[id][j] = para->bc->CPortMean[i][j]; 
-  }
-
-  /****************************************************************************
-  | Set data for solid surfaces
-  ****************************************************************************/
-  ffd_log("\tInformation at solid surfaces:", FFD_NORMAL);
-  for(i=0; i<para->bc->nb_wall; i++) {
-    id = para->bc->wallId[i];
-
-    if(para->cosim->para->bouCon[id]==2) {
-      para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i];
-      sprintf(msg, "\t\t%s: %f[K]",
-              para->bc->wallName[i], para->bc->temHeaMean[i]);
-    }
-    else {
-      para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i] * para->bc->AWall[i];
-      sprintf(msg, "\t\t%s: %f[W]",
-              para->bc->wallName[i], para->cosim->ffd->temHea[id]);
-    }
-    ffd_log(msg, FFD_NORMAL);
-  }
-
-  /****************************************************************************
-  | Inform Modelica know the data is updated
-  ****************************************************************************/
-  para->cosim->ffd->flag = 1;
-
-  return 0;
-} // End of write_cosim_data()
-
-///////////////////////////////////////////////////////////////////////////////
 /// Read the data from Modelica
 ///
 ///\param para Pointer to FFD parameters
@@ -352,6 +247,117 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
           FFD_NORMAL);
   return 0;
 } // End of read_cosim_data()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Write the FFD data for Modelica
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int write_cosim_data(PARA_DATA *para, REAL **var) {
+  int i, j, id;
+  
+  ffd_log("-------------------------------------------------------------------",
+          FFD_NORMAL);
+  ffd_log("writed_cosim_parameter(): "
+          "Start to write the following cosimulation data:",
+           FFD_NORMAL);
+
+  /****************************************************************************
+  | Wait if the previosu data has not been read by Modelica
+  ****************************************************************************/
+  while(para->cosim->ffd->flag==1) {
+    ffd_log("write_cosim_data(): Wait since previosu data is not taken "
+            "by Modelica", FFD_NORMAL);
+    Sleep(1000);
+  }
+
+  /****************************************************************************
+  | Write new data
+  ****************************************************************************/
+  para->cosim->ffd->t = para->mytime->t;
+
+  sprintf(msg, "write_cosim_data(): Start to update FFD data at t=%f[s]", 
+          para->cosim->ffd->t);
+  ffd_log(msg, FFD_NORMAL);
+  
+  /****************************************************************************
+  | Set the time and space averaged temperature of space
+  | Convert T from degC to K
+  ****************************************************************************/
+  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMPM]) + 273.15; 
+  sprintf(msg, "\tAveraged Room temperature %f[K]", para->cosim->ffd->TRoo);
+  ffd_log(msg, FFD_NORMAL);
+
+  /****************************************************************************
+  | Set temperature of shading devices
+  ****************************************************************************/
+  if(para->cosim->para->sha==1) {
+    ffd_log("\tTemperature of the shade:", FFD_NORMAL);
+    for(i=0; i<para->cosim->para->nConExtWin; i++) {
+      //Waring: The shade feature is to be implemented
+      para->cosim->ffd->TSha[i] = 20 + 273.15; 
+      sprintf(msg, "\t\tSurface %d: %f[K]\n",
+              i, para->cosim->ffd->TSha[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+  }
+
+  /****************************************************************************
+  | Set data for fluid ports
+  ****************************************************************************/
+  ffd_log("\tFlow information at the ports:", FFD_NORMAL);
+  for(i=0; i<para->bc->nb_port; i++) {
+    // Get the corresponding ID in modelica
+    id = para->bc->portId[i];
+    // Assign the temperature
+    para->cosim->ffd->TPor[id] = para->bc->TPortMean[i]/para->bc->velPortMean[i] 
+                               + 273.15;
+    sprintf(msg, "\t\t%s: %f[K]",
+            para->cosim->para->portName[id], para->cosim->ffd->TPor[id]);
+    ffd_log(msg, FFD_NORMAL);
+    // Assign the Xi
+    for(j=0; j<para->bc->nb_Xi; j++)
+      para->cosim->ffd->XiPor[id][j] = para->bc->XiPortMean[i][j] 
+                                     / para->bc->velPortMean[i];
+    // Assign the C
+    for(j=0; j<para->bc->nb_C; j++)
+      para->cosim->ffd->CPor[id][j] = para->bc->CPortMean[i][j]
+                                    / para->bc->velPortMean[i]; 
+  }
+
+  /****************************************************************************
+  | Set data for solid surfaces
+  ****************************************************************************/
+  ffd_log("\tInformation at solid surfaces:", FFD_NORMAL);
+  for(i=0; i<para->bc->nb_wall; i++) {
+    id = para->bc->wallId[i];
+
+    if(para->cosim->para->bouCon[id]==2) {
+      para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i] 
+                                   / para->bc->AWall[i];
+      sprintf(msg, "\t\t%s: %f[K]",
+              para->cosim->para->name[id], para->cosim->ffd->temHea[id]);
+    }
+    else {
+      para->cosim->ffd->temHea[id] = para->bc->temHeaMean[i];
+      sprintf(msg, "\t\t%s: %f[W]",
+              para->cosim->para->name[id], para->cosim->ffd->temHea[id]);
+    }
+    ffd_log(msg, FFD_NORMAL);
+  }
+
+  /****************************************************************************
+  | Inform Modelica know the data is updated
+  ****************************************************************************/
+  para->cosim->ffd->flag = 1;
+
+  return 0;
+} // End of write_cosim_data()
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Compare the names of boundaries and store the relationship 
@@ -687,3 +693,110 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
    
   return 0;
 } // End of assign_inlet_outlet_bc()
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Integrate the cosimulation exchange data over the surfaces 
+///
+/// Fluid port: 
+///   - T/Xi/C: sum(u*T*dA)
+///   - m_dot:  sum(u*dA)
+///
+/// Solid Surface Boundary:
+///   - T:      sum(T*dA)
+///   - Q_dot:  sum(q_dot*dA)
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param BINDEX Pointer to the boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX) {
+  int imax = para->geom->imax, jmax = para->geom->jmax; 
+  int kmax = para->geom->kmax;
+  int i, j, k, it, bcid;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL vel_tmp, A_tmp; 
+
+  /****************************************************************************
+  | Set the variable to 0
+  ****************************************************************************/
+  for(i=0; i<para->bc->nb_wall; i++)
+    para->bc->temHeaAve[i] = 0;
+
+  for(i=0; i<para->bc->nb_port; i++) {
+    para->bc->TPortAve[i] = 0;
+    para->bc->velPortAve[i] = 0;
+    for(j=0; j<para->bc->nb_Xi; j++)
+      para->bc->XiPortAve[i] = 0;
+    for(j=0; j<para->bc->nb_C; j++)
+      para->bc->CPortAve[i] = 0;
+  }
+
+  /****************************************************************************
+  | Go through all the boundary cells
+  ****************************************************************************/
+  for(it=0; it<para->geom->index; it++) {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+    bcid = BINDEX[4][it];
+
+    if(i==0 || i==imax+1) {
+      vel_tmp = var[VX][IX(i,j,k)];
+      A_tmp = area_yz(para, var, i, j, k);
+    }
+    else if(j==0 || j==jmax+1) {
+      vel_tmp = var[VY][IX(i,j,k)];
+      A_tmp = area_zx(para, var, i, j, k);
+    }
+    else if(k==0 || k==kmax+1) {
+      vel_tmp = var[VZ][IX(i,j,k)];
+      A_tmp = area_xy(para, var, i, j, k);
+    }
+
+    /*-------------------------------------------------------------------------
+    | Set the thermal conditions data for Modelica.
+    | In FFD simulation, the BINDEX[3][it] indicates: 1->T, 0->Heat Flux.
+    | Those BINDEX[3][it] will be reset according to the Modelica data 
+    | para->comsim->para->bouCon (1->Heat Flux, 2->T). 
+    | Here is to give the Modelica the missing data (For instance, if Modelica 
+    | send FFD Temperature, FFD should then send Modelica Heat Flux).
+    -------------------------------------------------------------------------*/
+    if(var[FLAGP][IX(i,j,k)]==SOLID) {
+      switch(BINDEX[3][it]) {
+        // FFD uses heat flux as BC to compute temperature
+        // Then send Modelica the tempearture
+        case 0: 
+          para->bc->temHeaAve[bcid] += var[TEMP][IX(i,j,k)] * A_tmp 
+                                     / para->bc->AWall[i];
+          break;
+        // FFD uses temperature as BC to compute heat flux
+        // Then send Modelica the heat flux
+        case 1: 
+          para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
+          break;
+        default:
+          sprintf(msg, "average_bc_area(): Thermal boundary (%d)"
+                 "for cell (%d,%d,%d) was not defined",
+                 BINDEX[3][it], i, j, k);
+          ffd_log(msg, FFD_ERROR);
+          return 1;
+      }
+    }
+    else if(var[FLAGP][IX(i,j,k)]==INLET||var[FLAGP][IX(i,j,k)]==OUTLET) {
+      para->bc->TPortAve[bcid] += var[TEMP][IX(i,j,k)] * A_tmp * vel_tmp;
+      para->bc->velPortAve[bcid] += vel_tmp * A_tmp;
+      // To be implemented
+      /*
+      for(j=0; j<para->bc->nb_Xi; j++)
+        para->bc->XiPortAve[bcid][j] += xi[j][IX(i,j,k)] * A_tmp * vel_tmp;
+      for(j=0, j<para->bc->nb_C; j++)
+        para->bc->CPortAve[bcid][j] = c[j][IX(i,j,k)] * A_tmp * vel_tmp;
+        */
+    }
+  } // End of for(it=0; it<para->geom->index; it++)
+
+  return 0;
+} // End of surface_integrate()
