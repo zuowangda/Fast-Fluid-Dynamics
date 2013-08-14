@@ -67,17 +67,6 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       sprintf(msg, "ffd_solver(): para->cosim->para->flag=%d", para->cosim->para->flag);
       ffd_log(msg, FFD_NORMAL);
 
-      // Modelica asks to stop the simulation
-      if(para->cosim->para->flag==0) {
-        // Stop the solver
-        flag = 0; 
-        sprintf(msg, 
-                "ffd_solver(): Received stop command from Modelica at t = %f[s]",
-                para->mytime->t);
-        ffd_log(msg, FFD_NORMAL);
-        continue;
-      }
-      
       /*.......................................................................
       | Conditon 1: If synchronization point is reached, 
       | Action:     Do data exchange
@@ -91,13 +80,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         }
 
         //Exchange the data for cosimulation
-        tmp = read_cosim_data(para, var, BINDEX);
-        if(tmp==2) {
-          flag = 0;
-          ffd_log("FFD_solver(): Modelica stops the cosimulation.", FFD_NORMAL);
-          continue;
-        }
-        else if(tmp!=0) {
+        if(read_cosim_data(para, var, BINDEX)!=0) {
           ffd_log("FFD_solver(): Could not read cosimulation data.", FFD_ERROR);
           return 1;
         }
@@ -151,6 +134,20 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
           return 1;
         }
       } // End of Condition 3
+
+      /*.......................................................................
+      | Check if Modelica asks to stop the simulation 
+      .......................................................................*/
+      if(para->cosim->para->flag==0) {
+        // Stop the solver
+        flag = 0; 
+        sprintf(msg, 
+                "ffd_solver(): Received stop command from Modelica at t = %f[s]",
+                para->mytime->t);
+        ffd_log(msg, FFD_NORMAL);
+        continue;
+      }
+
     } // End of cosimulation
     //-------------------------------------------------------------------------
     // Process for single simulation
