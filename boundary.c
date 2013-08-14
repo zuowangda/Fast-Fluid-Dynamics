@@ -305,7 +305,6 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         } // End of else if(i==imax+1)
         // Between West and East
         else {
-        ffd_log("start to set tmp 13", FFD_NORMAL);
           // Eastern neighbor cell is fluid
           if(flagp[IX(i+1,j,k)]==FLUID) {
             D = 0.5 * length_x(para,var,i+1,j,k);

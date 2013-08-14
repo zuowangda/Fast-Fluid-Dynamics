@@ -76,7 +76,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
           return 1;
         }
 
-        //Exchange the data for cosimulation
+        // the data for cosimulation
         if(read_cosim_data(para, var, BINDEX)!=0) {
           ffd_log("FFD_solver(): Could not read cosimulation data.", FFD_ERROR);
           return 1;

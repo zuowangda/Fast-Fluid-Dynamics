@@ -517,7 +517,7 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
-  int i, j, k, it, id;
+  int i, j, k, it, id, modelicaId;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -570,15 +570,18 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
       j = BINDEX[1][it];
       k = BINDEX[2][it];
       id = BINDEX[4][it];
+      modelicaId = para->bc->wallId[id];
 
       if(var[FLAGP][IX(i,j,k)]==SOLID) 
-        switch(BINDEX[3][it]) {
+        switch(para->cosim->para->bouCon[modelicaId]) {
           case 1: 
             // Need to convert the T from K to degC
             var[TEMPBC][IX(i,j,k)] = temHea[id];
+            BINDEX[3][it] = 1; // Specified temperature
             break;
-          case 0:
+          case 2:
             var[QFLUXBC][IX(i,j,k)] = temHea[id];
+            BINDEX[3][it] = 0; // Specified heat flux 
             break;
           default:
             sprintf(msg,
@@ -776,6 +779,8 @@ int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX) {
         // Then send Modelica the heat flux
         case 1: 
           para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
+          //sprintf(msg, "Cell(%d,%d,%d):\tQFLUX=%f,\tA=%f", i,j,k,var[QFLUX][IX(i,j,k)], A_tmp);
+          //ffd_log(msg, FFD_NORMAL);
           break;
         default:
           sprintf(msg, "average_bc_area(): Thermal boundary (%d)"
@@ -798,5 +803,10 @@ int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX) {
     }
   } // End of for(it=0; it<para->geom->index; it++)
 
+//  for(i=0; i<para->bc->nb_wall; i++) {
+//    sprintf(msg, "%s: para->bc->temHeaAve = %f", para->bc->wallName[i], para->bc->temHeaAve[i]);
+//    ffd_log(msg, FFD_NORMAL);
+//  }
+  
   return 0;
 } // End of surface_integrate()

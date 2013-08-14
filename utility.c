@@ -338,7 +338,6 @@ int average_time(PARA_DATA *para, REAL **var) {
   for(i=0; i<para->bc->nb_port; i++) {
     para->bc->TPortMean[i] = para->bc->TPortMean[i] / step;
     para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
-    para->bc->velPortMean[i] = para->bc->velPortMean[i] / step;
     
     for(j=0; j<para->bc->nb_Xi; j++) 
       para->bc->XiPortMean[i][j] = para->bc->XiPortMean[i][j] / step;
