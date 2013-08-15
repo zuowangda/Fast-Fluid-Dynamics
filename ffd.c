@@ -52,103 +52,110 @@ clock_t start, end;
 ///
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
-int allocate_data (void) {
+int allocate_memory (PARA_DATA *para) {
+
+  int nb_var, i;
   int size = (geom.imax+2) * (geom.jmax+2) * (geom.kmax+2);
-  printf( "size=%d\n", size); 
-  x         = (REAL *) malloc ( size*sizeof(REAL) );
-  y         = (REAL *) malloc ( size*sizeof(REAL) );
-  z         = (REAL *) malloc ( size*sizeof(REAL) );
-  u         = (REAL *) malloc ( size*sizeof(REAL) );
-  v         = (REAL *) malloc ( size*sizeof(REAL) );
-  w         = (REAL *) malloc ( size*sizeof(REAL) );
-  u_s       = (REAL *) malloc ( size*sizeof(REAL) );
-  v_s       = (REAL *) malloc ( size*sizeof(REAL) );
-  w_s       = (REAL *) malloc ( size*sizeof(REAL) );
-  u_mean    = (REAL *) malloc ( size*sizeof(REAL) );
-  v_mean    = (REAL *) malloc ( size*sizeof(REAL) );
-  w_mean    = (REAL *) malloc ( size*sizeof(REAL) );
-  temp      = (REAL *) malloc ( size*sizeof(REAL) );
-  temp_s    = (REAL *) malloc ( size*sizeof(REAL) );
-  temp_mean = (REAL *) malloc ( size*sizeof(REAL) );
-  dens      = (REAL *) malloc ( size*sizeof(REAL) );
-  dens_s    = (REAL *) malloc ( size*sizeof(REAL) );
-  p         = (REAL *) malloc ( size*sizeof(REAL) ); 
-  tmp1      = (REAL *) malloc ( size*sizeof(REAL) );  
-  tmp2      = (REAL *) malloc ( size*sizeof(REAL) );  
-  tmp3      = (REAL *) malloc ( size*sizeof(REAL) );  
-  ap        = (REAL *) malloc ( size*sizeof(REAL) );
-  an        = (REAL *) malloc ( size*sizeof(REAL) );
-  as        = (REAL *) malloc ( size*sizeof(REAL) );
-  aw        = (REAL *) malloc ( size*sizeof(REAL) );
-  ae        = (REAL *) malloc ( size*sizeof(REAL) );
-  ab        = (REAL *) malloc ( size*sizeof(REAL) );
-  af        = (REAL *) malloc ( size*sizeof(REAL) );
-  b         = (REAL *) malloc ( size*sizeof(REAL) );
-  gx        = (REAL *) malloc ( size*sizeof(REAL) );  
-  gy        = (REAL *) malloc ( size*sizeof(REAL) );
-  gz        = (REAL *) malloc ( size*sizeof(REAL) );
-  ap0       = (REAL *) malloc ( size*sizeof(REAL) );
-  pp        = (REAL *) malloc ( size*sizeof(REAL) );
-  flagp     = (REAL *) malloc ( size*sizeof(REAL) );
-  flagu     = (REAL *) malloc ( size*sizeof(REAL) );
-  flagv     = (REAL *) malloc ( size*sizeof(REAL) );
-  flagw     = (REAL *) malloc ( size*sizeof(REAL) );
-  locmin    = (REAL *) malloc ( size*sizeof(REAL) );
-  locmax    = (REAL *) malloc ( size*sizeof(REAL) );
-  vxbc      = (REAL *) malloc ( size*sizeof(REAL) );
-  vybc      = (REAL *) malloc ( size*sizeof(REAL) );
-  vzbc      = (REAL *) malloc ( size*sizeof(REAL) );
-  tempbc    = (REAL *) malloc ( size*sizeof(REAL) );
-  qfluxbc   = (REAL *) malloc ( size*sizeof(REAL) );
-  qflux     = (REAL *) malloc ( size*sizeof(REAL) );
-  var       = (REAL **) malloc ( 46*sizeof(REAL*) );
+
+  //x         = (REAL *) malloc ( size*sizeof(REAL) );
+  //y         = (REAL *) malloc ( size*sizeof(REAL) );
+  //z         = (REAL *) malloc ( size*sizeof(REAL) );
+  //u         = (REAL *) malloc ( size*sizeof(REAL) );
+  //v         = (REAL *) malloc ( size*sizeof(REAL) );
+  //w         = (REAL *) malloc ( size*sizeof(REAL) );
+  //u_s       = (REAL *) malloc ( size*sizeof(REAL) );
+  //v_s       = (REAL *) malloc ( size*sizeof(REAL) );
+  //w_s       = (REAL *) malloc ( size*sizeof(REAL) );
+  //u_mean    = (REAL *) malloc ( size*sizeof(REAL) );
+  //v_mean    = (REAL *) malloc ( size*sizeof(REAL) );
+  //w_mean    = (REAL *) malloc ( size*sizeof(REAL) );
+  //temp      = (REAL *) malloc ( size*sizeof(REAL) );
+  //temp_s    = (REAL *) malloc ( size*sizeof(REAL) );
+  //temp_mean = (REAL *) malloc ( size*sizeof(REAL) );
+  //dens      = (REAL *) malloc ( size*sizeof(REAL) );
+  //dens_s    = (REAL *) malloc ( size*sizeof(REAL) );
+  //p         = (REAL *) malloc ( size*sizeof(REAL) ); 
+  //tmp1      = (REAL *) malloc ( size*sizeof(REAL) );  
+  //tmp2      = (REAL *) malloc ( size*sizeof(REAL) );  
+  //tmp3      = (REAL *) malloc ( size*sizeof(REAL) );  
+  //ap        = (REAL *) malloc ( size*sizeof(REAL) );
+  //an        = (REAL *) malloc ( size*sizeof(REAL) );
+  //as        = (REAL *) malloc ( size*sizeof(REAL) );
+  //aw        = (REAL *) malloc ( size*sizeof(REAL) );
+  //ae        = (REAL *) malloc ( size*sizeof(REAL) );
+  //ab        = (REAL *) malloc ( size*sizeof(REAL) );
+  //af        = (REAL *) malloc ( size*sizeof(REAL) );
+  //b         = (REAL *) malloc ( size*sizeof(REAL) );
+  //gx        = (REAL *) malloc ( size*sizeof(REAL) );  
+  //gy        = (REAL *) malloc ( size*sizeof(REAL) );
+  //gz        = (REAL *) malloc ( size*sizeof(REAL) );
+  //ap0       = (REAL *) malloc ( size*sizeof(REAL) );
+  //pp        = (REAL *) malloc ( size*sizeof(REAL) );
+  //flagp     = (REAL *) malloc ( size*sizeof(REAL) );
+  //flagu     = (REAL *) malloc ( size*sizeof(REAL) );
+  //flagv     = (REAL *) malloc ( size*sizeof(REAL) );
+  //flagw     = (REAL *) malloc ( size*sizeof(REAL) );
+  //locmin    = (REAL *) malloc ( size*sizeof(REAL) );
+  //locmax    = (REAL *) malloc ( size*sizeof(REAL) );
+  //vxbc      = (REAL *) malloc ( size*sizeof(REAL) );
+  //vybc      = (REAL *) malloc ( size*sizeof(REAL) );
+  //vzbc      = (REAL *) malloc ( size*sizeof(REAL) );
+  //tempbc    = (REAL *) malloc ( size*sizeof(REAL) );
+  //qfluxbc   = (REAL *) malloc ( size*sizeof(REAL) );
+  //qflux     = (REAL *) malloc ( size*sizeof(REAL) );
+
+  nb_var = 46 + para->bc->nb_Xi + para->bc->nb_C;
+  var       = (REAL **) malloc ( nb_var*sizeof(REAL*) );
+  for(i=0; i<nb_var; i++)
+    var[i] = (REAL *) calloc(size, sizeof(REAL));
   
-  var[X]      = x;
-  var[Y]      = y;
-  var[Z]      = z;
-  var[VX]     = u;
-  var[VY]     = v;
-  var[VZ]     = w;
-  var[VXS]    = u_s;
-  var[VYS]    = v_s;
-  var[VZS]    = w_s;
-  var[VXM]    = u_mean;
-  var[VYM]    = v_mean;
-  var[VZM]    = w_mean;
-  var[DEN]    = dens;
-  var[DENS]   = dens_s;
-  var[IP]     = p;
-  var[TEMP]   = temp;
-  var[TEMPS]  = temp_s;
-  var[TEMPM]  = temp_mean;
-  var[AP]     = ap;
-  var[AN]     = an;
-  var[AS]     = as;
-  var[AW]     = aw;
-  var[AE]     = ae;
-  var[AB]     = ab;
-  var[AF]     = af;
-  var[B]      = b;
-  var[TMP1]   = tmp1;
-  var[TMP2]   = tmp2;
-  var[TMP3]   = tmp3;
-  var[GX]     = gx;
-  var[GY]     = gy;
-  var[GZ]     = gz;
-  var[AP0]    = ap0;
-  var[PP]     = pp;
-  var[FLAGP]  =flagp;
-  var[FLAGU]  =flagu;
-  var[FLAGV]  =flagv;
-  var[FLAGW]  =flagw;
-  var[LOCMIN] =locmin;
-  var[LOCMAX] =locmax;
-  var[VXBC]   =vxbc;
-  var[VYBC]   =vybc;
-  var[VZBC]   =vzbc;
-  var[TEMPBC] =tempbc;
-  var[QFLUXBC]= qfluxbc;
-  var[QFLUX]  = qflux;
+  //var[X]      = x;
+  //var[Y]      = y;
+  //var[Z]      = z;
+  //var[VX]     = u;
+  //var[VY]     = v;
+  //var[VZ]     = w;
+  //var[VXS]    = u_s;
+  //var[VYS]    = v_s;
+  //var[VZS]    = w_s;
+  //var[VXM]    = u_mean;
+  //var[VYM]    = v_mean;
+  //var[VZM]    = w_mean;
+  //var[DEN]    = dens;
+  //var[DENS]   = dens_s;
+  //var[IP]     = p;
+  //var[TEMP]   = temp;
+  //var[TEMPS]  = temp_s;
+  //var[TEMPM]  = temp_mean;
+  //var[AP]     = ap;
+  //var[AN]     = an;
+  //var[AS]     = as;
+  //var[AW]     = aw;
+  //var[AE]     = ae;
+  //var[AB]     = ab;
+  //var[AF]     = af;
+  //var[B]      = b;
+  //var[TMP1]   = tmp1;
+  //var[TMP2]   = tmp2;
+  //var[TMP3]   = tmp3;
+  //var[GX]     = gx;
+  //var[GY]     = gy;
+  //var[GZ]     = gz;
+  //var[AP0]    = ap0;
+  //var[PP]     = pp;
+  //var[FLAGP]  =flagp;
+  //var[FLAGU]  =flagu;
+  //var[FLAGV]  =flagv;
+  //var[FLAGW]  =flagw;
+  //var[LOCMIN] =locmin;
+  //var[LOCMAX] =locmax;
+  //var[VXBC]   =vxbc;
+  //var[VYBC]   =vybc;
+  //var[VZBC]   =vzbc;
+  //var[TEMPBC] =tempbc;
+  //var[QFLUXBC]= qfluxbc;
+  //var[QFLUX]  = qflux;
+
 
   xindex = (int *) malloc ( size*sizeof(int) );
   yindex = (int *) malloc ( size*sizeof(int) );
@@ -163,20 +170,20 @@ int allocate_data (void) {
   BINDEX[3] = fltemp; // fixed temperature or fixed heat flux
   BINDEX[4] = bcid;   // id of boundary
 
-  if( !x || !y || !z || !u || !v || !w || !u_s || !v_s || !w_s || 
-      !u_mean || !v_mean || !w_mean || 
-      !dens || !dens_s || !temp || !temp_s || !temp_mean || 
-      !tmp1 || !tmp2 || !tmp3 ||
-      !ap || !ae || !aw || !as || !an || !ab || !af || !b || !gx || !gy || !gz || !ap0 || !pp || !flagp ||
-      !flagu || !flagv || !flagw || !locmin || !locmax ||
-      !vxbc || !vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
-      !xindex || !yindex || !zindex || !bcid) {
-    fprintf(stderr, "cannot allocate data\n");
-    return 1;
-  }
+  //if( !x || !y || !z || !u || !v || !w || !u_s || !v_s || !w_s || 
+  //    !u_mean || !v_mean || !w_mean || 
+  //    !dens || !dens_s || !temp || !temp_s || !temp_mean || 
+  //    !tmp1 || !tmp2 || !tmp3 ||
+  //    !ap || !ae || !aw || !as || !an || !ab || !af || !b || !gx || !gy || !gz || !ap0 || !pp || !flagp ||
+  //    !flagu || !flagv || !flagw || !locmin || !locmax ||
+  //    !vxbc || !vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
+  //    !xindex || !yindex || !zindex || !bcid) {
+  //  fprintf(stderr, "cannot allocate data\n");
+  //  return 1;
+  //}
 
   return 0;
-} // End of allocate_data()
+} // End of allocate_memory()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// GLUT display callback routines
@@ -364,18 +371,24 @@ DWORD WINAPI ffd(void *p){
   sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
   ffd_log(msg, FFD_NEW);
 
-  if(initialize(&para)) exit(1);
+  if(initialize(&para)!=0) {
+    ffd_log("ffd(): Could not initialize simulation parameters.", FFD_ERROR);
+    return 1;
+  }
   
   // Overwrite the mesh and simulation data using SCI generated file
   if(para.inpu->parameter_file_format == SCI) {
-    if(read_sci_max(&para, var)) exit(1);
+    if(read_sci_max(&para, var)!=0) {
+      ffd_log("ffd(): Could not read SCi data.", FFD_ERROR);
+      return 1;
+    }
   }
-
-  if(para.outp->version == DEBUG) 
-    printf("imax= %d\t jmax= %d\t  kmax= %d\n ", para.geom->imax,para.geom->jmax,para.geom->kmax);
   
   // Allocate memory for the variables
-  if(allocate_data( )) exit(1);
+  if(allocate_memory(&para)!=0) {
+    ffd_log("ffd(): Could not allocate memory for the simulation.", FFD_ERROR);
+    return 1;
+  }
 
   // Set the initial values for the simulation data
   if(set_initial_data(&para, var, BINDEX)) {
