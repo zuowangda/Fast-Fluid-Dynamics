@@ -211,17 +211,32 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       FFD_ERROR);
 
     bcnameid = -1;
-    // Loop for each inlet boundary
-    for(i=1; i<=para->bc->nb_inlet; i++) {
+    /*-------------------------------------------------------------------------
+    | Loop for rad each inlet boundary
+    --------------------------------------------------------------------------*/
+    for(i=0; i<para->bc->nb_inlet; i++) {
+      /*.......................................................................
+      | Get the names of boundary
+      .......................................................................*/
       fgets(string, 400, file_params);
-      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", name, &SI, &SJ, &SK, &EI, 
-             &EJ, &EK, &TMP, &MASS, &U, &V, &W);
-      bcnameid ++; // starts from -1, thus the first id will be 0
-      inletName[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(inletName[bcnameid], name);
-      sprintf(msg, "read_sci_input(): inletName[%d]=%s", 
-              bcnameid, inletName[bcnameid]);
+      // Ge the length of name (The name may contain white space)
+      for(j=0; string[j] != '\n'; j++) {
+        continue;
+      }
+      bcnameid++;
+      inletName[i] = (char*)malloc(j*sizeof(char));
+      strncpy(inletName[i], (const char*)string, j);
+      // Add an ending
+      inletName[i] = '\0';
+      sprintf(msg, "read_sci_input(): inletName[%d]=%s",
+              bcnameid, inletName[i]);
       ffd_log(msg, FFD_NORMAL);
+      /*.......................................................................
+      | Get the boundary conditions
+      .......................................................................*/
+      fgets(string, 400, file_params);
+      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f", &SI, &SJ, &SK, &EI, 
+             &EJ, &EK, &TMP, &MASS, &U, &V, &W);
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
       ffd_log(msg, FFD_NORMAL);
@@ -283,23 +298,36 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     }
 
     for(i=0; i<para->bc->nb_outlet; i++) {
+      /*.......................................................................
+      | Get the names of boundary
+      .......................................................................*/
       fgets(string, 400, file_params);
-      sscanf(string,"%s%d%d%d%d%d%d%f%f%f%f%f", 
-             &name, &SI, &SJ, &SK, &EI, 
-             &EJ, &EK, &TMP, &MASS, &U, &V, &W);
+      // Ge the length of name (The name may contain white space)
+      for(j=0; string[j] != '\n'; j++) {
+        continue;
+      }
       bcnameid++;
-      outletName[i] = (char*)malloc(sizeof(name));
+      outletName[i] = (char*)malloc(j*sizeof(char));
       if(outletName[i]==NULL) {
         sprintf(msg, "read_sci_input(): Could not allocate memory "
           "for outletName[%d].", i);
         ffd_log(msg, FFD_ERROR);
         return 1;
       }
-        
-      strcpy(outletName[i], name);
-      sprintf(msg, "read_sci_input(): para->bc->outletName[%d]=%s", 
-              i, outletName[i]);
-      ffd_log(msg, FFD_NORMAL);      
+      strncpy(outletName[i], (const char*)string, j);
+      // Add an ending
+      outletName[i] = '\0';
+      sprintf(msg, "read_sci_input(): outletName[%d]=%s",
+              bcnameid, outletName[i]);
+      ffd_log(msg, FFD_NORMAL);
+      /*.......................................................................
+      | Get the boundary conditions
+      .......................................................................*/
+      fgets(string, 400, file_params);
+      sscanf(string,"%d%d%d%d%d%d%f%f%f%f%f", 
+             &SI, &SJ, &SK, &EI, 
+             &EJ, &EK, &TMP, &MASS, &U, &V, &W);
+
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, T=%f, Xi=%f", 
               U, V, W, TMP, MASS);
       ffd_log(msg, FFD_NORMAL);
@@ -469,18 +497,31 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       FFD_ERROR);
 
     for(i=1; i<=para->bc->nb_block; i++) {
+      /*.......................................................................
+      | Get the names of boundary
+      .......................................................................*/
+      fgets(string, 400, file_params);
+      // Ge the length of name (The name may contain white space)
+      for(j=0; string[j] != '\n'; j++) {
+        continue;
+      }
+      bcnameid++;
+      para->bc->blockName[bcnameid] = (char*)malloc(j*sizeof(char));
+      strncpy(para->bc->blockName[bcnameid], (const char*)string, j);
+      // Add an ending
+      para->bc->blockName[bcnameid][j] = '\0';
+      sprintf(msg, "read_sci_input(): para->bc->blockName[%d]=%s",
+              bcnameid, para->bc->blockName[bcnameid]);
+      ffd_log(msg, FFD_NORMAL);
+      /*.......................................................................
+      | Get the boundary conditions
+      .......................................................................*/
       fgets(string, 400, file_params);
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, &EJ, &EK, 
+      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, &EJ, &EK, 
                                         &FLTMP, &TMP);
-      bcnameid++;
-      para->bc->blockName[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(para->bc->blockName[bcnameid], name);
-      sprintf(msg, "read_sci_input(): para->bc->blockName[%d]=%s",
-              bcnameid, para->bc->blockName[bcnameid]);
-      ffd_log(msg, FFD_NORMAL);      
       sprintf(msg, "read_sci_input(): VX=%f, VY=%f, VX=%f, ThermalBC=%d, T/q_dot=%f, Xi=%f", 
               U, V, W, FLTMP, TMP, MASS);
       ffd_log(msg, FFD_NORMAL);
@@ -576,29 +617,28 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       ffd_log("read_sci_input(): Could not allocate memory for "
       "para->bc->temHeaMean.", FFD_ERROR);
 
-    bcnameid = -1;
     /*-------------------------------------------------------------------------
     | Read wall conditions for each wall
     -------------------------------------------------------------------------*/
-    for(i=1; i<=para->bc->nb_wall; i++) {
+    for(i=0; i<para->bc->nb_wall; i++) {
       /*.......................................................................
-      | Ge the names of boundary
+      | Get the names of boundary
       .......................................................................*/
       fgets(string, 400, file_params);
       // Ge the length of name (The name may contain white space)
       for(j=0; string[j] != '\n'; j++) {
         continue;
       }
-      bcnameid++;
-      para->bc->wallName[bcnameid] = (char*)malloc(j*sizeof(char));
-      strncpy(para->bc->wallName[bcnameid], (const char*)string, j);
+
+      para->bc->wallName[i] = (char*)malloc(j*sizeof(char));
+      strncpy(para->bc->wallName[i], (const char*)string, j);
       // Add an ending
-      para->bc->wallName[bcnameid][j] = '\0';
+      para->bc->wallName[i][j] = '\0';
       sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=\"%s\"",
-             bcnameid, para->bc->wallName[bcnameid]);
+             bcnameid, para->bc->wallName[i]);
       ffd_log(msg, FFD_NORMAL);
       /*.......................................................................
-      | Ge the boundary conditions
+      | Get the boundary conditions
       .......................................................................*/
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
@@ -643,7 +683,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
               BINDEX[2][index] = ik;
               // Define the thermal boundary property
               BINDEX[3][index] = FLTMP;
-              BINDEX[4][index] = bcnameid;
+              BINDEX[4][index] = i;
               index++;  
 
               // Set the cell to solid
