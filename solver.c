@@ -94,6 +94,21 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
             FFD_ERROR);
           return 1;
         }
+
+        /*.......................................................................
+        | Check if Modelica asks to stop the simulation 
+        .......................................................................*/
+        if(para->cosim->para->flag==0) {
+          // Stop the solver
+          flag = 0; 
+          sprintf(msg, 
+                  "ffd_solver(): Received stop command from Modelica at "
+                  "FFD time: %f[s], Modelica Time: %f[s].",
+                  para->mytime->t, para->cosim->modelica->t);
+          ffd_log(msg, FFD_NORMAL);
+        }
+
+        continue;
       } // End of Conditon 1
       /*.......................................................................
       | Conditon 2: synchronization point is not reached , 
@@ -131,20 +146,6 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
           return 1;
         }
       } // End of Condition 3
-
-      /*.......................................................................
-      | Check if Modelica asks to stop the simulation 
-      .......................................................................*/
-      if(para->cosim->para->flag==0) {
-        // Stop the solver
-        flag = 0; 
-        sprintf(msg, 
-                "ffd_solver(): Received stop command from Modelica at t = %f[s]",
-                para->mytime->t);
-        ffd_log(msg, FFD_NORMAL);
-        continue;
-      }
-
     } // End of cosimulation
     //-------------------------------------------------------------------------
     // Process for single simulation
