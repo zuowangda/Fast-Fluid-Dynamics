@@ -70,6 +70,11 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type,
                 check_residual(para, var, psi));
         ffd_log(msg, FFD_NORMAL);
         break;
+      case DEN:
+        sprintf(msg, "diffusion(): Residual of T is %f",
+                check_residual(para, var, psi));
+        ffd_log(msg, FFD_NORMAL);
+        break;
       default:
         sprintf(msg, "diffusion(): No sovler for varibale type %d", 
                 var_type);

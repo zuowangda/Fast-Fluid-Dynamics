@@ -38,11 +38,13 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
   /****************************************************************************
   | Read and compare the numbers of BC
   ****************************************************************************/
-  // Compare number of wall boundaries
+  /*---------------------------------------------------------------------------
+  | Compare number of solid surface boundaries 
+  | (Wall, Window Glass and Window Frame)
+  ---------------------------------------------------------------------------*/
   if(para->cosim->para->nSur==para->bc->nb_wall) {
     sprintf(msg, "\tnSur=%d", para->cosim->para->nSur);
-    ffd_log(msg, FFD_NORMAL);
-    
+    ffd_log(msg, FFD_NORMAL);    
   }
   else {
     sprintf(msg, 
@@ -50,10 +52,22 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
             "have different number of solid surfaces.", 
             para->cosim->para->nSur, para->bc->nb_wall);
     ffd_log(msg, FFD_ERROR);
+    ffd_log("\tModleica Surfaces are:", FFD_NORMAL); 
+    for(i=0; i<para->cosim->para->nSur; i++) {
+      sprintf(msg, "\t\t%s", para->cosim->para->name[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
+    ffd_log("\tFFD Surfaces are:", FFD_NORMAL);
+    for(i=0; i<para->bc->nb_wall; i++) {
+      sprintf(msg, "\t\t%s", para->bc->wallName[i]);
+      ffd_log(msg, FFD_NORMAL);
+    }
     return 1;
   }
 
-  // Compare the num ber of fluid ports
+  /*---------------------------------------------------------------------------
+  | Compare the number of fluid ports
+  ---------------------------------------------------------------------------*/
   if(para->cosim->para->nPorts==para->bc->nb_port) {
     sprintf(msg, "\tnPorts=%d", para->cosim->para->nPorts);
     ffd_log(msg, FFD_NORMAL);

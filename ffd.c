@@ -347,15 +347,37 @@ static void reshape_func(int width, int height) {
   ffd_reshape_func(&para, width, height);
 } // End of reshape_func()
 
-/******************************************************************************
-   ffd --- main routine
-******************************************************************************/
-//int main(){
-DWORD WINAPI ffd(void *p){ 
+///////////////////////////////////////////////////////////////////////////////
+/// Lanuch the FFD simulation through a thread
+///
+///\param p Pointer to the cosimulaiton data
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+DWORD WINAPI ffd_thread(void *p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
-  
-  printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+  CosimulationData *cosim = (CosimulationData *) p;
 
+  printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+  sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
+  ffd_log(msg, FFD_NEW);
+
+  para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
+  para.cosim = p;
+
+  if(ffd()!=0)
+    cosim->para->ffdError = 1;
+
+  ffd_log("Successfully exit FFD.", FFD_NORMAL);
+  return 0;
+} // End of ffd_thread()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Main routine of FFD
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int ffd() {
   // Initialize the parameters
   para.geom = &geom;
   para.inpu = &inpu;
@@ -365,12 +387,7 @@ DWORD WINAPI ffd(void *p){
   para.bc     = &bc;
   para.solv   = &solv;
   para.sens   = &sens;
-  para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
-  para.cosim = (CosimulationData *) p;
-
-  sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
-  ffd_log(msg, FFD_NEW);
-
+  
   if(initialize(&para)!=0) {
     ffd_log("ffd(): Could not initialize simulation parameters.", FFD_ERROR);
     return 1;
@@ -407,7 +424,10 @@ DWORD WINAPI ffd(void *p){
     glutMainLoop();
   }
   else
-    FFD_solver(&para, var, BINDEX);
+    if(FFD_solver(&para, var, BINDEX)!=0) {
+      ffd_log("ffd(): FFD solver failed.", FFD_ERROR);
+      return 1;
+    }
 
   /*---------------------------------------------------------------------------
   | Post Process
@@ -419,10 +439,12 @@ DWORD WINAPI ffd(void *p){
   // Fixme: Simulaiton stops here
   if(write_unsteady(&para, var, "unsteady")!=0) {
     ffd_log("FFD_solver(): Could not write the file unsteady.plt.", FFD_ERROR);
+    return 1;
   }
 
   if(write_tecplot_data(&para, var, "result")!=0) {
     ffd_log("FFD_solver(): Could not write the file result.plt.", FFD_ERROR);
+    return 1;
   }
 
 
@@ -445,7 +467,7 @@ DWORD WINAPI ffd(void *p){
     ffd_log("ffd(): Sent stopping signal to Modelica", FFD_NORMAL);
   }
 
-  ffd_log("ffd(): Exit successfully.", FFD_NORMAL);
+
   //exit (0);
   return 0;
 } // End of ffd( )

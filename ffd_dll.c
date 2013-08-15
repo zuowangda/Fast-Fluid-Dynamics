@@ -11,7 +11,7 @@ int ffd_dll(CosimulationData *cosim) {
  
   printf("ffd_dll():Start to launch FFD\n");
 
-  workerThreadHandle = CreateThread(NULL, 0, ffd, (void *)cosim, 0, &dummy);
+  workerThreadHandle = CreateThread(NULL, 0, ffd_thread, (void *)cosim, 0, &dummy);
   printf("ffd_dll(): Launched FFD simulation.\n");
   return 0;
 } // End of ffd_dll()

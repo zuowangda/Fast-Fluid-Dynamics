@@ -43,25 +43,31 @@ int set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     case VX:
       flag = set_bnd_vel(para, var, VX, psi, BINDEX); 
       if(flag!=0)
-        ffd_log("set_bnd(): Failed to set boundary conditon for X-velocity.",
+        ffd_log("set_bnd(): Could not set boundary condition for X-velocity.",
                 FFD_ERROR);
       break;
     case VY:
       flag = set_bnd_vel(para, var, VY, psi, BINDEX); 
       if(flag!=0)
-        ffd_log("set_bnd(): Failed to set boundary conditon for Y-velocity.",
+        ffd_log("set_bnd(): Could not set boundary condition for Y-velocity.",
                 FFD_ERROR);
       break;
     case VZ:
       flag = set_bnd_vel(para, var, VZ, psi, BINDEX); 
       if(flag!=0)
-        ffd_log("set_bnd(): Failed to set boundary conditon for Z-velocity.",
+        ffd_log("set_bnd(): Could not set boundary condition for Z-velocity.",
                 FFD_ERROR);
       break;
     case TEMP:
       flag = set_bnd_temp(para, var, TEMP, psi, BINDEX); 
       if(flag!=0)
-        ffd_log("set_bnd(): Failed to set boundary conditon for temperature.",
+        ffd_log("set_bnd(): Could not set boundary condition for temperature.",
+                FFD_ERROR);
+      break;
+    case DEN:
+      flag = set_bnd_temp(para, var, TEMP, psi, BINDEX); 
+      if(flag!=0)
+        ffd_log("set_bnd(): Could not set boundary condition for trace.",
                 FFD_ERROR);
       break;
     default:
@@ -567,6 +573,22 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   return 0;
 } // End of set_bnd_temp()
 
+///////////////////////////////////////////////////////////////////////////////
+/// Set the boundary condition for trace substance
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param var_type The type of variable
+///\param psi Pointer to the variable needing the boundary conditions
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_bnd_trace(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
+                 int **BINDEX) {
+
+  return 0;
+} // End of set_bnd_temp()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Set the boundary condition for pressure

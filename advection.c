@@ -76,7 +76,8 @@ int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       break;
     default:
       flag = 1;
-      sprintf(msg, "advect(): no advection for variable type %d.", var_type);
+      sprintf(msg, "advect(): Advection function not defined for variable "
+        "type %d.", var_type);
       ffd_log(msg, FFD_ERROR);
   }
 

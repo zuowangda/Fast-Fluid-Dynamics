@@ -665,7 +665,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       else 
         EJ = EJ + SJ;
       // Reset Z index
-      if(SK==1) {   
+      if(SK==1) {
         SK = 0;
         if(EK>=kmax) EK = EK + 1;
       }

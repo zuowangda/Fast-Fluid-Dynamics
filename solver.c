@@ -57,7 +57,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
     //-------------------------------------------------------------------------
     vel_step(para, var, BINDEX);  
     temp_step(para, var, BINDEX);
-    //den_step(para, var, BINDEX);
+    den_step(para, var, BINDEX);
     timing(para);
 
     //-------------------------------------------------------------------------
@@ -274,7 +274,7 @@ void equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi) {
       Gauss_Seidel(para, var, flagp, psi);
       break;
     default:
-      sprintf(msg, "equ_solver(): Solver for variable type %d not defined.", 
+      sprintf(msg, "equ_solver(): Solver for variable type %d is not defined.", 
               var_type);
       ffd_log(msg, FFD_ERROR);
   }
