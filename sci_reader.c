@@ -548,7 +548,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ffd_log(msg, FFD_NORMAL);
 
   if(para->bc->nb_wall!=0) {
-    // Allocate the memory for bc name and id
+    /*-------------------------------------------------------------------------
+    | Allocate the memory for bc name and id
+    -------------------------------------------------------------------------*/
     para->bc->wallName = (char**)malloc(sizeof(char*));
     para->bc->wallId = (int *)malloc(sizeof(int)*para->bc->nb_wall);
     for(i=0; i<para->bc->nb_wall; i++)
@@ -556,39 +558,54 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
 
     para->bc->AWall = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
     if(para->bc->AWall==NULL)
-      ffd_log("read_sci_input(): Could not allocate memory for para->bc->AWall.",
-      FFD_ERROR);
+      ffd_log("read_sci_input(): Could not allocate memory for "
+      "para->bc->AWall.", FFD_ERROR);
 
     para->bc->temHea = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
     if(para->bc->temHea==NULL)
-      ffd_log("read_sci_input(): Could not allocate memory for para->bc->heaTem.",
-      FFD_ERROR);
+      ffd_log("read_sci_input(): Could not allocate memory for "
+      "para->bc->heaTem.", FFD_ERROR);
 
     para->bc->temHeaAve = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
     if(para->bc->temHeaAve==NULL)
-      ffd_log("read_sci_input(): Could not allocate memory for para->bc->temHeaAve.",
-      FFD_ERROR);
+      ffd_log("read_sci_input(): Could not allocate memory for "
+      "para->bc->temHeaAve.", FFD_ERROR);
     
     para->bc->temHeaMean = (REAL*) malloc(para->bc->nb_wall*sizeof(REAL));
     if(para->bc->temHeaMean==NULL)
-      ffd_log("read_sci_input(): Could not allocate memory for para->bc->temHeaMean.",
-      FFD_ERROR);
+      ffd_log("read_sci_input(): Could not allocate memory for "
+      "para->bc->temHeaMean.", FFD_ERROR);
 
     bcnameid = -1;
-    // Read wall conditions for each wall
+    /*-------------------------------------------------------------------------
+    | Read wall conditions for each wall
+    -------------------------------------------------------------------------*/
     for(i=1; i<=para->bc->nb_wall; i++) {
+      /*.......................................................................
+      | Ge the names of boundary
+      .......................................................................*/
       fgets(string, 400, file_params);
+      // Ge the length of name (The name may contain white space)
+      for(j=0; string[j] != '\n'; j++) {
+        continue;
+      }
+      bcnameid++;
+      para->bc->wallName[bcnameid] = (char*)malloc(j*sizeof(char));
+      strncpy(para->bc->wallName[bcnameid], (const char*)string, j);
+      // Add an ending
+      para->bc->wallName[bcnameid][j] = '\0';
+      sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=\"%s\"",
+             bcnameid, para->bc->wallName[bcnameid]);
+      ffd_log(msg, FFD_NORMAL);
+      /*.......................................................................
+      | Ge the boundary conditions
+      .......................................................................*/
       // X_index_start, Y_index_Start, Z_index_Start, 
       // X_index_End, Y_index_End, Z_index_End, 
       // Thermal Codition (0: Flux; 1:Temperature), Value of thermal conditon
-      sscanf(string,"%s%d%d%d%d%d%d%d%f", &name, &SI, &SJ, &SK, &EI, 
+      fgets(string, 400, file_params);
+      sscanf(string,"%d%d%d%d%d%d%d%f", &SI, &SJ, &SK, &EI, 
              &EJ, &EK, &FLTMP, &TMP);
-      bcnameid++;
-      para->bc->wallName[bcnameid] = (char*)malloc(sizeof(name));
-      strcpy(para->bc->wallName[bcnameid], name);
-      sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=%s",
-              bcnameid, para->bc->wallName[bcnameid]);
-      ffd_log(msg, FFD_NORMAL);
       sprintf(msg, "read_sci_input(): ThermalBC=%d, T/q_dot=%f", 
               FLTMP, TMP);
       ffd_log(msg, FFD_NORMAL);

@@ -70,12 +70,12 @@ void ffd_log(char *message, FFD_MSG_TYPE msg_type) {
 
   switch(msg_type) {
     case FFD_WARNING:
-      fprintf(file_log, "Waring in: %s\n", message);
+      fprintf(file_log, "WARNING in %s\n", message);
       break;
     case FFD_ERROR:
-      fprintf(file_log, "Error in %s\n", message);
+      fprintf(file_log, "ERROR in %s\n", message);
       break;
-    // Nomral log
+    // Normal log
     default:
       fprintf(file_log, "%s\n", message);
   }

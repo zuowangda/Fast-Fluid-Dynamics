@@ -105,7 +105,10 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
                   "ffd_solver(): Received stop command from Modelica at "
                   "FFD time: %f[s], Modelica Time: %f[s].",
                   para->mytime->t, para->cosim->modelica->t);
-          ffd_log(msg, FFD_NORMAL);
+          if(para->mytime->t==para->cosim->modelica->t)
+            ffd_log(msg, FFD_NORMAL);
+          else 
+            ffd_log(msg, FFD_WARNING);
         }
 
         continue;
