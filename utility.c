@@ -592,8 +592,6 @@ void free_data(REAL **var) {
   if(var[VXM]) free(var[VXM]);
   if(var[VYM]) free(var[VYM]);
   if(var[VZM]) free(var[VZM]);
-  if(var[DEN]) free(var[DEN]);
-  if(var[DENS]) free(var[DENS]);
   if(var[TEMP]) free(var[TEMP]);
   if(var[TEMPM]) free(var[TEMPM]);
   if(var[TEMPS]) free(var[TEMPS]);

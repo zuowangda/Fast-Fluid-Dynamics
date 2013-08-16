@@ -36,7 +36,7 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL *d = var[DEN];
+  REAL *d = var[TRACE];
   REAL *T = var[TEMP];
   REAL *flagp = var[FLAGP];
   char *filename;
@@ -110,7 +110,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz =var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];
+  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[TRACE];
   REAL *T = var[TEMP], *Tm = var[TEMPM];
   REAL *tmp1 = var[TMP1], *tmp2 = var[TMP2], *tmp3 = var[TMP3];
   REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGU];
@@ -152,7 +152,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
   // Print variables 
   fprintf(dataFile, "VARIABLES = X, Y, Z, I, J, K, ");
   fprintf(dataFile, "U, V, W, UM, VM, WM, US, VS, WS, ");
-  fprintf(dataFile, "DEN, DENS, P, ");
+  fprintf(dataFile, "P, ");
   fprintf(dataFile, "T, TM, TS, ");
   fprintf(dataFile, "GX, GY, GZ, ");
   fprintf(dataFile, "FLAGU, FLAGV, FLAGW, FLAGP, ");
@@ -171,9 +171,8 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
             var[VX][IX(i,j,k)], var[VY][IX(i,j,k)], var[VZ][IX(i,j,k)], 
             var[VXM][IX(i,j,k)], var[VYM][IX(i,j,k)], var[VZM][IX(i,j,k)],
             var[VXS][IX(i,j,k)], var[VYS][IX(i,j,k)], var[VZS][IX(i,j,k)]);
-    // Contaminant concentration, Pressure
-    fprintf(dataFile, "%f\t%f\t%f\t",
-            var[DEN][IX(i,j,k)], var[DENS][IX(i,j,k)], 
+    // Pressure
+    fprintf(dataFile, "%f\t",
             var[IP][IX(i,j,k)]);
     // Temperature
     fprintf(dataFile, "%f\t%f\t%f\t",
@@ -231,7 +230,7 @@ void convert_to_tecplot(PARA_DATA *para, REAL **var)
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM];
-  REAL *p = var[IP], *d = var[DEN];
+  REAL *p = var[IP], *d = var[TRACE];
   REAL *T = var[TEMP], *Tm = var[TEMPM];
 
   /*--------------------------------------------------------------------------
@@ -333,7 +332,7 @@ int write_unsteady(PARA_DATA *para, REAL **var, char *name){
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL  *d = var[DEN];
+  REAL  *d = var[TRACE];
   REAL *T = var[TEMP];
   char *filename;
   FILE *datafile;
@@ -391,7 +390,7 @@ int write_SCI(PARA_DATA *para, REAL **var, char *name) {
   int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[DEN];
+  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[TRACE];
   REAL *T = var[TEMP], *Tm = var[TEMPM];
   REAL *tmp1 = var[TMP1], *tmp2 = var[TMP2], *tmp3 = var[TMP3];
   char *filename;

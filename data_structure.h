@@ -42,8 +42,6 @@ Place the stdlib.h line above the glut.h line in the code.
 -----------------------------------------------------------------------------*/
 #include <glut.h>
 
-
-
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
 #define FOR_ALL_CELL for(k=0; k<=kmax+1; k++) { for(j=0; j<=jmax+1; j++) { for(i=0; i<=imax+1; i++) {
@@ -78,9 +76,9 @@ Place the stdlib.h line above the glut.h line in the code.
 #define VXS   9
 #define VYS   10
 #define VZS   11
-#define DEN   12
-#define DENS  13
-#define IP    14
+#define IP    12
+#define QFLUXBC 13 // Heat flux on the boundary
+#define QFLUX 14  // Heat flux
 #define TMP1  15
 #define TMP2  16
 #define TMP3  17
@@ -110,8 +108,8 @@ Place the stdlib.h line above the glut.h line in the code.
 #define VYBC 41
 #define VZBC 42
 #define TEMPBC 43
-#define QFLUXBC 44 // Heat flux on the boundary
-#define QFLUX 45  // Heat flux
+
+#define TRACE 44
 
 typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC, SYMMETRY} BCTYPE;
 

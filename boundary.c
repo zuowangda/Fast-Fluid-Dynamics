@@ -31,12 +31,13 @@
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type The type of variable
+///\param index Index of trace substances or species
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
+int set_bnd(PARA_DATA *para, REAL **var, int var_type, int index, REAL *psi, 
             int **BINDEX) {
   int flag;
   switch(var_type) {
@@ -64,8 +65,8 @@ int set_bnd(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         ffd_log("set_bnd(): Could not set boundary condition for temperature.",
                 FFD_ERROR);
       break;
-    case DEN:
-      flag = set_bnd_temp(para, var, TEMP, psi, BINDEX); 
+    case TRACE:
+      flag = set_bnd_trace(para, var, index, psi, BINDEX); 
       if(flag!=0)
         ffd_log("set_bnd(): Could not set boundary condition for trace.",
                 FFD_ERROR);
@@ -578,17 +579,116 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
-///\param var_type The type of variable
+///\param trace_index Index of the trace substance
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_trace(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
+int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
                  int **BINDEX) {
+  int i, j, k, it, id;
+  int index=para->geom->index;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
+  REAL *af = var[AF], *ab = var[AB], *b=var[B];
+  REAL *flagp = var[FLAGP];
+
+  /****************************************************************************
+  | Go through all the boundary cells
+  ****************************************************************************/
+  for(it=0; it<index; it++) {
+    i = BINDEX[0][it];
+    j = BINDEX[1][it];
+    k = BINDEX[2][it];
+
+    /*-------------------------------------------------------------------------
+    | Inlet boundary
+    -------------------------------------------------------------------------*/
+    if(flagp[IX(i,j,k)]==INLET) {
+      id = BINDEX[4][it]; 
+      psi[IX(i,j,k)] = para->bc->XiPort[id][trace_index];
+    }
+    /*-------------------------------------------------------------------------
+    | Solid wall or block
+    -------------------------------------------------------------------------*/
+    else if(flagp[IX(i,j,k)]==SOLID) {
+      /*.......................................................................
+      | Neumann B.C.
+      .......................................................................*/
+      // Eastern neighbor is fluid
+      if(i!=imax+1 && flagp[IX(i+1,j,k)]==FLUID) {
+          aw[IX(i+1,j,k)] = 0;
+          psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
+      } 
+      // Western neighbor is fluid
+      if(i=!0 && flagp[IX(i-1,j,k)]==FLUID) { 
+          ae[IX(i-1,j,k)] = 0;
+          psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
+      } 
+      // Northern neighbor is fluid
+      if(j!=jmax+1 && flagp[IX(i,j+1,k)]==FLUID) {
+          as[IX(i,j+1,k)] = 0;
+          psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
+      } 
+      // Southern neighbor is fluid
+      if(j!=0 && flagp[IX(i,j-1,k)]==FLUID) { 
+          an[IX(i,j-1,k)] = 0;
+          psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
+      }
+      // Ceiling neighbor is fluid
+      if(k!=kmax+1 && flagp[IX(i,j,k+1)]==FLUID) { 
+          ab[IX(i,j,k+1)] = 0;
+          psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
+      }
+      // Floor neighbor is fluid
+      if(k==kmax+1 && flagp[IX(i,j,k-1)]==FLUID) { 
+          af[IX(i,j,k-1)] = 0;
+          psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
+      } 
+    } // End of wall boundary
+
+    /*-------------------------------------------------------------------------
+    | Outlet boundary
+    -------------------------------------------------------------------------*/
+    if(flagp[IX(i,j,k)]==OUTLET) {
+      // West
+      if(i==0) {
+        aw[IX(i+1,j,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
+      }
+      // North
+      if(i==imax+1) {
+        ae[IX(i-1,j,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
+      }
+      // South
+      if(j==0) {
+        as[IX(i,j+1,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
+      }
+      // North
+      if(j==jmax+1) {
+        an[IX(i,j-1,k)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
+      }
+      // Floor
+      if(k==0) {
+        ab[IX(i,j,k+1)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
+      }
+      // Ceiling
+      if(k==kmax+1) {
+        af[IX(i,j,k-1)] = 0;
+        psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
+      }
+    } // End of boundary for outlet
+  } // End of for() loop for go through the index
 
   return 0;
-} // End of set_bnd_temp()
+} // End of set_bnd_trace()
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Set the boundary condition for pressure

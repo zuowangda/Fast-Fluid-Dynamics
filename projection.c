@@ -24,10 +24,10 @@
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void project(PARA_DATA *para, REAL **var, int **BINDEX) {
-	int i, j, k;
+int project(PARA_DATA *para, REAL **var, int **BINDEX) {
+  int i, j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -94,5 +94,7 @@ void project(PARA_DATA *para, REAL **var, int **BINDEX) {
     if (flagw[IX(i,j,k)]>=0) continue;
     w[IX(i,j,k)] -= dt*(p[IX(i,j,k+1)]-p[IX(i,j,k)]) / (z[IX(i,j,k+1)]-z[IX(i,j,k)]);
   END_FOR
+
+  return 0;
 } // End of project( )
 

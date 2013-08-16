@@ -645,38 +645,43 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 
   ffd_log("assign_port_bc():", FFD_NORMAL);
 
-  //---------------------------------------------------------------------------
-  // Convert the data from Modelica order to FFD order for the Predefinded Inlet
-  //---------------------------------------------------------------------------
+  /****************************************************************************
+  | Convert the data from Modelica to FFD for the Inlet
+  ****************************************************************************/
   for(j=0; j<para->bc->nb_port; j++) {
     i = para->bc->portId[j];
+
+    /*-------------------------------------------------------------------------
+    | Convert for mass flow rate and temperature
+    -------------------------------------------------------------------------*/
     para->bc->velPort[j] = para->cosim->modelica->mFloRatPor[i] 
                               / (para->prob->rho*para->bc->APort[j]);
     para->bc->TPort[j] = para->cosim->modelica->TPor[i] - 273.15;
-
-    for(k=0; k<para->cosim->para->nXi; k++)
-      para->bc->XiPort[j][k] = para->cosim->modelica->XiPor[i][k];
-    for(k=0; k<para->cosim->para->nC; k++) 
-      para->bc->CPort[j][k] = para->cosim->modelica->CPor[i][k];
-
     sprintf(msg, "\t%s: vel=%f[m/s], T=%f[degC]", 
           para->bc->portName[j], para->bc->velPort[j], 
           para->bc->TPort[j]);
     ffd_log(msg, FFD_NORMAL);
-    
+    /*-------------------------------------------------------------------------
+    | Convert nXi types of trace substance
+    -------------------------------------------------------------------------*/
     for(k=0; k<para->cosim->para->nXi; k++) {
+      para->bc->XiPort[j][k] = para->cosim->modelica->XiPor[i][k];
       sprintf(msg, "\tXi[%d]=%f", k, para->bc->XiPort[j][k]);
       ffd_log(msg, FFD_NORMAL);
     }
+    /*-------------------------------------------------------------------------
+    | Convert nC types of species
+    -------------------------------------------------------------------------*/
     for(k=0; k<para->cosim->para->nC; k++) {
+      para->bc->CPort[j][k] = para->cosim->modelica->CPor[i][k];
       sprintf(msg, "\tC[%d]=%f", k, para->bc->CPort[j][k]);
       ffd_log(msg, FFD_NORMAL);
     }
   }
 
-  //---------------------------------------------------------------------------
-  // Assign the BC
-  //---------------------------------------------------------------------------
+  /****************************************************************************
+  | Assign the BC
+  ****************************************************************************/
   for(it=0; it<para->geom->index; it++) {    
     i = BINDEX[0][it];
     j = BINDEX[1][it];

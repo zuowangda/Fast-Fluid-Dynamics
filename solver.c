@@ -34,7 +34,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL t_steady = para->mytime->t_steady;
   REAL dt = para->mytime->dt;
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *den = var[DEN], *temp = var[TEMP];
+  REAL *den = var[TRACE], *temp = var[TEMP];
   REAL *u_mean = var[VXM], *v_mean = var[VYM], *w_mean = var[VZM];
   int tsize=3;
   int  IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -189,14 +189,25 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void temp_step(PARA_DATA *para, REAL **var, int **BINDEX) {
+int temp_step(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *T = var[TEMP], *T0 = var[TMP1];
-  
-  advect(para, var, TEMP, T0, T, BINDEX); 
-  diffusion(para, var, TEMP, T, T0, BINDEX);
+  int flag = 0;
 
+  flag = advect(para, var, TEMP, 0, T0, T, BINDEX); 
+  if(flag!=0) {
+    ffd_log("temp_step(): Could not advect temperature.", FFD_ERROR);
+    return flag;
+  }
+
+  flag = diffusion(para, var, TEMP, 0, T, T0, BINDEX);
+  if(flag!=0) {
+    ffd_log("temp_step(): Could not diffuse temperature.", FFD_ERROR);
+    return flag;
+  }
+
+  return flag;
 } // End of temp_step( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -206,14 +217,30 @@ void temp_step(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-void den_step(PARA_DATA *para, REAL **var, int **BINDEX) {
-  REAL *den = var[DEN], *den0 = var[TMP1];
+int den_step(PARA_DATA *para, REAL **var, int **BINDEX) {
+  REAL *den, *den0 = var[TMP1];
+  int i, flag = 0;
 
-  advect(para, var, DEN, den0, den, BINDEX);
-  diffusion(para, var, DEN, den, den0, BINDEX);
+  for(i=0; i<para->bc->nb_Xi; i++) {
+    den = var[TRACE+i];
+    flag = advect(para, var, TRACE, i, den0, den, BINDEX);
+    if(flag!=0) {
+      sprintf(msg, "den_step(): Could not advect for trace substance %d", i);
+      ffd_log(msg, FFD_ERROR);
+      return flag;
+    }
 
+    flag = diffusion(para, var, TRACE, i, den, den0, BINDEX);
+    if(flag!=0) {
+      sprintf(msg, "den_step(): Could not diffuse trace substance %d", i);
+      ffd_log(msg, FFD_ERROR);
+      return flag;
+    }
+  }
+
+  return flag;
 } // End of den_step( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -223,25 +250,63 @@ void den_step(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-void vel_step(PARA_DATA *para, REAL **var,int **BINDEX) {
+int vel_step(PARA_DATA *para, REAL **var,int **BINDEX) {
   REAL *u  = var[VX],  *v  = var[VY],    *w  = var[VZ];
   REAL *u0 = var[TMP1], *v0 = var[TMP2], *w0 = var[TMP3];
+  int flag = 0;
 
-  advect(para, var, VX, u0, u, BINDEX);
-  advect(para, var, VY, v0, v, BINDEX);
-  advect(para, var, VZ, w0, w, BINDEX); 
+  flag = advect(para, var, VX, 0, u0, u, BINDEX);
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not advect for velocity X.", FFD_ERROR);
+    return flag;
+  }
 
-  diffusion(para, var, VX, u, u0, BINDEX);   
-  diffusion(para, var, VY, v, v0, BINDEX); 
-  diffusion(para, var, VZ, w, w0, BINDEX); 
+  flag = advect(para, var, VY, 0, v0, v, BINDEX);
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not advect for velocity Y.", FFD_ERROR);
+    return flag;
+  }
 
+  flag = advect(para, var, VZ, 0, w0, w, BINDEX); 
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not advect for velocity Z.", FFD_ERROR);
+    return flag;
+  }
 
-  if(para->bc->nb_outlet!=0) mass_conservation(para, var,BINDEX);
-  
-  project(para, var,BINDEX);
+  flag = diffusion(para, var, VX, 0, u, u0, BINDEX);
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not diffuse velocity X.", FFD_ERROR);
+    return flag;
+  }
 
+  flag = diffusion(para, var, VY, 0, v, v0, BINDEX);
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not diffuse velocity Y.", FFD_ERROR);
+    return flag;
+  }
+
+  flag = diffusion(para, var, VZ, 0, w, w0, BINDEX); 
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not diffuse velocity Z.", FFD_ERROR);
+    return flag;
+  }
+
+  flag = project(para, var,BINDEX);
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not project velocity.", FFD_ERROR);
+    return flag;
+  }
+
+  if(para->bc->nb_outlet!=0) flag = mass_conservation(para, var,BINDEX);
+  if(flag!=0) {
+    ffd_log("vel_step(): Could not conduct mass conservation correction.",
+            FFD_ERROR);
+    return flag;
+  }
+
+  return flag;
 } // End of vel_step( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,11 +317,12 @@ void vel_step(PARA_DATA *para, REAL **var,int **BINDEX) {
 ///\param var_type Variable type
 ///\param Pointer to variable
 ///
-///\return No return needed
+///\return 0 if not error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi) {
-   REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
-        *flagv = var[FLAGV], *flagw = var[FLAGW];
+int equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi) {
+  REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
+       *flagv = var[FLAGV], *flagw = var[FLAGW];
+  int flag = 0;
 
   switch(var_type) {
     case VX:
@@ -270,13 +336,16 @@ void equ_solver(PARA_DATA *para, REAL **var, int var_type, REAL *psi) {
       break;
     case TEMP:
     case IP:
-    case DEN:
+    case TRACE:
       Gauss_Seidel(para, var, flagp, psi);
       break;
     default:
       sprintf(msg, "equ_solver(): Solver for variable type %d is not defined.", 
               var_type);
       ffd_log(msg, FFD_ERROR);
+      flag = 1;
+      break;
   }
 
+  return flag;
 }// end of equ_solver

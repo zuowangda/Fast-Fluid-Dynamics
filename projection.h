@@ -50,6 +50,6 @@
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void project(PARA_DATA *para, REAL **var, int **BINDEX);
+int project(PARA_DATA *para, REAL **var, int **BINDEX);

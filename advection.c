@@ -36,14 +36,15 @@
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type The type of variable for advection solver
+///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-           int **BINDEX) {
+int advect(PARA_DATA *para, REAL **var, int var_type, int index, 
+           REAL *d, REAL *d0, int **BINDEX) {
   int flag;
   switch (var_type) {
     case VX:
@@ -65,8 +66,8 @@ int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
                 FFD_ERROR);
       break;
     case TEMP:
-    case DEN:
-      flag = trace_scalar(para, var, var_type, d, d0, BINDEX);
+    case TRACE:
+      flag = trace_scalar(para, var, var_type, index, d, d0, BINDEX);
       if(flag!=0) {
         sprintf(msg, 
                 "advect(): Failed in advection for scalar variable type %d.", 
@@ -96,7 +97,7 @@ int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
+int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
              int **BINDEX) {
   int i, j, k;
   int it;
@@ -203,7 +204,7 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, d, BINDEX);
+  set_bnd(para, var, var_type, 0, d, BINDEX);
 
   return 0;
 } // End of trace_vx()
@@ -289,8 +290,7 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       if(COOD[Z]==1 && LOC[Z]==1)
           set_z_location(para, var, flagv, z, w0, i, j, k, OL, OC, LOC, COOD); 
 
-      if(it>itmax)
-      {
+      if(it>itmax) {
         printf("Error: advection.c can not track the location for VY(%d, %d,%d)",
                 i, j, k);
         printf("after %d iterations.\n", it);
@@ -324,7 +324,7 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, d,BINDEX);
+  set_bnd(para, var, var_type, 0, d, BINDEX);
   return 0;
 } // End of trace_vy()
 
@@ -399,8 +399,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     it=1;
 
     // Trace back more if the any of the trace is still in process 
-    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1)
-    {
+    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1) {
       it++;
       if(COOD[X]==1 && LOC[X]==1)
         set_x_location(para, var, flagw, x, u0, i, j, k, OL, OC, LOC, COOD); 
@@ -442,7 +441,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, d, BINDEX);
+  set_bnd(para, var, var_type, 0, d, BINDEX);
   return 0;
 } // End of trace_vz()
 
@@ -452,14 +451,15 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type The type of variable for advection solver
+///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX) {
+int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
+                 REAL *d, REAL *d0, int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -523,11 +523,11 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
       // If trace in Z is in process and donot hit the boundary
       if(COOD[Z]==1 && LOC[Z]==1)
         set_z_location(para, var, flagp, z, w0, i, j, k, OL, OC, LOC, COOD); 
-      if(it>itmax)
-      {
-        printf("Error: advection.c, can not track the location for Temperature(%d, %d,%d)",
-                i, j, k);
-        printf("after %d iterations.\n", it);
+      if(it>itmax) {
+        sprintf(msg, "trace_scalar(): Could not track the location for scalar "
+          "variable %d at cell(%d, %d,%d) after %d interations", 
+          var_type, i, j, k, it);
+        ffd_log(msg, FFD_ERROR);
         return 1;
       }
     } // End of while() for backward tracing
@@ -561,7 +561,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | Define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, d, BINDEX);
+  set_bnd(para, var, var_type, index, d, BINDEX);
   return 0;
 } // End of trace_scalar()
 

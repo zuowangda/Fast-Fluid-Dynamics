@@ -26,26 +26,34 @@
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type Type of variable
+///\param index Index of trace substance or species
 ///\param psi Pointer to the variable at current time step
 ///\param psi0 Pointer to the variable at previous time step
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int diffusion(PARA_DATA *para, REAL **var, int var_type, 
+int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
                REAL *psi, REAL *psi0, int **BINDEX) {
   REAL residual = 1.0;
   int iter = 0;
   int flag = 0;
 
-  // Define the coefcients for euqations
-  coef_diff(para, var, psi, psi0, var_type, BINDEX);
+  /****************************************************************************
+  | Define the coeffcients for diffusion euqation
+  ****************************************************************************/
+  flag = coef_diff(para, var, psi, psi0, var_type, index, BINDEX);
+  if(flag!=0) {
+    ffd_log("diffsuion(): Could not calculate coefficents for "
+            "diffusion equation.", FFD_ERROR);
+    return flag;
+  }
 
   // Solve the equations
   equ_solver(para, var, var_type, psi);
 
   // Define B.C.
-  set_bnd(para, var, var_type, psi, BINDEX);
+  set_bnd(para, var, var_type, index, psi, BINDEX);
 
   // Check residual
   if(para->solv->check_residual==1) {
@@ -70,9 +78,9 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type,
                 check_residual(para, var, psi));
         ffd_log(msg, FFD_NORMAL);
         break;
-      case DEN:
-        sprintf(msg, "diffusion(): Residual of T is %f",
-                check_residual(para, var, psi));
+      case TRACE:
+        sprintf(msg, "diffusion(): Residual of Trace %d is %f",
+                index, check_residual(para, var, psi));
         ffd_log(msg, FFD_NORMAL);
         break;
       default:
@@ -94,12 +102,13 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type,
 ///\param psi Pointer to the variable at current time step
 ///\param psi0 Pointer to the variable at previous time step
 ///\param var_type Type of variable
+///\param index Index of trace substance or species
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0, 
-               int var_type, int **BINDEX) {
+int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0, 
+               int var_type, int index, int **BINDEX) {
   int i, j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -251,7 +260,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
     | Scalar Variable
     -------------------------------------------------------------------------*/
     case TEMP:
-    case DEN:
+    case TRACE:
       if(para->prob->tur_model == LAM)   
         kapa = para->prob->alpha; 
       else if(para->prob->tur_model == CONSTANT) 
@@ -278,7 +287,7 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
         b[IX(i,j,k)] = psi0[IX(i,j,k)]*ap0[IX(i,j,k)];
       END_FOR
 
-      set_bnd(para, var, var_type, psi,BINDEX);
+      set_bnd(para, var, var_type, index, psi, BINDEX);
 
       FOR_EACH_CELL
         ap[IX(i,j,k)] = ap0[IX(i,j,k)] + ae[IX(i,j,k)] + aw[IX(i,j,k)] 
@@ -288,8 +297,11 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
     default:
       sprintf(msg, "coe_diff(): No function for variable type %d", var_type);
       ffd_log(msg, FFD_ERROR);
+      return 1;
+      break;
   }
 
+  return 0;
 }// End of coef_diff( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -298,11 +310,11 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type Type of variable 
+///\param index Index of trace substances or species
 ///
-///\return No return
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void source_diff(PARA_DATA *para, REAL **var, int var_type)
-{
+int source_diff(PARA_DATA *para, REAL **var, int var_type, int index) {
   int i, j, k;  
   int imax = para->geom->imax, jmax = para->geom->jmax; 
   int kmax = para->geom->kmax;
@@ -323,9 +335,11 @@ void source_diff(PARA_DATA *para, REAL **var, int var_type)
       case TEMP: 
         b[IX(i,j,k)] += var[TEMPS][IX(i,j,k)];
         break;
-      case DEN:  
-        b[IX(i,j,k)] += var[DENS][IX(i,j,k)];  
+      case TRACE:  
+        b[IX(i,j,k)] += var[TRACE+para->bc->nb_Xi+index][IX(i,j,k)];
         break;
     }
   END_FOR
+
+  return 0;
 } // End of source_diff()

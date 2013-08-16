@@ -96,9 +96,9 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX);
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void temp_step(PARA_DATA *para, REAL **var,int **BINDEX);
+int temp_step(PARA_DATA *para, REAL **var, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the contaminant concentration
@@ -107,9 +107,9 @@ void temp_step(PARA_DATA *para, REAL **var,int **BINDEX);
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
+///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-void den_step(PARA_DATA *para, REAL **var,int **BINDEX);
+int den_step(PARA_DATA *para, REAL **var, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the velocity
@@ -118,9 +118,9 @@ void den_step(PARA_DATA *para, REAL **var,int **BINDEX);
 ///\param var Pointer to FFD simulation variables
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return needed
-///////////////////////////////////////////////////////////////////////////////
-void vel_step(PARA_DATA *para, REAL **var, int **BINDEX);
+///\return 0 if no error occurred
+/////////////////////////////////////////////////////////////////////////////// 
+int vel_step(PARA_DATA *para, REAL **var,int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Solver for equations
@@ -130,6 +130,6 @@ void vel_step(PARA_DATA *para, REAL **var, int **BINDEX);
 ///\param var_type Variable type
 ///\param Pointer to variable
 ///
-///\return No return needed
+///\return 0 if not error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void equ_solver(PARA_DATA *para, REAL **var, int Type, REAL *x);
+int equ_solver(PARA_DATA *para, REAL **var, int Type, REAL *x);

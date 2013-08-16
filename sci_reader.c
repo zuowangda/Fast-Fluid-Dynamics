@@ -112,7 +112,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   delz = (REAL *) malloc ((kmax+2)*sizeof(REAL));
 
   if( !delx || !dely ||!delz ) {
-    fprintf ( stderr, "Cannot allocate memory for delx, dely or delz in read_sci_input()\n");
+    ffd_log("read_sci_input(): Cannot allocate memory for delx, dely or delz.",
+            FFD_ERROR);
     return 1;
   }
 
@@ -372,12 +373,11 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     } // End of loop for each outlet boundary
   } // End of setting outlet boundary
 
-  para->bc->nb_port = para->bc->nb_inlet+para->bc->nb_outlet;
-  
   /*****************************************************************************
   | - Copy the inlet and outlet information to ports
   | - Allocate memory for related port variables
   *****************************************************************************/
+  para->bc->nb_port = para->bc->nb_inlet+para->bc->nb_outlet;
   if(para->bc->nb_port>0) {
     /*--------------------------------------------------------------------------
     | Copy the inlet and outlet names to ports' names
@@ -635,7 +635,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       // Add an ending
       para->bc->wallName[i][j] = '\0';
       sprintf(msg, "read_sci_input(): para->bc->wallName[%d]=\"%s\"",
-             bcnameid, para->bc->wallName[i]);
+             i, para->bc->wallName[i]);
       ffd_log(msg, FFD_NORMAL);
       /*.......................................................................
       | Get the boundary conditions

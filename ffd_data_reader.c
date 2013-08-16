@@ -44,7 +44,7 @@ int read_ffd_data(PARA_DATA *para, REAL **var) {
    fgets(string, 400, file_old_ffd); 
    sscanf(string,"%f%f%f%f%f%f", &var[VX][IX(i,j,k)], &var[VY][IX(i,j,k)], 
           &var[VZ][IX(i,j,k)], &var[TEMP][IX(i,j,k)],
-          &var[DEN][IX(i,j,k)], &var[IP][IX(i,j,k)]);
+          &var[TRACE][IX(i,j,k)], &var[IP][IX(i,j,k)]);
   END_FOR
     
   fclose(file_old_ffd);

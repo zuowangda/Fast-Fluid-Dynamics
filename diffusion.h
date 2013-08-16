@@ -52,14 +52,15 @@
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type Type of variable
+///\param index Index of trace substance or species
 ///\param psi Pointer to the variable at current time step
 ///\param psi0 Pointer to the variable at previous time step
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int diffusion(PARA_DATA *para, REAL **var, int var_type, 
-              REAL *psi, REAL *psi0, int **BINDEX);
+int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
+               REAL *psi, REAL *psi0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calcuate coefficients for difussion equation solver
@@ -68,13 +69,14 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type,
 ///\param var Pointer to FFD simulation variables
 ///\param psi Pointer to the variable at current time step
 ///\param psi0 Pointer to the variable at previous time step
-///\param var_type Type of variable for advection solver
+///\param var_type Type of variable
+///\param index Index of trace substance or species
 ///\param BINDEX Pointer to boundary index
 ///
-///\return No return
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0, 
-               int var_type, int **BINDEX);
+int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0, 
+               int var_type, int index, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calcuate source term in the difussion equation
@@ -82,7 +84,8 @@ void coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type Type of variable 
+///\param index Index of trace substances or species
 ///
-///\return No return
+///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void source_diff(PARA_DATA *para, REAL **var, int var_type);
+int source_diff(PARA_DATA *para, REAL **var, int var_type, int index);

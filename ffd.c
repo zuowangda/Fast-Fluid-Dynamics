@@ -25,11 +25,6 @@ static int screen;
 REAL **var;
 int  **BINDEX;
 int  *xindex, *yindex, *zindex, *fltemp, *bcid;
-REAL *x, *y, *z, *gx, *gy, *gz;
-REAL *u, *v, *w, *u_s, *v_s, *w_s, *u_mean, *v_mean, *w_mean;
-REAL *dens, *dens_s, *temp, *temp_s, *temp_mean, *p, *my_div, *pp;
-REAL *tmp1, *tmp2, *tmp3;
-REAL *ap, *an, *as, *aw, *ae, *b, *ab, *af, *ap0;
 REAL *flagp, *flagu, *flagv, *flagw;
 REAL *locmin,*locmax;
 REAL *vxbc,*vybc,*vzbc,*tempbc, *qfluxbc, *qflux;
@@ -57,130 +52,50 @@ int allocate_memory (PARA_DATA *para) {
   int nb_var, i;
   int size = (geom.imax+2) * (geom.jmax+2) * (geom.kmax+2);
 
-  //x         = (REAL *) malloc ( size*sizeof(REAL) );
-  //y         = (REAL *) malloc ( size*sizeof(REAL) );
-  //z         = (REAL *) malloc ( size*sizeof(REAL) );
-  //u         = (REAL *) malloc ( size*sizeof(REAL) );
-  //v         = (REAL *) malloc ( size*sizeof(REAL) );
-  //w         = (REAL *) malloc ( size*sizeof(REAL) );
-  //u_s       = (REAL *) malloc ( size*sizeof(REAL) );
-  //v_s       = (REAL *) malloc ( size*sizeof(REAL) );
-  //w_s       = (REAL *) malloc ( size*sizeof(REAL) );
-  //u_mean    = (REAL *) malloc ( size*sizeof(REAL) );
-  //v_mean    = (REAL *) malloc ( size*sizeof(REAL) );
-  //w_mean    = (REAL *) malloc ( size*sizeof(REAL) );
-  //temp      = (REAL *) malloc ( size*sizeof(REAL) );
-  //temp_s    = (REAL *) malloc ( size*sizeof(REAL) );
-  //temp_mean = (REAL *) malloc ( size*sizeof(REAL) );
-  //dens      = (REAL *) malloc ( size*sizeof(REAL) );
-  //dens_s    = (REAL *) malloc ( size*sizeof(REAL) );
-  //p         = (REAL *) malloc ( size*sizeof(REAL) ); 
-  //tmp1      = (REAL *) malloc ( size*sizeof(REAL) );  
-  //tmp2      = (REAL *) malloc ( size*sizeof(REAL) );  
-  //tmp3      = (REAL *) malloc ( size*sizeof(REAL) );  
-  //ap        = (REAL *) malloc ( size*sizeof(REAL) );
-  //an        = (REAL *) malloc ( size*sizeof(REAL) );
-  //as        = (REAL *) malloc ( size*sizeof(REAL) );
-  //aw        = (REAL *) malloc ( size*sizeof(REAL) );
-  //ae        = (REAL *) malloc ( size*sizeof(REAL) );
-  //ab        = (REAL *) malloc ( size*sizeof(REAL) );
-  //af        = (REAL *) malloc ( size*sizeof(REAL) );
-  //b         = (REAL *) malloc ( size*sizeof(REAL) );
-  //gx        = (REAL *) malloc ( size*sizeof(REAL) );  
-  //gy        = (REAL *) malloc ( size*sizeof(REAL) );
-  //gz        = (REAL *) malloc ( size*sizeof(REAL) );
-  //ap0       = (REAL *) malloc ( size*sizeof(REAL) );
-  //pp        = (REAL *) malloc ( size*sizeof(REAL) );
-  //flagp     = (REAL *) malloc ( size*sizeof(REAL) );
-  //flagu     = (REAL *) malloc ( size*sizeof(REAL) );
-  //flagv     = (REAL *) malloc ( size*sizeof(REAL) );
-  //flagw     = (REAL *) malloc ( size*sizeof(REAL) );
-  //locmin    = (REAL *) malloc ( size*sizeof(REAL) );
-  //locmax    = (REAL *) malloc ( size*sizeof(REAL) );
-  //vxbc      = (REAL *) malloc ( size*sizeof(REAL) );
-  //vybc      = (REAL *) malloc ( size*sizeof(REAL) );
-  //vzbc      = (REAL *) malloc ( size*sizeof(REAL) );
-  //tempbc    = (REAL *) malloc ( size*sizeof(REAL) );
-  //qfluxbc   = (REAL *) malloc ( size*sizeof(REAL) );
-  //qflux     = (REAL *) malloc ( size*sizeof(REAL) );
-
+  /****************************************************************************
+  | Allocate memory for variables
+  ****************************************************************************/
   nb_var = 46 + para->bc->nb_Xi + para->bc->nb_C;
   var       = (REAL **) malloc ( nb_var*sizeof(REAL*) );
-  for(i=0; i<nb_var; i++)
+  if(var==NULL) {
+    ffd_log("allocate_memory(): Could not allocate memory for var.",
+            FFD_ERROR);
+    return 1;
+  }
+
+  for(i=0; i<nb_var; i++) {
     var[i] = (REAL *) calloc(size, sizeof(REAL));
-  
-  //var[X]      = x;
-  //var[Y]      = y;
-  //var[Z]      = z;
-  //var[VX]     = u;
-  //var[VY]     = v;
-  //var[VZ]     = w;
-  //var[VXS]    = u_s;
-  //var[VYS]    = v_s;
-  //var[VZS]    = w_s;
-  //var[VXM]    = u_mean;
-  //var[VYM]    = v_mean;
-  //var[VZM]    = w_mean;
-  //var[DEN]    = dens;
-  //var[DENS]   = dens_s;
-  //var[IP]     = p;
-  //var[TEMP]   = temp;
-  //var[TEMPS]  = temp_s;
-  //var[TEMPM]  = temp_mean;
-  //var[AP]     = ap;
-  //var[AN]     = an;
-  //var[AS]     = as;
-  //var[AW]     = aw;
-  //var[AE]     = ae;
-  //var[AB]     = ab;
-  //var[AF]     = af;
-  //var[B]      = b;
-  //var[TMP1]   = tmp1;
-  //var[TMP2]   = tmp2;
-  //var[TMP3]   = tmp3;
-  //var[GX]     = gx;
-  //var[GY]     = gy;
-  //var[GZ]     = gz;
-  //var[AP0]    = ap0;
-  //var[PP]     = pp;
-  //var[FLAGP]  =flagp;
-  //var[FLAGU]  =flagu;
-  //var[FLAGV]  =flagv;
-  //var[FLAGW]  =flagw;
-  //var[LOCMIN] =locmin;
-  //var[LOCMAX] =locmax;
-  //var[VXBC]   =vxbc;
-  //var[VYBC]   =vybc;
-  //var[VZBC]   =vzbc;
-  //var[TEMPBC] =tempbc;
-  //var[QFLUXBC]= qfluxbc;
-  //var[QFLUX]  = qflux;
+    if(var[i]==NULL) {
+      sprintf(msg, 
+              "allocate_memory(): Could not allocate memory for var[%d]", i);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+  }
 
+  /****************************************************************************
+  | Allocate memroy for boundary cells
+  | BINDEX[0]: i of global coordinate in IX(i,j,k)
+  | BINDEX[1]: j of global coordinate in IX(i,j,k)
+  | BINDEX[2]: k of global coordinate in IX(i,j,k)
+  | BINDEX[3]: Fixed temperature or fixed heat flux
+  | BINDEX[4]: Boundary ID to identify which boundary it belongs to
+  ****************************************************************************/
+  BINDEX = (int **)malloc(5*sizeof(int*));
+  if(BINDEX==NULL) {
+    ffd_log("allocate_memory(): Could not allocate memory for BINDEX.",
+            FFD_ERROR);
+    return 1;
+  }
 
-  xindex = (int *) malloc ( size*sizeof(int) );
-  yindex = (int *) malloc ( size*sizeof(int) );
-  zindex = (int *) malloc ( size*sizeof(int) );
-  fltemp = (int *) malloc ( size*sizeof(int) );
-  bcid   = (int *) malloc ( size*sizeof(int) );
-  BINDEX = (int **) malloc ( 5*sizeof(int*) );
-
-  BINDEX[0] = xindex; // i of global coordinate in IX(i,j,k)
-  BINDEX[1] = yindex; // j of global coordinate in IX(i,j,k)
-  BINDEX[2] = zindex; // k of global coordinate in IX(i,j,k)
-  BINDEX[3] = fltemp; // fixed temperature or fixed heat flux
-  BINDEX[4] = bcid;   // id of boundary
-
-  //if( !x || !y || !z || !u || !v || !w || !u_s || !v_s || !w_s || 
-  //    !u_mean || !v_mean || !w_mean || 
-  //    !dens || !dens_s || !temp || !temp_s || !temp_mean || 
-  //    !tmp1 || !tmp2 || !tmp3 ||
-  //    !ap || !ae || !aw || !as || !an || !ab || !af || !b || !gx || !gy || !gz || !ap0 || !pp || !flagp ||
-  //    !flagu || !flagv || !flagw || !locmin || !locmax ||
-  //    !vxbc || !vybc ||! vzbc || !tempbc || !qfluxbc || !qflux ||
-  //    !xindex || !yindex || !zindex || !bcid) {
-  //  fprintf(stderr, "cannot allocate data\n");
-  //  return 1;
-  //}
+  for(i=0; i<5; i++)
+    BINDEX[i] = (int *) malloc(size*sizeof(int));
+    if(BINDEX[i]==NULL) {
+      sprintf(msg, 
+              "allocate_memory(): Could not allocate memory for BINDEX[%d]", i);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
 
   return 0;
 } // End of allocate_memory()

@@ -68,14 +68,15 @@
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type The type of variable for advection solver
+///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int advect(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-           int **BINDEX);
+int advect(PARA_DATA *para, REAL **var, int var_type, int index, 
+           REAL *d, REAL *d0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Advection for velocity at X-direction
@@ -129,14 +130,15 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
 ///\param var_type The type of variable for advection solver
+///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_scalar(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-                 int **BINDEX);
+int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
+                 REAL *d, REAL *d0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Find the X-location and coordinates at previous time step

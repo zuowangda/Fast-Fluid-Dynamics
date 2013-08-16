@@ -236,7 +236,7 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k) {
   int kmax = para->geom->kmax;
   REAL Lx = para->geom->Lx, Ly = para->geom->Ly;
   int i, j, size = (imax + 2) * (jmax + 2);
-  REAL *u_s = var[VXS], *v_s = var[VYS], *d_s = var[DENS], *T_s = var[TEMPS];
+  REAL *u_s = var[VXS], *v_s = var[VYS], *d_s = var[TRACE], *T_s = var[TEMPS];
   REAL *x = var[X], *y = var[Y];
   REAL x0, y0, x_click, y_click;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -301,7 +301,7 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k) {
 void draw_xy_density(PARA_DATA *para, REAL **var, int k) {
   int i, j;
   REAL d00, d01, d10, d11;
-  REAL *x = var[X], *y = var[Y], *z = var[Z], *dens = var[DEN];
+  REAL *x = var[X], *y = var[Y], *z = var[Z], *dens = var[TRACE];
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);

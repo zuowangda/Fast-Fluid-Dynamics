@@ -52,14 +52,15 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
-///\param var_type The type of variable for advection solver
+///\param var_type The type of variable
+///\param index Index of trace substances or species
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd(PARA_DATA *str_geom, REAL **var, int var_type, REAL *x, 
-            int **BINDEX);
+int set_bnd(PARA_DATA *para, REAL **var, int var_type, int index, REAL *psi, 
+            int **BINDEX) ;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Set boundary conditions for velocity
@@ -89,6 +90,19 @@ int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *vx,
 int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
                  int **BINDEX);
 
+///////////////////////////////////////////////////////////////////////////////
+/// Set the boundary condition for trace substance
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD simulation variables
+///\param trace_index Index of the trace substance
+///\param psi Pointer to the variable needing the boundary conditions
+///\param BINDEX Pointer to boundary index
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
+                 int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Set the boundary condition for pressure
