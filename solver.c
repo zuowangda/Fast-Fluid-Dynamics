@@ -29,20 +29,11 @@
 int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
-  int size = (imax+2) * (jmax+2) * (kmax+2);
   int step_total = para->mytime->step_total;
   REAL t_steady = para->mytime->t_steady;
-  REAL dt = para->mytime->dt;
-  REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *den = var[TRACE], *temp = var[TEMP];
-  REAL *u_mean = var[VXM], *v_mean = var[VYM], *w_mean = var[VZM];
-  int tsize=3;
-  int  IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *x = var[X], *y = var[Y], *z = var[Z];
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   int cal_mean = para->outp->cal_mean;
   double t_cosim;
-  int flag;
+  int flag, next;
 
   if(para->solv->cosimulation == 1)
     t_cosim = para->mytime->t + para->cosim->modelica->dt;
@@ -50,14 +41,29 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
   /***************************************************************************
   | Solver Loop
   ***************************************************************************/
-  flag = 1;
-  while(flag==1) {
+  next = 1;
+  while(next==1) {
     //-------------------------------------------------------------------------
     // Integration
     //-------------------------------------------------------------------------
-    vel_step(para, var, BINDEX);  
-    temp_step(para, var, BINDEX);
-    den_step(para, var, BINDEX);
+    flag = vel_step(para, var, BINDEX);
+    if(flag != 0) {
+      ffd_log("FFD_solver(): Could not solve velocity.", FFD_ERROR);
+      return flag;
+    }
+
+    flag = temp_step(para, var, BINDEX);
+    if(flag != 0) {
+      ffd_log("FFD_solver(): Could not solve temperature.", FFD_ERROR);
+      return flag;
+    }
+    
+    flag = den_step(para, var, BINDEX);
+    if(flag != 0) {
+      ffd_log("FFD_solver(): Could not solve trace substance.", FFD_ERROR);
+      return flag;
+    }
+
     timing(para);
 
     //-------------------------------------------------------------------------
@@ -70,29 +76,37 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       .......................................................................*/
       if(fabs(para->mytime->t - t_cosim)<SMALL) {
         // Average the FFD simulation data
-        if(average_time(para, var)!=0) {
+        flag = average_time(para, var);
+        if(flag != 0) {
           ffd_log("FFD_solver(): Could not average the data over time.",
             FFD_ERROR);
-          return 1;
+          return flag;
         }
 
         // the data for cosimulation
-        if(read_cosim_data(para, var, BINDEX)!=0) {
+        flag = read_cosim_data(para, var, BINDEX);
+        if(flag != 0) {
           ffd_log("FFD_solver(): Could not read cosimulation data.", FFD_ERROR);
-          return 1;
+          return flag;
         }
 
-        write_cosim_data(para, var);
+        flag =  write_cosim_data(para, var);
+        if(flag != 0) {
+          ffd_log("FFD_solver(): Could not write cosimulation data.", FFD_ERROR);
+          return flag;
+        }
+
         sprintf(msg, "ffd_solver(): Synchronized data at t=%f[s]\n", para->mytime->t);
         ffd_log(msg, FFD_NORMAL);
 
         // Set the next synchronization time
         t_cosim += para->cosim->modelica->dt;
         // Reset all the averaged data to 0
-        if(reset_time_averaged_data(para, var)!=0) {
+        flag = reset_time_averaged_data(para, var);
+        if(flag != 0) {
           ffd_log("FFD_solver(): Could not reset averaged data.",
             FFD_ERROR);
-          return 1;
+          return flag;
         }
 
         /*.......................................................................
@@ -100,7 +114,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         .......................................................................*/
         if(para->cosim->para->flag==0) {
           // Stop the solver
-          flag = 0; 
+          next = 0; 
           sprintf(msg, 
                   "ffd_solver(): Received stop command from Modelica at "
                   "FFD time: %f[s], Modelica Time: %f[s].",
@@ -136,17 +150,19 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       .......................................................................*/
       else {
         // Integrate the data on the boundary surface
-        if(surface_integrate(para, var, BINDEX)!=0) {
+        flag = surface_integrate(para, var, BINDEX);
+        if(flag != 0) {
           ffd_log("FFD_solver(): "
             "Could not average the data on boundary.",
             FFD_ERROR);
-          return 1;
+          return flag;
         }
-        if(add_time_averaged_data(para, var)!=0) {
+        flag = add_time_averaged_data(para, var);
+        if(flag != 0) {
           ffd_log("FFD_solver(): "
             "Could not add the averaged data.",
             FFD_ERROR);
-          return 1;
+          return flag;
         }
       } // End of Condition 3
     } // End of cosimulation
@@ -157,29 +173,30 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       // Start to record data for calculating mean velocity if needed
       if(para->mytime->t>t_steady && cal_mean==0) {
         cal_mean = 1;
-        if(reset_time_averaged_data(para, var)!=0) {
+        flag = reset_time_averaged_data(para, var);
+        if(flag != 0) {
           ffd_log("FFD_solver(): Could not reset averaged data.",
             FFD_ERROR);
-          return 1;
+          return flag;
         }
         else
           ffd_log("FFD_solver(): Start to calculate mean properties.",
                    FFD_NORMAL);
       }   
 
-      if(cal_mean==1)
-        if(add_time_averaged_data(para, var)!=0) {
-          ffd_log("FFD_solver(): "
-            "Could not add the averaged data.",
+      if(cal_mean==1) {
+        flag = add_time_averaged_data(para, var);
+        if(flag != 0) {
+          ffd_log("FFD_solver(): Could not add the averaged data.",
             FFD_ERROR);
           return 1;
         }
-      
-      flag = para->mytime->step_current < step_total ? 1 : 0;
+      }
+      next = para->mytime->step_current < step_total ? 1 : 0;
     }    
   } // End of While loop  
 
-  return 0;
+  return flag;
 } // End of FFD_solver( ) 
 
 ///////////////////////////////////////////////////////////////////////////////

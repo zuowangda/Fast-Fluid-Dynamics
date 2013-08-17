@@ -363,7 +363,7 @@ int assign_parameter(PARA_DATA *para, char *string) {
     /*------------------------------------------------------------------------
     | Copy the sensor name 
     ------------------------------------------------------------------------*/
-    sscanf(string, "%s%s", tmp, &tmp2);
+    sscanf(string, "%s%s", tmp, tmp2);
     senId++;
     para->sens->sensorName[senId] = (char *) malloc(sizeof(tmp2)*sizeof(char));
     if(para->sens->sensorName[senId]==NULL) {

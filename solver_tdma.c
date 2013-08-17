@@ -89,9 +89,7 @@ int TDMA_3D(PARA_DATA *para, REAL **var, int type, REAL *psi) {
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int TDMA_XY(PARA_DATA *para, REAL **var, REAL *psi, int k) {
-  int imax = para->geom->imax;
-  int jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
   int i, j;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *b = var[B], *ap = var[AP], *af = var[AF], *ab = var[AB];

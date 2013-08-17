@@ -42,9 +42,9 @@
 ///\param Type Type of variable
 ///\param x Pointer to variable
 ///
-///\return No return needed
+///\return Residual
 ///////////////////////////////////////////////////////////////////////////////
-void GS_P(PARA_DATA *para, REAL **var, int Type, REAL *x);
+REAL GS_P(PARA_DATA *para, REAL **var, int Type, REAL *x);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Gauss-Seidel solver
@@ -54,7 +54,7 @@ void GS_P(PARA_DATA *para, REAL **var, int Type, REAL *x);
 ///\param flag Pointer to the cell property flag
 ///\param x Pointer to variable
 ///
-///\return No return needed
+///\return Residual
 ///////////////////////////////////////////////////////////////////////////////
-void Gauss_Seidel(PARA_DATA *para, REAL **var, REAL *flagp, REAL *x);
+REAL Gauss_Seidel(PARA_DATA *para, REAL **var, REAL *flagp, REAL *x);
 

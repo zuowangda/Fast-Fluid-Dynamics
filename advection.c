@@ -109,10 +109,9 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   REAL dt = para->mytime->dt; 
   REAL u0, v0, w0;
   REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; 
+  REAL *gx = var[GX]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL *flagu = var[FLAGU];
-  REAL Lx = para->geom->Lx, Ly = para->geom->Ly, Lz = para->geom->Lz; 
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
@@ -233,10 +232,9 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   REAL dt = para->mytime->dt; 
   REAL u0, v0, w0;
   REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; 
+  REAL *gy = var[GY]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL *flagv = var[FLAGV];
-  REAL Lx = para->geom->Lx, Ly = para->geom->Ly, Lz = para->geom->Lz; 
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
@@ -352,10 +350,9 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   REAL dt = para->mytime->dt; 
   REAL u0, v0, w0;
   REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; 
+  REAL *gz = var[GZ]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL *flagw = var[FLAGW];
-  REAL Lx = para->geom->Lx, Ly = para->geom->Ly, Lz = para->geom->Lz; 
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
@@ -364,7 +361,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     // Do not trace for boundary cells
     if(flagw[IX(i,j,k)]>=0) continue;
 
-	  /*-------------------------------------------------------------------------
+    /*-------------------------------------------------------------------------
     | Step 1: Tracing Back
     -------------------------------------------------------------------------*/
     // Get velocities at the location of VZ
@@ -467,13 +464,11 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL x_1, y_1, z_1;
-  REAL dt = para->mytime->dt; 
+  REAL dt = para->mytime->dt;
   REAL u0, v0, w0;
-  REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; 
+  REAL *x = var[X], *y = var[Y], *z = var[Z]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL *flagp = var[FLAGP];
-  REAL Lx = para->geom->Lx, Ly = para->geom->Ly, Lz = para->geom->Lz; 
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
@@ -511,8 +506,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
     it=1;
 
     // Trace back more if the any of the trace is still in process 
-    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1)
-    {
+    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1) {
       it++;
       // If trace in X is in process and donot hit the boundary
       if(COOD[X]==1 && LOC[X]==1)
@@ -591,35 +585,30 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
                     int i, int j, int k, 
                     REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *u = var[VX];
-  REAL dt = para->mytime->dt;
       
-  /*---------------------------------------------------------------------------
+  /****************************************************************************
   | If the previous location is equal to current position
   | stop the process (COOD[X] = 0) 
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   if(OL[X]==x[IX(OC[X],OC[Y],OC[Z])]) 
     COOD[X]=0;
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Otherwise, if previous location is on the west of the current position
-  ---------------------------------------------------------------------------*/
-  else if(OL[X]<x[IX(OC[X],OC[Y],OC[Z])])
-  {
-    // If donot reach the boundary yet
+  ****************************************************************************/
+  else if(OL[X]<x[IX(OC[X],OC[Y],OC[Z])]) {
+    // If donot reach the boundary yet, move to west 
     if(OC[X]>0) 
-      // Move to west 
       OC[X] -=1;
 
-    // If the previous position is on the east of new location 
+    // If the previous position is on the east of new location, stop the process
     if(OL[X]>=x[IX(OC[X],OC[Y],OC[Z])]) 
-      // Stop the process 
+
       COOD[X]=0; 
 
     // If the new position is solid 
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1) {
       // Use the east cell for new location
       OL[X] = x[IX(OC[X]+1,OC[Y],OC[Z])]; 
       OC[X] +=1;
@@ -630,8 +619,7 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
     } // End of if() for solid
 
     // If the new position is inlet or outlet
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)	  
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2) {
       // Use new position
       OL[X] = x[IX(OC[X],OC[Y],OC[Z])];
       // use east cell for coordinate
@@ -642,11 +630,10 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
       COOD[X]=0; 
     } // End of if() for inlet or outlet
   } // End of if() for previous position is on the west of new position 
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Otherwise, if previous location is on the east of the current positon
-  ---------------------------------------------------------------------------*/
-  else
-  {
+  ****************************************************************************/
+  else {
     // If not at the east boundary
     if(OC[X]<=imax) 
       // Move to east
@@ -658,8 +645,7 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
       COOD[X]=0;
 
     // If the cell is solid
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1) {
       // Use west cell
       OL[X] = x[IX(OC[X]-1,OC[Y],OC[Z])]; 
       OC[X] -= 1;
@@ -670,8 +656,7 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
     } // End of if() for solid
 
     // If the new position is inlet or outlet 
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2) {
       // Use the current cell for previous location
       OL[X] = x[IX(OC[X],OC[Y],OC[Z])];
       // Use the west cell for coordinate
@@ -710,22 +695,18 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
                     int i, int j, int k, 
                     REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *v =var[VY];
 
-
-  /*---------------------------------------------------------------------------
+  /****************************************************************************
   | If the previous location is equal to current position,
   | stop the process (COOD[X] = 0) 
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   if(OL[Y]==y[IX(OC[X],OC[Y],OC[Z])]) 
     COOD[Y] = 0;
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Otherwise, if previous location is on the south of the current positon
-  ---------------------------------------------------------------------------*/
-  else if(OL[Y]<y[IX(OC[X],OC[Y],OC[Z])])
-  {
+  ****************************************************************************/
+  else if(OL[Y]<y[IX(OC[X],OC[Y],OC[Z])]) {
     // If donot reach the boundary yet
     if(OC[Y]>0) 
       OC[Y] -= 1;
@@ -736,8 +717,7 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
       COOD[Y] = 0;
 
     // If the new position is solid 
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1) {
       // Use the north cell for new location
       OL[Y] = y[IX(OC[X],OC[Y]+1,OC[Z])]; 
       OC[Y] += 1; 
@@ -748,8 +728,7 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
     } // End of if() for solid
 
     // If the new position is inlet or outlet
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2) {
       // Use new position
       OL[Y] = y[IX(OC[X],OC[Y],OC[Z])];
       // Use north cell for coordinate
@@ -760,11 +739,10 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
       COOD[Y] = 0;
     } // End of if() for inlet or outlet
   } // End of if() for previous position is on the south of new position 
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Otherwise, if previous location is on the north of the current positon
-  ---------------------------------------------------------------------------*/
-  else
-  {
+  ****************************************************************************/
+  else {
     // If not at the north boundary
     if(OC[Y]<=jmax) 
       // Move to north
@@ -776,8 +754,7 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
       COOD[Y] = 0;
 
     // If the cell is solid
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1) {
       // Use south cell
       OL[Y] = y[IX(OC[X],OC[Y]-1,OC[Z])]; 
       OC[Y] -= 1;
@@ -788,8 +765,7 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
     } // End of if() for solid
 
     // If the new position is inlet or outlet 
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)	
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2) {
       // Use the current cell for previous location
       OL[Y] = y[IX(OC[X],OC[Y],OC[Z])];
       // Use the south cell for coordinate
@@ -829,19 +805,17 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *w=var[VZ];
 
-  /*---------------------------------------------------------------------------
+  /****************************************************************************
   | If the previous location is equal to current position,
   | stop the process (COOD[Z] = 0) 
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   if(OL[Z]==z[IX(OC[X],OC[Y],OC[Z])]) 
     COOD[Z] = 0;
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Otherwise, if previous location is on the floor of the current positon
-  ---------------------------------------------------------------------------*/
-  else if(OL[Z]<z[IX(OC[X],OC[Y],OC[Z])])
-  {
+  ****************************************************************************/
+  else if(OL[Z]<z[IX(OC[X],OC[Y],OC[Z])]) {
     // If donot reach the boundary yet
     if(OC[Z]>0) 
       OC[Z] -= 1;
@@ -852,8 +826,7 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
       COOD[Z] = 0;
     
     // If the new position is solid 
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)	
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1) {
       // Use the ceiling cell for new location
       OL[Z] = z[IX(OC[X],OC[Y],OC[Z]+1)];
       OC[Z] += 1;
@@ -864,8 +837,7 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
     } // End of if() for solid
 
     // If the new position is inlet or outlet
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2) {
       // Use new position
       OL[Z] = z[IX(OC[X],OC[Y],OC[Z])];
       // Use ceiling cell for coordinate
@@ -876,11 +848,10 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
       COOD[Z] = 0;
     } // End of if() for inlet or outlet
   } // End of if() for previous position is on the floor of new position 
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Otherwise, if previous location is on the ceiling of the current positon
-  ---------------------------------------------------------------------------*/
-  else
-  {
+  -***************************************************************************/
+  else {
     // If not at the ceiling boundary
     if(OC[Z]<=kmax) 
       // Move to ceiling
@@ -892,8 +863,7 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
       COOD[Z] = 0;
 
     // If the cell is solid
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==1)
-    {  
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==1) {
       // Use floor cell
       OL[Z] = z[IX(OC[X],OC[Y],OC[Z]-1)]; 
       OC[Z] -= 1;
@@ -904,8 +874,7 @@ void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
     } // End of if() for solid
 
     // If the new position is inlet or outlet 
-    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2)
-    {
+    if(flag[IX(OC[X],OC[Y],OC[Z])]==0||flag[IX(OC[X],OC[Y],OC[Z])]==2) {
       // Use the current cell for previous location
       OL[Z]=z[IX(OC[X],OC[Y],OC[Z])];
       // Use the floor cell for coordinate

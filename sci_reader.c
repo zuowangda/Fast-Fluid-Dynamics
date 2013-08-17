@@ -81,9 +81,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   int kmax = para->geom->kmax;
   int index=0;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
-  char *temp, string[400];
-  REAL *delx,*dely,*delz;
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  char string[400];
+  REAL *delx, *dely, *delz;
+  REAL *flagp = var[FLAGP];
   int bcnameid = -1;
   char **outletName, **inletName;
 
@@ -100,8 +100,8 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ffd_log(msg, FFD_NORMAL);
 
   // Ingore the first and second lines
-  temp = fgets(string, 400, file_params);
-  temp = fgets(string, 400, file_params);
+  fgets(string, 400, file_params);
+  fgets(string, 400, file_params);
 
   /*****************************************************************************
   | Convert the cell dimensions defined by SCI to coordinates in FFD
@@ -192,7 +192,6 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sscanf(string,"%d", &para->bc->nb_bc); 
   sprintf(msg, "read_sci_input(): para->bc->nb_bc=%d", para->bc->nb_bc);
   ffd_log(msg, FFD_NORMAL);
-
 
   /*****************************************************************************
   | Read the inlet boundary conditions
@@ -724,16 +723,16 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   | Read other simulation data
   *****************************************************************************/
   // Discard the unused data
-  temp = fgets(string, 400, file_params); //maximum iteration
-  temp = fgets(string, 400, file_params); //convergence rate
-  temp = fgets(string, 400, file_params); //Turbulence model
-  temp = fgets(string, 400, file_params); //initial value
-  temp = fgets(string, 400, file_params); //minimum value
-  temp = fgets(string, 400, file_params); //maximum value
-  temp = fgets(string, 400, file_params); //fts value
-  temp = fgets(string, 400, file_params); //under relaxation
-  temp = fgets(string, 400, file_params); //reference point
-  temp = fgets(string, 400, file_params); //monitering point
+  fgets(string, 400, file_params); //maximum iteration
+  fgets(string, 400, file_params); //convergence rate
+  fgets(string, 400, file_params); //Turbulence model
+  fgets(string, 400, file_params); //initial value
+  fgets(string, 400, file_params); //minimum value
+  fgets(string, 400, file_params); //maximum value
+  fgets(string, 400, file_params); //fts value
+  fgets(string, 400, file_params); //under relaxation
+  fgets(string, 400, file_params); //reference point
+  fgets(string, 400, file_params); //monitering point
 
   // Read setting for restarting the old FFD simulation
   fgets(string, 400, file_params);
@@ -743,9 +742,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   ffd_log(msg, FFD_NORMAL);
 
   // Discard the unused data
-  temp = fgets(string, 400, file_params); //print frequency
-  temp = fgets(string, 400, file_params); //Pressure variable Y/N
-  temp = fgets(string, 400, file_params); //Steady state, buoyancy.
+  fgets(string, 400, file_params); //print frequency
+  fgets(string, 400, file_params); //Pressure variable Y/N
+  fgets(string, 400, file_params); //Steady state, buoyancy.
 
   // Read physical properties
   fgets(string, 400, file_params);
@@ -795,7 +794,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
           para->mytime->step_total);
   ffd_log(msg, FFD_NORMAL);
 
-  temp = fgets(string, 400, file_params); //prandtl
+  fgets(string, 400, file_params); //prandtl
 
   /*****************************************************************************
   | Conclude the reading process
@@ -823,7 +822,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
-  int i,j, k;
+  int i, j, k;
   int delcount=0;
   int mark;
   int imax = para->geom->imax;
@@ -831,9 +830,7 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
   int kmax = para->geom->kmax;
   int index = para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
-  REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
-       *flagv = var[FLAGV], *flagw = var[FLAGW];
-  char msg[100];
+  REAL *flagp = var[FLAGP];
 
   if( (file_params=fopen("zeroone.dat","r")) == NULL )
   {
@@ -889,7 +886,6 @@ void mark_cell(PARA_DATA *para, REAL **var) {
   int imax = para->geom->imax;
   int jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
-  int index = para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
   REAL *flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
   REAL *flagp = var[FLAGP];

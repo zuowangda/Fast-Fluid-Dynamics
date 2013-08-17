@@ -35,8 +35,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
                REAL *psi, REAL *psi0, int **BINDEX) {
-  REAL residual = 1.0;
-  int iter = 0;
   int flag = 0;
 
   /****************************************************************************
@@ -113,7 +111,6 @@ int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *u = var[VX],*v = var[VY], *w = var[VZ];
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB], *ap = var[AP], *ap0 = var[AP0], *b = var[B];
   REAL *x = var[X], *y = var[Y], *z = var[Z];

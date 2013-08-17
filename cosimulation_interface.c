@@ -186,7 +186,6 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///////////////////////////////////////////////////////////////////////////////
 int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i;
-  REAL float_feak;
 
   ffd_log("-------------------------------------------------------------------",
           FFD_NORMAL);
@@ -226,8 +225,6 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
     ffd_log("Shading control signal and absorded radiation by the shade:",
             FFD_NORMAL);
     for(i=0; i<para->cosim->para->nConExtWin; i++) {
-      float_feak = para->cosim->modelica->shaConSig[i];
-      float_feak = para->cosim->modelica->shaAbsRad[i];
       sprintf(msg, "Surface[%d]: %f,\t%f\n",
               i, para->cosim->modelica->shaConSig[i], 
               para->cosim->modelica->shaAbsRad[i]);
@@ -533,7 +530,6 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
 int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j, k, it, id, modelicaId;
   int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *temHea;
 
@@ -641,7 +637,6 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int nPort = para->bc->nb_inlet + para->bc->nb_outlet;
 
   ffd_log("assign_port_bc():", FFD_NORMAL);
 

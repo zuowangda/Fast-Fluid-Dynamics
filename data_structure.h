@@ -19,6 +19,8 @@
 #endif
 #ifdef _MSC_VER
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 #include <stdio.h>

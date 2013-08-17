@@ -18,16 +18,9 @@
 #include "ffd.h"
 
 /* global variables */
-static REAL dt, diff, visc;
-static REAL force, source;
-static int screen;
-
 REAL **var;
 int  **BINDEX;
-int  *xindex, *yindex, *zindex, *fltemp, *bcid;
-REAL *flagp, *flagu, *flagv, *flagw;
 REAL *locmin,*locmax;
-REAL *vxbc,*vybc,*vzbc,*tempbc, *qfluxbc, *qflux;
 
 static GEOM_DATA geom;
 static PROB_DATA prob;
@@ -382,7 +375,5 @@ int ffd() {
     ffd_log("ffd(): Sent stopping signal to Modelica", FFD_NORMAL);
   }
 
-
-  //exit (0);
   return 0;
 } // End of ffd( )

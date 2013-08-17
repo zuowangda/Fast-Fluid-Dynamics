@@ -33,7 +33,6 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
   REAL *d = var[TRACE];
@@ -66,7 +65,7 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   convert_to_tecplot(para, var);
 
   fprintf(datafile, "TITLE = ");
-  fprintf(datafile, "\"dt=%fs, t=%fs, nu=%f, Lx=%d, Ly=%d, Lz%d, ",
+  fprintf(datafile, "\"dt=%fs, t=%fs, nu=%f, Lx=%f, Ly=%f, Lz=%f, ",
            para->mytime->dt, para->mytime->t, para->prob->nu, 
            para->geom->Lx, para->geom->Ly, para->geom->Lz);
     fprintf(datafile, "Nx=%d, Ny=%d, Nz=%d \"\n",
@@ -77,8 +76,8 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   fprintf( datafile, "ZONE F=POINT, I=%d, J=%d, K=%d\n", imax+2, jmax+2, kmax+2 );
  
   FOR_ALL_CELL
-    fprintf(datafile, "%f\t%f\t%f\t%d\t%d\t%d\t%f\t%f\t%f\t",
-       x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k, u[IX(i,j,k)]);    
+    fprintf(datafile, "%f\t%f\t%f\t%d\t%d\t%d\t",
+       x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k);    
     fprintf(datafile, "%f\t%f\t%f\t%f\t%f\t%f\n",
             u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)], T[IX(i,j,k)],
             flagp[IX(i,j,k)], p[IX(i,j,k)]);    
@@ -106,14 +105,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  int n = para->mytime->step_current;
   REAL *x = var[X], *y = var[Y], *z =var[Z];
-  REAL *gx = var[GX], *gy = var[GY], *gz =var[GZ];
-  REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
-  REAL *um = var[VXM], *vm = var[VYM], *wm = var[VZM], *d = var[TRACE];
-  REAL *T = var[TEMP], *Tm = var[TEMPM];
-  REAL *tmp1 = var[TMP1], *tmp2 = var[TMP2], *tmp3 = var[TMP3];
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGU];
   char *filename;
   FILE *dataFile;
 
@@ -172,8 +164,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
             var[VXM][IX(i,j,k)], var[VYM][IX(i,j,k)], var[VZM][IX(i,j,k)],
             var[VXS][IX(i,j,k)], var[VYS][IX(i,j,k)], var[VZS][IX(i,j,k)]);
     // Pressure
-    fprintf(dataFile, "%f\t",
-            var[IP][IX(i,j,k)]);
+    fprintf(dataFile, "%f\t", var[IP][IX(i,j,k)]);
     // Temperature
     fprintf(dataFile, "%f\t%f\t%f\t",
             var[TEMP][IX(i,j,k)], var[TEMPM][IX(i,j,k)], 
@@ -221,8 +212,7 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
 ///
 ///\return no return
 ///////////////////////////////////////////////////////////////////////////////
-void convert_to_tecplot(PARA_DATA *para, REAL **var)
-{
+void convert_to_tecplot(PARA_DATA *para, REAL **var) {
   int i, j, k;
   int imax=para->geom->imax;
   int jmax=para->geom->jmax;
@@ -233,9 +223,9 @@ void convert_to_tecplot(PARA_DATA *para, REAL **var)
   REAL *p = var[IP], *d = var[TRACE];
   REAL *T = var[TEMP], *Tm = var[TEMPM];
 
-  /*--------------------------------------------------------------------------
+  /****************************************************************************
   | Convert velocities 
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   for(j=0; j<=jmax+1; j++)
     for(k=0; k<=kmax+1; k++) {
       u[IX(imax+1,j,k)] = u[IX(imax,j,k)];
@@ -266,9 +256,9 @@ void convert_to_tecplot(PARA_DATA *para, REAL **var)
       }
     }
 
-  /*---------------------------------------------------------------------------
+  /****************************************************************************
   | Convert variables at corners
-  ---------------------------------------------------------------------------*/
+  ****************************************************************************/
   convert_to_tecplot_corners(para, var, p);
   convert_to_tecplot_corners(para, var, d);
   convert_to_tecplot_corners(para, var, T);
@@ -361,7 +351,7 @@ int write_unsteady(PARA_DATA *para, REAL **var, char *name){
 
   FOR_ALL_CELL
     fprintf( datafile, "%f\t%f\t%f\t",u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)]);
-    fprintf( datafile, "%f\t%f\t%f\n",T[IX(i,j,k)],d[IX(i,j,k)], p[IX(i,j,k)]);
+    fprintf( datafile, "%f\t%f\t%f\n",T[IX(i,j,k)], d[IX(i,j,k)], p[IX(i,j,k)]);
   END_FOR
 
   sprintf(msg, "write_unsteady(): Wrote the unsteady data file %s.", filename);

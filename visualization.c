@@ -12,7 +12,6 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include "visualization.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,7 +24,6 @@
 void pre_2d_display(PARA_DATA *para) {
   int win_x=para->outp->winx, win_y=para->outp->winy;
   int Lx=para->geom->Lx, Ly = para->geom->Ly;
-  REAL Length = max(Lx, Ly);
 
   glViewport(0, 0, win_x, win_y);
   glMatrixMode(GL_PROJECTION );
@@ -119,9 +117,6 @@ void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///////////////////////////////////////////////////////////////////////////////
 void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, 
                   unsigned char key) {
-  int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
-  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
   // Set control variable according to key input
   switch(key) {
@@ -233,9 +228,8 @@ void ffd_reshape_func(PARA_DATA *para, int width, int height) {
 ///////////////////////////////////////////////////////////////////////////////
 void get_xy_UI(PARA_DATA *para, REAL **var, int k) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
   REAL Lx = para->geom->Lx, Ly = para->geom->Ly;
-  int i, j, size = (imax + 2) * (jmax + 2);
+  int i, j;
   REAL *u_s = var[VXS], *v_s = var[VYS], *d_s = var[TRACE], *T_s = var[TEMPS];
   REAL *x = var[X], *y = var[Y];
   REAL x0, y0, x_click, y_click;
@@ -301,9 +295,8 @@ void get_xy_UI(PARA_DATA *para, REAL **var, int k) {
 void draw_xy_density(PARA_DATA *para, REAL **var, int k) {
   int i, j;
   REAL d00, d01, d10, d11;
-  REAL *x = var[X], *y = var[Y], *z = var[Z], *dens = var[TRACE];
+  REAL *x = var[X], *y = var[Y], *dens = var[TRACE];
   int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
   glBegin(GL_QUADS);
@@ -399,10 +392,9 @@ void draw_xy_velocity(PARA_DATA *para, REAL **var, int k) {
   int i, j;
   REAL x0, y0;
   REAL *x = var[X], *y = var[Y];
-  REAL *u = var[VX], *v = var[VY], *temp = var[TEMP];
+  REAL *u = var[VX], *v = var[VY];
   int mycolor;
   int imax = para->geom->imax, jmax = para->geom->jmax;
-  int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
   /*---------------------------------------------------------------------------

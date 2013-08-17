@@ -255,14 +255,11 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB], *b=var[B], 
        *qflux = var[QFLUX], *qfluxbc = var[QFLUXBC];
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ]; // Coordinate of grid
   REAL axy, ayz, azx; // Area of surfaces
   REAL h;
   REAL rhoCp_1 = 1/ (para->prob->rho * para->prob->Cp);
   REAL D;
-
-  REAL *flagp = var[FLAGP], *flagu = var[FLAGU],
-       *flagv = var[FLAGV], *flagw = var[FLAGW];
+  REAL *flagp = var[FLAGP];
 
   /****************************************************************************
   | Go through all the boundary cells
@@ -709,7 +706,7 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB];
 
-  REAL *flagp = var[FLAGP],*flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  REAL *flagp = var[FLAGP];
 
   for(it=0;it<index;it++) {
     i = BINDEX[0][it];
@@ -780,8 +777,7 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX)
-{
+int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -836,9 +832,8 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
   int kmax = para->geom->kmax;
   int index= para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL mass_in = (REAL) 0.0, mass_out = (REAL) 0.00000001, mass_ratio;
+  REAL mass_in = (REAL) 0.0, mass_out = (REAL) 0.00000001;
   REAL area_out=0;
   REAL *flagp = var[FLAGP];
   REAL axy, ayz, azx;
@@ -906,7 +901,6 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
     } // End of computing outflow
   } // End of for loop for going through all the inlets and outlets
   
-  mass_ratio = mass_in / mass_out;
   /*---------------------------------------------------------------------------
   | Return the adjusted velocuty for mass conservation
   ---------------------------------------------------------------------------*/

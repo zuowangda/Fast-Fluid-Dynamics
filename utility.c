@@ -198,18 +198,17 @@ REAL inflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL check_min(PARA_DATA *para, REAL *psi, int ci,int cj,int ck) {
+REAL check_min(PARA_DATA *para, REAL *psi, int ci, int cj, int ck) {
   int imax = para->geom->imax, jmax = para->geom->jmax; 
-  int kmax = para->geom->kmax;
   int i, j, k;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL tmp=psi[IX(ci,cj,ck)];
+  REAL tmp = psi[IX(ci,cj,ck)];
 
 
   for(i=0;i<=1;i++)
-	  for(j=0;j<=1;j++)
-		  for(k=0;k<=1;k++) {
-			  if(tmp>psi[IX(ci+i,cj+j,ck+k)]) tmp=psi[IX(ci+i,cj+j,ck+k)];
+    for(j=0;j<=1;j++)
+      for(k=0;k<=1;k++) {
+        if(tmp>psi[IX(ci+i,cj+j,ck+k)]) tmp=psi[IX(ci+i,cj+j,ck+k)];
       }
 
  return tmp;
@@ -229,19 +228,17 @@ REAL check_min(PARA_DATA *para, REAL *psi, int ci,int cj,int ck) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL check_max( PARA_DATA *para, REAL *psi, int ci,int cj,int ck) {
+REAL check_max(PARA_DATA *para, REAL *psi, int ci, int cj, int ck) {
   int imax = para->geom->imax, jmax = para->geom->jmax; 
-  int kmax = para->geom->kmax;
   int i, j, k;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
-  REAL tmp=psi[IX(ci,cj,ck)];
-
+  REAL tmp = psi[IX(ci,cj,ck)];
 
   for(i=0;i<=1;i++)
-	  for(j=0;j<=1;j++)
-		  for(k=0;k<=1;k++) {
-			    if(tmp<psi[IX(ci+i,cj+j,ck+k)]) tmp=psi[IX(ci+i,cj+j,ck+k)];	  
-			}
+    for(j=0;j<=1;j++)
+      for(k=0;k<=1;k++) {
+        if(tmp<psi[IX(ci+i,cj+j,ck+k)]) tmp=psi[IX(ci+i,cj+j,ck+k)];
+      }
     
 return tmp;
 
