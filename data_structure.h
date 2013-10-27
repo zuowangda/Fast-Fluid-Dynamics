@@ -42,7 +42,7 @@ Solution:
 Override the definition in glut.h with that in stdlib.h. 
 Place the stdlib.h line above the glut.h line in the code.
 -----------------------------------------------------------------------------*/
-#include <glut.h>
+#include "glut.h"
 
 #define IX(i,j,k) ((i)+(IMAX)*(j)+(IJMAX)*(k))
 #define FOR_EACH_CELL for(i=1; i<=imax; i++) { for(j=1; j<=jmax; j++) { for(k=1; k<=kmax; k++) {
