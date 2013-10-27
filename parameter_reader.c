@@ -392,17 +392,46 @@ int assign_parameter(PARA_DATA *para, char *string) {
 int read_parameter(PARA_DATA *para) {
   char string[400];
 
-  // Open the file
-  if((file_para=fopen("input.ffd","r"))==NULL) {
-    ffd_log("read_parameter(): Can not open the file input.ffd\n", FFD_ERROR);
-    return 1;
+  /****************************************************************************
+  | Open the FFD parameter file
+  /***************************************************************************/
+  /*---------------------------------------------------------------------------
+  | Stand alone simulation
+  ---------------------------------------------------------------------------*/
+  if(para->cosim==NULL) {
+    if((file_para=fopen("input.ffd","r"))==NULL) {
+      sprintf(msg, "read_parameter(): Could not open the FFD parameter file %s");
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+    else {
+      sprintf(msg, "read_parameter(): Opened input.ffd for FFD parameters");
+      ffd_log(msg, FFD_NORMAL);
+    }
+  }
+  /*---------------------------------------------------------------------------
+  | Co-simulation
+  ---------------------------------------------------------------------------*/
+  else {
+    if((file_para=fopen(para->cosim->para->fileName,"r"))==NULL) {
+      sprintf(msg, "read_parameter(): Could not open the FFD parameter file %s", 
+              para->cosim->para->fileName);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    } 
+    else {
+      sprintf(msg, "read_parameter(): Opened file %s for FFD parameters", 
+              para->cosim->para->fileName);
+      ffd_log(msg, FFD_NORMAL);
+    }
   }
 
   while(!feof(file_para)) {
     fgets(string, 400, file_para);
     if(assign_parameter(para, string)) {
-      ffd_log("read_parameter(): Could not read data from file input.ffd\n", 
-              FFD_ERROR);
+      sprintf(msg, "read_parameter(): Could not read data from file %s", 
+            para->cosim->para->fileName);
+      ffd_log(msg, FFD_ERROR);
       return 1;
     }
   }
