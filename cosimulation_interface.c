@@ -298,8 +298,9 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
   | Set the time and space averaged temperature of space
   | Convert T from degC to K
   ****************************************************************************/
-  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMPM]) + 273.15; 
-  sprintf(msg, "\tAveraged Room temperature %f[K]", para->cosim->ffd->TRoo);
+  para->cosim->ffd->TRoo = average_volume(para, var, var[TEMPM]); 
+  sprintf(msg, "\tAveraged room temperature %f[degC]", para->cosim->ffd->TRoo);
+  para->cosim->ffd->TRoo += 273.15;
   ffd_log(msg, FFD_NORMAL);
 
   /****************************************************************************
