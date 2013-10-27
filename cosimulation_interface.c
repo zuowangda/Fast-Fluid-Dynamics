@@ -498,7 +498,8 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i, j;
   REAL *A0 = para->bc->AWall, *A1 = para->cosim->para->are;
 
-  ffd_log("compare_boundary_area(): Start to compare the area of solid surfaces.",
+  ffd_log("compare_boundary_area(): "
+          "Start to compare the area of solid surfaces.",
           FFD_NORMAL);
   for(i=0; i<para->bc->nb_wall; i++) {
     j = para->bc->wallId[i];
@@ -508,8 +509,10 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
       ffd_log(msg, FFD_NORMAL);
     }
     else {
-      sprintf(msg, "compare_boundary_area(): Area of surface %s are different: Modelica (%f[m2]) and FFD (%f[m2])",
-        para->bc->wallName[i], A1[j], A0[i]);
+      sprintf(msg, 
+              "compare_boundary_area(): Area of surface %s are different: "
+              "Modelica (%f[m2]) and FFD (%f[m2])",
+              para->bc->wallName[i], A1[j], A0[i]);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
