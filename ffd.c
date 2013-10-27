@@ -270,8 +270,11 @@ DWORD WINAPI ffd_thread(void *p){
   sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
   ffd_log(msg, FFD_NEW);
 
+  sprintf(msg, "fileName=\"%s\"", cosim->para->fileName);
+  ffd_log(msg, FFD_NORMAL);
+
   para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
-  para.cosim = p;
+  para.cosim = cosim;
 
   if(ffd()!=0)
     cosim->para->ffdError = 1;
