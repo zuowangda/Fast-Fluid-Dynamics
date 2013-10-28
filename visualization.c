@@ -2,7 +2,7 @@
 ///
 /// \file   visualization.c
 ///
-/// \brief  Visulization features
+/// \brief  Visualization features
 ///
 /// \author Wangda Zuo
 ///         University of Miami
