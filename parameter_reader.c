@@ -398,9 +398,10 @@ int read_parameter(PARA_DATA *para) {
   /*---------------------------------------------------------------------------
   | Stand alone simulation
   ---------------------------------------------------------------------------*/
-  if(para->cosim==NULL) {
+  if(para->solv->cosimulation==0) {
     if((file_para=fopen("input.ffd","r"))==NULL) {
-      sprintf(msg, "read_parameter(): Could not open the FFD parameter file %s");
+      sprintf(msg, "read_parameter(): "
+                   "Could not open the default FFD parameter file input.ffd");
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
@@ -414,7 +415,7 @@ int read_parameter(PARA_DATA *para) {
   ---------------------------------------------------------------------------*/
   else {
     if((file_para=fopen(para->cosim->para->fileName,"r"))==NULL) {
-      sprintf(msg, "read_parameter(): Could not open the FFD parameter file %s", 
+      sprintf(msg, "read_parameter(): Could not open the FFD parameter file %s",
               para->cosim->para->fileName);
       ffd_log(msg, FFD_ERROR);
       return 1;

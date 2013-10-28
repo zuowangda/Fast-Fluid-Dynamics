@@ -265,6 +265,7 @@ static void reshape_func(int width, int height) {
 DWORD WINAPI ffd_thread(void *p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
   CosimulationData *cosim = (CosimulationData *) p;
+  int cosimulation = 1;
 
   printf("Entered WorkerThreadProc with tid %lu\n", workerID);
   sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
@@ -276,7 +277,7 @@ DWORD WINAPI ffd_thread(void *p){
   para.cosim = (CosimulationData *) malloc(sizeof(CosimulationData)); 
   para.cosim = cosim;
 
-  if(ffd()!=0)
+  if(ffd(cosimulation)!=0)
     cosim->para->ffdError = 1;
 
   ffd_log("Successfully exit FFD.", FFD_NORMAL);
@@ -286,9 +287,11 @@ DWORD WINAPI ffd_thread(void *p){
 ///////////////////////////////////////////////////////////////////////////////
 /// Main routine of FFD
 ///
+///\para cosimulation Integer to identify the simulation type
+///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int ffd() {
+int ffd(int cosimulation) {
   // Initialize the parameters
   para.geom = &geom;
   para.inpu = &inpu;
@@ -299,6 +302,9 @@ int ffd() {
   para.solv   = &solv;
   para.sens   = &sens;
   
+  // Stand alone simulation: 0; Cosimulaiton: 1
+  para.solv->cosimulation = cosimulation; 
+
   if(initialize(&para)!=0) {
     ffd_log("ffd(): Could not initialize simulation parameters.", FFD_ERROR);
     return 1;
