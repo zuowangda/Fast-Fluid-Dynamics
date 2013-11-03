@@ -11,6 +11,12 @@
 
 static PARA_DATA para;
 
+// Windows
+#ifdef _MSC_VER
 __declspec(dllexport)
 extern int ffd_dll(CosimulationData *cosim);
+// Linux
+#else
+int ffd_dll(CosimulationData *cosim);
+#endif
 

@@ -262,13 +262,23 @@ static void reshape_func(int width, int height) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
+#ifdef _MSC_VER //Windows
 DWORD WINAPI ffd_thread(void *p){ 
   ULONG workerID = (ULONG)(ULONG_PTR)p;
+#else //Linux
+void  ffd_thread(void* p){
+#endif
+
   CosimulationData *cosim = (CosimulationData *) p;
   int cosimulation = 1;
 
-  printf("Entered WorkerThreadProc with tid %lu\n", workerID);
+#ifdef _MSC_VER //Windows
   sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread ID %lu", workerID);
+#else //Linux
+  sprintf(msg, "Start Fast Fluid Dynamics Simulation with Thread");
+#endif
+
+  printf("%s\n", msg);
   ffd_log(msg, FFD_NEW);
 
   sprintf(msg, "fileName=\"%s\"", cosim->para->fileName);
@@ -304,6 +314,14 @@ int ffd(int cosimulation) {
   
   // Stand alone simulation: 0; Cosimulaiton: 1
   para.solv->cosimulation = cosimulation; 
+
+#ifndef _MSC_VER //Linux
+  //Initialize glut library
+  char fakeParam[] = "fake";
+  char *fakeargv[] = { fakeParam, NULL };
+  int fakeargc = 1;
+  glutInit( &fakeargc, fakeargv );
+#endif
 
   if(initialize(&para)!=0) {
     ffd_log("ffd(): Could not initialize simulation parameters.", FFD_ERROR);

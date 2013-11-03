@@ -33,6 +33,9 @@
 #include "geometry.h"
 #endif
 
+#ifndef _MSC_VER //Linux
+#define Sleep(x) sleep(x/1000)
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 /// Read the cosimulation parameters defined by Modelica
 ///

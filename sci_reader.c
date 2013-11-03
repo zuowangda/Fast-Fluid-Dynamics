@@ -224,7 +224,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
         continue;
       }
       bcnameid++;
-      inletName[i] = (char*)malloc(j*sizeof(char));
+      inletName[i] = (char*)malloc((j+1)*sizeof(char));
       strncpy(inletName[i], (const char*)string, j);
       // Add an ending
       inletName[i] = '\0';
@@ -307,7 +307,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
         continue;
       }
       bcnameid++;
-      outletName[i] = (char*)malloc(j*sizeof(char));
+      outletName[i] = (char*)malloc((j+1)*sizeof(char));
       if(outletName[i]==NULL) {
         sprintf(msg, "read_sci_input(): Could not allocate memory "
           "for outletName[%d].", i);
@@ -390,7 +390,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     }
     // Copy the inlet names
     for(i=0; i<para->bc->nb_inlet; i++) {
-      para->bc->portName[i] = (char*) malloc(sizeof(char)*sizeof(inletName[i]));
+      para->bc->portName[i] = (char*) malloc(sizeof(char)*(sizeof(inletName[i])+1));
       if(para->bc->portName[i]==NULL) {
         ffd_log("read_sci_input():"
                 "Could not allocate memory for para->bc->portName.",
@@ -407,7 +407,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     j = para->bc->nb_inlet;
     // Copy the outlet names
     for(i=0; i<para->bc->nb_outlet; i++) {      
-      para->bc->portName[i+j] = (char*) malloc(sizeof(char)*sizeof(outletName[i]));
+      para->bc->portName[i+j] = (char*) malloc(sizeof(char)*(sizeof(outletName[i])+1));
       if(para->bc->portName[i+j]==NULL) {
         ffd_log("read_sci_input(): Could not allocate memory for para->bc->portName.",
         FFD_ERROR);
@@ -490,7 +490,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   bcnameid = -1;
 
   if(para->bc->nb_block!=0) {
-    para->bc->blockName = (char**) malloc(sizeof(char*));
+    para->bc->blockName = (char**) malloc(para->bc->nb_block*sizeof(char*));
     if(para->bc->blockName==NULL)
       ffd_log("read_sci_input(): Could not allocate memory for para->bc->blockName.",
       FFD_ERROR);
@@ -505,7 +505,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
         continue;
       }
       bcnameid++;
-      para->bc->blockName[bcnameid] = (char*)malloc(j*sizeof(char));
+      para->bc->blockName[bcnameid] = (char*)malloc((j+1)*sizeof(char));
       strncpy(para->bc->blockName[bcnameid], (const char*)string, j);
       // Add an ending
       para->bc->blockName[bcnameid][j] = '\0';
@@ -591,7 +591,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
     /*-------------------------------------------------------------------------
     | Allocate the memory for bc name and id
     -------------------------------------------------------------------------*/
-    para->bc->wallName = (char**)malloc(sizeof(char*));
+    para->bc->wallName = (char**)malloc(para->bc->nb_wall*sizeof(char*));
     para->bc->wallId = (int *)malloc(sizeof(int)*para->bc->nb_wall);
     for(i=0; i<para->bc->nb_wall; i++)
       para->bc->wallId[i] = -1;
@@ -629,7 +629,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
         continue;
       }
 
-      para->bc->wallName[i] = (char*)malloc(j*sizeof(char));
+      para->bc->wallName[i] = (char*)malloc((j+1)*sizeof(char));
       strncpy(para->bc->wallName[i], (const char*)string, j);
       // Add an ending
       para->bc->wallName[i][j] = '\0';
@@ -783,7 +783,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   sscanf(string,"%f %lf %d", &para->mytime->t_start, &para->mytime->dt,
     &para->mytime->step_total);
 
-  sprintf(msg, "read_sci_input(): para->mytime->t_start=%f", 
+  sprintf(msg, "read_sci_input(): para->mytime->t_start=%lu", 
           para->mytime->t_start);
   ffd_log(msg, FFD_NORMAL);
 

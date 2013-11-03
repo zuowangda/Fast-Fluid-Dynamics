@@ -23,10 +23,21 @@
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int assign_parameter(PARA_DATA *para, char *string) {
-  char tmp[400], tmp2[100];
+  char tmp[400];
+  // tmp2 needs to be initialized to avoid crash 
+  // when the input for tmp2 is empty
+  char tmp2[100] = ""; 
   int senId = -1;
 
-  sscanf(string, "%s", tmp);
+  /****************************************************************************
+  sscanf() reads data from string and stores them according to parameter format 
+  into the locations given by the additional arguments. 
+  When sscanf() scans an empty line, it gets nothing and returns EOF.
+  Thus, when sscanf returns EOF, no need to compare the tmp with parameter.
+  ****************************************************************************/
+  if (EOF==sscanf(string, "%s", tmp)){
+    return 0;
+  }
 
   if(!strcmp(tmp, "geom.Lx")) {
     sscanf(string, "%s%f", tmp, &para->geom->Lx);
@@ -427,14 +438,23 @@ int read_parameter(PARA_DATA *para) {
     }
   }
 
-  while(!feof(file_para)) {
-    fgets(string, 400, file_para);
+  //Use fgets(...) as loop condition, it reutrns null when it fail to read more characters.
+  while(fgets(string, 400, file_para) != NULL) {
     if(assign_parameter(para, string)) {
       sprintf(msg, "read_parameter(): Could not read data from file %s", 
             para->cosim->para->fileName);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
+  }// End of while
+
+  //Check if it is end of file
+  //Use feof() to detect what went wrong after one of the main I/O functions failed
+  //Do not use feof() as condition of while loop. It will read one more time after last line.
+  if (!feof(file_para)){
+      sprintf(msg, "read_parameter(): Could not read data from file %s", 
+            para->cosim->para->fileName);
+      ffd_log(msg, FFD_ERROR);
   }
 
   fclose(file_para);
