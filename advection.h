@@ -44,11 +44,6 @@
 #include "boundary.h"
 #endif
 
-#ifndef _SOLVER_H
-#define _SOLVER_H
-#include "solver.h"
-#endif
-
 #ifndef _INTERPOLATION_H
 #define _INTERPOLATION_H
 #include "interpolation.h"
