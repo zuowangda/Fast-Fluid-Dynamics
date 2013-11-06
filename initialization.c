@@ -210,7 +210,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   }
 
   /****************************************************************************
-  | Allocate memory for Xi
+  | Allocate memory for Species
   ****************************************************************************/
   if(para->bc->nb_port>0&&para->bc->nb_Xi>0) {
     para->bc->XiPort = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
@@ -237,7 +237,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   }
 
   /****************************************************************************
-  | Allocate memory for C
+  | Allocate memory for Substances
   ****************************************************************************/
   if(para->bc->nb_port>0&&para->bc->nb_C>0) {
     para->bc->CPort = (REAL **) malloc(sizeof(REAL *)*para->bc->nb_port);
