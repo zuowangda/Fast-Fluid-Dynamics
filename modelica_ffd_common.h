@@ -66,6 +66,7 @@ typedef struct {
   float **XiPor; // XiPor[nPorts][Medium.nXi]: species concentration of medium at the port
              // First Medium.nXi elements are for port 1
   float **CPor; // CPor[nPorts][medium.nC]: the trace substances of medium at the port
+  float *senVal; // senVal[nSen]: value of sensor data
 }ffdSharedData;
 
 typedef struct{
