@@ -118,8 +118,7 @@ void set_default_parameter(PARA_DATA *para) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
-{
+int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   int i; 
   int size = (para->geom->imax+2)*(para->geom->jmax+2)*(para->geom->kmax+2);
   int flag = 0;
@@ -144,7 +143,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX)
     var[VXS][i]    = 0.0;
     var[VYS][i]    = 0.0;
     var[VZS][i]    = 0.0;
-    var[TEMP][i]   = 0.0;
+    var[TEMP][i]   = 10.0;
     var[TEMPM][i]  = 0.0;
     var[TEMPS][i]  = 0.0;
     var[IP][i]     = 0.0;
