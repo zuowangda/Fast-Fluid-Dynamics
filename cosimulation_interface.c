@@ -295,7 +295,7 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
   }
 
   /****************************************************************************
-  | Write new data
+  | Start to write new data
   ****************************************************************************/
   para->cosim->ffd->t = para->mytime->t;
 
@@ -373,8 +373,17 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
   /****************************************************************************
   | Set data for sensors
   ****************************************************************************/
-  para->cosim->ffd->senVal[0] = para->cosim->ffd->TRoo;
-  para->cosim->ffd->senVal[1] = 0.1; // Fixme: Add the velocity later on
+  para->sens->senVal[0] = para->cosim->ffd->TRoo;
+  para->sens->senVal[1] = 0.1;
+
+  ffd_log("\tSensor Information:", FFD_NORMAL); 
+
+  for(i=0; i<para->cosim->para->nSen; i++) {
+    para->cosim->ffd->senVal[i] = para->sens->senVal[i];
+    sprintf(msg, "\t\t%s: %f", 
+            para->cosim->para->sensorName[i], para->cosim->ffd->senVal[i]);
+    ffd_log(msg, FFD_NORMAL);
+  }
 
   /****************************************************************************
   | Inform Modelica the data is updated
