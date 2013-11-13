@@ -22,11 +22,12 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int project(PARA_DATA *para, REAL **var, int **BINDEX) {
+int project(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -39,7 +40,7 @@ int project(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *ae = var[AE], *aw =var[AW], *an = var[AN], *as = var[AS];
   REAL dxe,dxw, dyn,dys,dzf,dzb,Dx,Dy,Dz;
   REAL residual = 1.0;  
-  REAL *flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
+  int *flagu = flag[FLAGU], *flagv = flag[FLAGV], *flagw = flag[FLAGW];
   
   /****************************************************************************
   | Calculate all coefficents
@@ -69,15 +70,15 @@ int project(PARA_DATA *para, REAL **var, int **BINDEX) {
   /****************************************************************************
   | Projection step
   ****************************************************************************/
-  set_bnd_pressure(para, var, p,BINDEX); 
+  set_bnd_pressure(para,var,flag,p,BINDEX); 
 
   FOR_EACH_CELL    
     ap[IX(i,j,k)] = ae[IX(i,j,k)] + aw[IX(i,j,k)] + as[IX(i,j,k)] + an[IX(i,j,k)]
                   + af[IX(i,j,k)] + ab[IX(i,j,k)];
   END_FOR
 
-  GS_P(para, var, IP, p);
-  set_bnd_pressure(para, var, p,BINDEX); 
+  GS_P(para,var,IP,p);
+  set_bnd_pressure(para,var,flag,p,BINDEX); 
    
   /****************************************************************************
   | Correct the velocity

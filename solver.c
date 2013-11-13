@@ -22,18 +22,19 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
+int FFD_solver(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int step_total = para->mytime->step_total;
   REAL t_steady = para->mytime->t_steady;
   int cal_mean = para->outp->cal_mean;
   double t_cosim;
-  int flag, next;
+  int flag1, next;
 
   if(para->solv->cosimulation == 1)
     t_cosim = para->mytime->t + para->cosim->modelica->dt;
@@ -46,22 +47,22 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
     //-------------------------------------------------------------------------
     // Integration
     //-------------------------------------------------------------------------
-    flag = vel_step(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = vel_step(para, var, flag, BINDEX);
+    if(flag1 != 0) {
       ffd_log("FFD_solver(): Could not solve velocity.", FFD_ERROR);
-      return flag;
+      return flag1;
     }
 
-    flag = temp_step(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = temp_step(para, var, flag, BINDEX);
+    if(flag1 != 0) {
       ffd_log("FFD_solver(): Could not solve temperature.", FFD_ERROR);
-      return flag;
+      return flag1;
     }
     
-    flag = den_step(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = den_step(para, var, flag, BINDEX);
+    if(flag1 != 0) {
       ffd_log("FFD_solver(): Could not solve trace substance.", FFD_ERROR);
-      return flag;
+      return flag1;
     }
 
     timing(para);
@@ -76,24 +77,24 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       .......................................................................*/
       if(fabs(para->mytime->t - t_cosim)<SMALL) {
         // Average the FFD simulation data
-        flag = average_time(para, var);
-        if(flag != 0) {
+        flag1 = average_time(para, var);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): Could not average the data over time.",
             FFD_ERROR);
-          return flag;
+          return flag1;
         }
 
         // the data for cosimulation
-        flag = read_cosim_data(para, var, BINDEX);
-        if(flag != 0) {
+        flag1 = read_cosim_data(para, var, flag, BINDEX);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): Could not read cosimulation data.", FFD_ERROR);
-          return flag;
+          return flag1;
         }
 
-        flag =  write_cosim_data(para, var);
-        if(flag != 0) {
+        flag1 =  write_cosim_data(para, var);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): Could not write cosimulation data.", FFD_ERROR);
-          return flag;
+          return flag1;
         }
 
         sprintf(msg, "ffd_solver(): Synchronized data at t=%f[s]\n", para->mytime->t);
@@ -102,11 +103,11 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
         // Set the next synchronization time
         t_cosim += para->cosim->modelica->dt;
         // Reset all the averaged data to 0
-        flag = reset_time_averaged_data(para, var);
-        if(flag != 0) {
+        flag1 = reset_time_averaged_data(para, var);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): Could not reset averaged data.",
             FFD_ERROR);
-          return flag;
+          return flag1;
         }
 
         /*.......................................................................
@@ -150,19 +151,19 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       .......................................................................*/
       else {
         // Integrate the data on the boundary surface
-        flag = surface_integrate(para, var, BINDEX);
-        if(flag != 0) {
+        flag1 = surface_integrate(para, var, flag, BINDEX);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): "
             "Could not average the data on boundary.",
             FFD_ERROR);
-          return flag;
+          return flag1;
         }
-        flag = add_time_averaged_data(para, var);
-        if(flag != 0) {
+        flag1 = add_time_averaged_data(para, var);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): "
             "Could not add the averaged data.",
             FFD_ERROR);
-          return flag;
+          return flag1;
         }
       } // End of Condition 3
     } // End of cosimulation
@@ -173,11 +174,11 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       // Start to record data for calculating mean velocity if needed
       if(para->mytime->t>t_steady && cal_mean==0) {
         cal_mean = 1;
-        flag = reset_time_averaged_data(para, var);
-        if(flag != 0) {
+        flag1 = reset_time_averaged_data(para, var);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): Could not reset averaged data.",
             FFD_ERROR);
-          return flag;
+          return flag1;
         }
         else
           ffd_log("FFD_solver(): Start to calculate mean properties.",
@@ -185,8 +186,8 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
       }   
 
       if(cal_mean==1) {
-        flag = add_time_averaged_data(para, var);
-        if(flag != 0) {
+        flag1 = add_time_averaged_data(para, var);
+        if(flag1 != 0) {
           ffd_log("FFD_solver(): Could not add the averaged data.",
             FFD_ERROR);
           return 1;
@@ -196,7 +197,7 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
     }    
   } // End of While loop  
 
-  return flag;
+  return flag1;
 } // End of FFD_solver( ) 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,27 +205,28 @@ int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int temp_step(PARA_DATA *para, REAL **var, int **BINDEX) {
+int temp_step(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   REAL *T = var[TEMP], *T0 = var[TMP1];
-  int flag = 0;
+  int flag1 = 0;
 
-  flag = advect(para, var, TEMP, 0, T0, T, BINDEX); 
-  if(flag!=0) {
+  flag1 = advect(para, var, flag, TEMP, 0, T0, T, BINDEX); 
+  if(flag1!=0) {
     ffd_log("temp_step(): Could not advect temperature.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = diffusion(para, var, TEMP, 0, T, T0, BINDEX);
-  if(flag!=0) {
+  flag1 = diffusion(para, var, flag, TEMP, 0, T, T0, BINDEX);
+  if(flag1!=0) {
     ffd_log("temp_step(): Could not diffuse temperature.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  return flag;
+  return flag1;
 } // End of temp_step( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -232,32 +234,33 @@ int temp_step(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-int den_step(PARA_DATA *para, REAL **var, int **BINDEX) {
+int den_step(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   REAL *den, *den0 = var[TMP1];
-  int i, flag = 0;
+  int i, flag1 = 0;
 
   for(i=0; i<para->bc->nb_Xi; i++) {
     den = var[TRACE+i];
-    flag = advect(para, var, TRACE, i, den0, den, BINDEX);
-    if(flag!=0) {
+    flag1 = advect(para, var, flag, TRACE, i, den0, den, BINDEX);
+    if(flag1!=0) {
       sprintf(msg, "den_step(): Could not advect for trace substance %d", i);
       ffd_log(msg, FFD_ERROR);
-      return flag;
+      return flag1;
     }
 
-    flag = diffusion(para, var, TRACE, i, den, den0, BINDEX);
-    if(flag!=0) {
+    flag1 = diffusion(para, var, flag, TRACE, i, den, den0, BINDEX);
+    if(flag1!=0) {
       sprintf(msg, "den_step(): Could not diffuse trace substance %d", i);
       ffd_log(msg, FFD_ERROR);
-      return flag;
+      return flag1;
     }
   }
 
-  return flag;
+  return flag1;
 } // End of den_step( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -265,65 +268,66 @@ int den_step(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-int vel_step(PARA_DATA *para, REAL **var,int **BINDEX) {
+int vel_step(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   REAL *u  = var[VX],  *v  = var[VY],    *w  = var[VZ];
   REAL *u0 = var[TMP1], *v0 = var[TMP2], *w0 = var[TMP3];
-  int flag = 0;
+  int flag1 = 0;
 
-  flag = advect(para, var, VX, 0, u0, u, BINDEX);
-  if(flag!=0) {
+  flag1 = advect(para, var, flag, VX, 0, u0, u, BINDEX);
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not advect for velocity X.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = advect(para, var, VY, 0, v0, v, BINDEX);
-  if(flag!=0) {
+  flag1 = advect(para, var, flag, VY, 0, v0, v, BINDEX);
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not advect for velocity Y.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = advect(para, var, VZ, 0, w0, w, BINDEX); 
-  if(flag!=0) {
+  flag1 = advect(para, var, flag, VZ, 0, w0, w, BINDEX); 
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not advect for velocity Z.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = diffusion(para, var, VX, 0, u, u0, BINDEX);
-  if(flag!=0) {
+  flag1 = diffusion(para, var, flag, VX, 0, u, u0, BINDEX);
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not diffuse velocity X.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = diffusion(para, var, VY, 0, v, v0, BINDEX);
-  if(flag!=0) {
+  flag1 = diffusion(para, var, flag, VY, 0, v, v0, BINDEX);
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not diffuse velocity Y.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = diffusion(para, var, VZ, 0, w, w0, BINDEX); 
-  if(flag!=0) {
+  flag1 = diffusion(para, var, flag, VZ, 0, w, w0, BINDEX); 
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not diffuse velocity Z.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  flag = project(para, var,BINDEX);
-  if(flag!=0) {
+  flag1 = project(para, var, flag, BINDEX);
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not project velocity.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  if(para->bc->nb_outlet!=0) flag = mass_conservation(para, var,BINDEX);
-  if(flag!=0) {
+  if(para->bc->nb_outlet!=0) flag1 = mass_conservation(para,var,flag,BINDEX);
+  if(flag1!=0) {
     ffd_log("vel_step(): Could not conduct mass conservation correction.",
             FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
-  return flag;
+  return flag1;
 } // End of vel_step( )
 
 ///////////////////////////////////////////////////////////////////////////////

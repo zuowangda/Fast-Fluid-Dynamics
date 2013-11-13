@@ -100,10 +100,6 @@ Place the stdlib.h line above the glut.h line in the code.
 #define GZ    31
 #define AP0   32
 #define PP    33
-#define FLAGP 34
-#define FLAGU 35
-#define FLAGV 36
-#define FLAGW 37
 #define LOCMIN 38
 #define LOCMAX 39
 #define VXBC 40
@@ -113,9 +109,14 @@ Place the stdlib.h line above the glut.h line in the code.
 
 #define TRACE 44
 
+#define FLAGP 0
+#define FLAGU 1
+#define FLAGV 2
+#define FLAGW 3
+
 typedef enum{NOSLIP, SLIP, INFLOW, OUTFLOW, PERIODIC, SYMMETRY} BCTYPE;
 
-typedef enum{SOLID=1, INLET=0, OUTLET=2, FLUID=-1} CELLTYPE;
+typedef enum{SOLID=1, INLET=0, OUTLET=2, FLUID=4} CELLTYPE;
 
 typedef enum{TCONST, QCONST, ADIBATIC} BCTTYPE;
 

@@ -43,6 +43,11 @@
 #include "utility.h"
 #endif
 
+#ifndef _DATA_WRITER
+#define _DATA_WRITER
+#include "data_writer.h"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Initialize the parameters 
 ///
@@ -66,8 +71,9 @@ void set_default_parameter(PARA_DATA *para);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_initial_data (PARA_DATA *para, REAL **var, int **BINDEX);
+int set_initial_data (PARA_DATA *para, REAL **var, int **flag, int **BINDEX);

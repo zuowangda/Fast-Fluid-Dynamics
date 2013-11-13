@@ -51,6 +51,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type Type of variable
 ///\param index Index of trace substance or species
 ///\param psi Pointer to the variable at current time step
@@ -59,14 +60,15 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
-               REAL *psi, REAL *psi0, int **BINDEX);
+int diffusion(PARA_DATA *para, REAL **var, int **flag, int var_type, int index,
+              REAL *psi, REAL *psi0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calcuate coefficients for difussion equation solver
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param psi Pointer to the variable at current time step
 ///\param psi0 Pointer to the variable at previous time step
 ///\param var_type Type of variable
@@ -75,7 +77,7 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0, 
+int coef_diff(PARA_DATA *para, REAL **var, int **flag, REAL *psi, REAL *psi0, 
                int var_type, int index, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////

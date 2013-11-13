@@ -62,11 +62,12 @@ int write_cosim_data(PARA_DATA *para, REAL **var);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX pointer to boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX);
+int read_cosim_data(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Compare the names of boundaries and store the relationship 
@@ -93,11 +94,12 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to the FFD simulaiton variables
+///\param flag Pointer to the FFD flag
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
+int assign_thermal_bc(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Assign the Modelica inlet and outlet boundary condition data to FFD
@@ -109,7 +111,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 /// boundry condition accordingly. The inlet or outlet boundary is decided 
 /// according to the flow rate para->cosim->modelica->mFloRarPor. The port is
 /// inlet if mFloRarPor>0 and outlet if mFloRarPor<0. We will need to reset the 
-/// var[FLAGP][IX(i,j,k)] to apply the change of boundary conditions.
+/// flag[FLAGP][IX(i,j,k)] to apply the change of boundary conditions.
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to the FFD simulaiton variables
@@ -117,7 +119,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX);
+int assign_port_bc(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Integrate the cosimulation exchange data over the surfaces 
@@ -132,8 +134,9 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to the boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX);
+int surface_integrate(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);

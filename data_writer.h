@@ -37,22 +37,24 @@ FILE *file1;
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param name Pointer to file name
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int write_tecplot_data(PARA_DATA *para, REAL **var, char *name);
+int write_tecplot_data(PARA_DATA *para, REAL **var, int **flag, char *name);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Write all available data in a format for tecplot 
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param name Pointer to file name
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name);
+int write_tecplot_all_data(PARA_DATA *para, REAL **var, int **flag, char *name);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Convert the data to the format for Tecplot 

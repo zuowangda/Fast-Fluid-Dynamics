@@ -35,6 +35,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
@@ -43,32 +44,32 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int advect(PARA_DATA *para, REAL **var, int var_type, int index, 
+int advect(PARA_DATA *para, REAL **var, int **flag, int var_type, int index, 
            REAL *d, REAL *d0, int **BINDEX) {
-  int flag;
+  int flag1;
   switch (var_type) {
     case VX:
-      flag = trace_vx(para, var, var_type, d, d0, BINDEX);
-      if(flag!=0)
+      flag1 = trace_vx(para, var, flag, var_type, d, d0, BINDEX);
+      if(flag1!=0)
         ffd_log("advect(): Failed in advection for X-velocity.",
                 FFD_ERROR);
       break;
     case VY:
-      flag = trace_vy(para, var, var_type, d, d0, BINDEX);
-      if(flag!=0)
+      flag1 = trace_vy(para, var, flag, var_type, d, d0, BINDEX);
+      if(flag1!=0)
         ffd_log("advect(): Failed in advection for Y-velocity.",
                 FFD_ERROR);
       break;
     case VZ:
-      flag = trace_vz(para, var, var_type, d, d0, BINDEX);
-      if(flag!=0)
+      flag1 = trace_vz(para, var, flag, var_type, d, d0, BINDEX);
+      if(flag1!=0)
         ffd_log("advect(): Failed in advection for Z-velocity.",
                 FFD_ERROR);
       break;
     case TEMP:
     case TRACE:
-      flag = trace_scalar(para, var, var_type, index, d, d0, BINDEX);
-      if(flag!=0) {
+      flag1 = trace_scalar(para, var, flag, var_type, index, d, d0, BINDEX);
+      if(flag1!=0) {
         sprintf(msg, 
                 "advect(): Failed in advection for scalar variable type %d.", 
                 var_type);
@@ -76,13 +77,13 @@ int advect(PARA_DATA *para, REAL **var, int var_type, int index,
       }
       break;
     default:
-      flag = 1;
+      flag1 = 1;
       sprintf(msg, "advect(): Advection function not defined for variable "
         "type %d.", var_type);
       ffd_log(msg, FFD_ERROR);
   }
 
-  return flag;
+  return flag1;
 } // End of advect( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,6 +91,7 @@ int advect(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
@@ -97,8 +99,8 @@ int advect(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
-             int **BINDEX) {
+int trace_vx(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+             REAL *d, REAL *d0, int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -111,13 +113,13 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
   REAL *gx = var[GX]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *flagu = var[FLAGU];
+  int *flagu = flag[FLAGU];
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
 
   FOR_U_CELL
-    if(flagu[IX(i,j,k)]>=0) continue;
+    if(flagu[IX(i,j,k)]!=FLUID) continue;
     /*-----------------------------------------------------------------------
     | Step 1: Tracing Back
     -----------------------------------------------------------------------*/
@@ -153,8 +155,7 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     it=1;
 
     // Trace back more if the any of the trace is still in process 
-    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] ==1)
-    {
+    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] ==1) {
       it++;
       // If trace in X is in process and donot hit the boundary
       if(COOD[X]==1 && LOC[X]==1) 
@@ -203,7 +204,7 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, 0, d, BINDEX);
+  set_bnd(para, var, flag, var_type, 0, d, BINDEX);
 
   return 0;
 } // End of trace_vx()
@@ -213,6 +214,7 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
@@ -220,8 +222,8 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX) {
+int trace_vy(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+             REAL *d, REAL *d0, int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -234,14 +236,14 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
   REAL *gy = var[GY]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *flagv = var[FLAGV];
+  int *flagv = flag[FLAGV];
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
 
   FOR_V_CELL
     // Do not trace for boundary cells
-    if(flagv[IX(i,j,k)]>=0) continue;
+    if(flagv[IX(i,j,k)]!=FLUID) continue;
 
     /*-------------------------------------------------------------------------
     | Step 1: Tracing Back
@@ -278,8 +280,7 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
     it=1;
 
     // Trace back more if the any of the trace is still in process 
-    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1)
-    {
+    while(COOD[X]==1 || COOD[Y] ==1 || COOD[Z] == 1) {
       it++;
       if(COOD[X]==1 && LOC[X]==1)
         set_x_location(para, var, flagv, x, u0, i, j, k, OL, OC, LOC, COOD); 
@@ -322,7 +323,7 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, 0, d, BINDEX);
+  set_bnd(para, var, flag, var_type, 0, d, BINDEX);
   return 0;
 } // End of trace_vy()
 
@@ -331,6 +332,7 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
@@ -338,8 +340,8 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX) {
+int trace_vz(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+             REAL *d, REAL *d0, int **BINDEX) {
   int i, j, k;
   int it;
   int itmax = 20000; // Max number of iterations for backward tracing 
@@ -352,14 +354,14 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   REAL *x = var[X], *y = var[Y],  *z = var[Z]; 
   REAL *gz = var[GZ]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *flagw = var[FLAGW];
+  int *flagw = flag[FLAGW];
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
 
   FOR_W_CELL
     // Do not trace for boundary cells
-    if(flagw[IX(i,j,k)]>=0) continue;
+    if(flagw[IX(i,j,k)]!=FLUID) continue;
 
     /*-------------------------------------------------------------------------
     | Step 1: Tracing Back
@@ -438,7 +440,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
   /*---------------------------------------------------------------------------
   | define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, 0, d, BINDEX);
+  set_bnd(para, var, flag, var_type, 0, d, BINDEX);
   return 0;
 } // End of trace_vz()
 
@@ -447,6 +449,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
@@ -455,7 +458,8 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
+int trace_scalar(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+                 int index,
                  REAL *d, REAL *d0, int **BINDEX) {
   int i, j, k;
   int it;
@@ -468,7 +472,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
   REAL u0, v0, w0;
   REAL *x = var[X], *y = var[Y], *z = var[Z]; 
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
   int  COOD[3], LOC[3];
   REAL OL[3];
   int  OC[3];
@@ -555,7 +559,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
   /*---------------------------------------------------------------------------
   | Define the b.c.
   ---------------------------------------------------------------------------*/
-  set_bnd(para, var, var_type, index, d, BINDEX);
+  set_bnd(para, var, flag, var_type, index, d, BINDEX);
   return 0;
 } // End of trace_scalar()
 
@@ -581,7 +585,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\return void No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, 
+void set_x_location(PARA_DATA *para, REAL **var, int *flag, REAL *x, REAL u0, 
                     int i, int j, int k, 
                     REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -691,7 +695,7 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
 ///
 ///\return void No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0, 
+void set_y_location(PARA_DATA *para, REAL **var, int *flag, REAL *y, REAL v0, 
                     int i, int j, int k, 
                     REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -799,7 +803,7 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
 ///
 ///\return void No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0,
+void set_z_location(PARA_DATA *para, REAL **var, int *flag, REAL *z, REAL w0,
                     int i, int j, int k, 
                     REAL *OL, int *OC, int *LOC, int *COOD) {
   int imax = para->geom->imax, jmax = para->geom->jmax;

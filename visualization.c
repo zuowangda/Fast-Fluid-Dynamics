@@ -80,17 +80,18 @@ void ffd_display_func(PARA_DATA *para, REAL **var) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to all variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to bounary index
 ///
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX) {
+void ffd_idle_func(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   // Get the display in XY plane
   get_xy_UI(para, var, (int)para->geom->kmax/2);
 
-  vel_step(para, var, BINDEX);
-  den_step(para, var, BINDEX);
-  temp_step(para, var, BINDEX);
+  vel_step(para, var, flag, BINDEX);
+  den_step(para, var, flag, BINDEX);
+  temp_step(para, var, flag, BINDEX);
 
   if(para->outp->cal_mean == 1)
     average_time(para, var);
@@ -110,24 +111,25 @@ void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to all variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to bounary index
 ///\param key Character of the key
 ///
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, 
+void ffd_key_func(PARA_DATA *para, REAL **var, int **flag, int **BINDEX, 
                   unsigned char key) {
 
   // Set control variable according to key input
   switch(key) {
     // Restart the simulation
     case '0':
-      if(set_initial_data(para, var, BINDEX)) exit(1);
+      if(set_initial_data(para, var, flag, BINDEX)) exit(1);
       break;
     // Quit
     case 'q':
     case 'Q':
-      free_data(var);
+      free_data(var, flag);
       exit(0);
       break;
     // Draw velocity
@@ -154,7 +156,7 @@ void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX,
     case 'S':
       if(para->outp->cal_mean == 1)
         average_time(para, var);
-      write_tecplot_data(para, var, "result"); 
+      write_tecplot_data(para, var, flag, "result"); 
       break;
     // Reduce the drawed length of veloity
     case 'k':

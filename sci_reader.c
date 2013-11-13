@@ -57,12 +57,12 @@ int read_sci_max(PARA_DATA *para, REAL **var) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
-///\param var_type Type of variable
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
+int read_sci_input(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k;
   int ii,ij,ik;
   REAL tempx, tempy, tempz;
@@ -83,7 +83,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
   char string[400];
   REAL *delx, *dely, *delz;
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
   int bcnameid = -1;
   char **outletName, **inletName;
 
@@ -219,7 +219,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       | Get the names of boundary
       .......................................................................*/
       fgets(string, 400, file_params);
-      // Ge the length of name (The name may contain white space)
+      // Get the length of name (The name may contain white space)
       for(j=0; string[j] != '\n'; j++) {
         continue;
       }
@@ -654,8 +654,9 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
         SI = 0;
         if(EI>=imax) EI = EI + 1;
       }
-      else // 
+      else
         EI = EI + SI;
+
       // Reset Y index
       if(SJ==1) {
         SJ = 0;
@@ -663,6 +664,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
       }
       else 
         EJ = EJ + SJ;
+
       // Reset Z index
       if(SK==1) {
         SK = 0;
@@ -676,7 +678,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
         for(ij=SJ; ij<=EJ; ij++)
           for(ik=SK; ik<=EK; ik++) {
             // If cell hasn't been updated (default value -1)
-            if(flagp[IX(ii,ij,ik)]<0) {
+            if(flagp[IX(ii,ij,ik)]==FLUID) {
               BINDEX[0][index] = ii;
               BINDEX[1][index] = ij;
               BINDEX[2][index] = ik;
@@ -821,7 +823,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
+int read_sci_zeroone(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k;
   int delcount=0;
   int mark;
@@ -830,7 +832,7 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
   int kmax = para->geom->kmax;
   int index = para->geom->index;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   if( (file_params=fopen("zeroone.dat","r")) == NULL )
   {
@@ -878,17 +880,18 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void mark_cell(PARA_DATA *para, REAL **var) {
-  int i,j, k;
+void mark_cell(PARA_DATA *para, REAL **var, int **flag) {
+  int i, j, k;
   int imax = para->geom->imax;
   int jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2); 
-  REAL *flagu = var[FLAGU],*flagv = var[FLAGV],*flagw = var[FLAGW];
-  REAL *flagp = var[FLAGP];
+  int *flagu = flag[FLAGU],*flagv = flag[FLAGV], *flagw = flag[FLAGW],
+      *flagp = flag[FLAGP];
 
   flagp[IX(0,0,0)] = SOLID;
   flagp[IX(0,0,kmax+1)] = SOLID;
@@ -900,48 +903,41 @@ void mark_cell(PARA_DATA *para, REAL **var) {
   flagp[IX(imax+1,jmax+1,kmax+1)] = SOLID;
 
   FOR_EACH_CELL
-
-    if(flagp[IX(i,j,k)]>=0) continue;
-
-    if(flagp[IX(i-1,j,k)]>=0 && flagp[IX(i+1,j,k)]>=0 &&
-      flagp[IX(i,j-1,k)]>=0 && flagp[IX(i,j+1,k)]>=0 &&
-      flagp[IX(i,j,k-1)]>=0 && flagp[IX(i,j,k+1)]>=0 )
+    if(flagp[IX(i,j,k)]!=FLUID) continue;
+    else if(flagp[IX(i-1,j,k)]!=FLUID && flagp[IX(i+1,j,k)]!=FLUID &&
+            flagp[IX(i,j-1,k)]!=FLUID && flagp[IX(i,j+1,k)]!=FLUID &&
+            flagp[IX(i,j,k-1)]!=FLUID && flagp[IX(i,j,k+1)]!=FLUID )
       flagp[IX(i,j,k)] = SOLID;
   END_FOR
 
   FOR_ALL_CELL
-
-  if(flagp[IX(i,j,k)]==1) {
-
-    flagu[IX(i,j,k)]=1;
-    flagv[IX(i,j,k)]=1;
-    flagw[IX(i,j,k)]=1;
-
-    if(i!=0) flagu[IX(i-1,j,k)]=1;
-    if(j!=0) flagv[IX(i,j-1,k)]=1;
-    if(k!=0) flagw[IX(i,j,k-1)]=1;
-  }
-
-  if(flagp[IX(i,j,k)]==0) {
-    flagu[IX(i,j,k)]=0;
-    flagv[IX(i,j,k)]=0;
-    flagw[IX(i,j,k)]=0;
-
-    if(i!=0) flagu[IX(i-1,j,k)]=0;
-    if(j!=0) flagv[IX(i,j-1,k)]=0;
-    if(k!=0) flagw[IX(i,j,k-1)]=0;
-}
-
-  if(flagp[IX(i,j,k)]==2) {
-
-    flagu[IX(i,j,k)]=2;
-    flagv[IX(i,j,k)]=2;
-    flagw[IX(i,j,k)]=2;
-
-    if(i!=0) flagu[IX(i-1,j,k)]=2;
-    if(j!=0) flagv[IX(i,j-1,k)]=2;
-    if(k!=0) flagw[IX(i,j,k-1)]=2;
-}
-
+    switch(flagp[IX(i,j,k)]) {
+      case SOLID:
+        flagu[IX(i,j,k)] = SOLID;
+        flagv[IX(i,j,k)] = SOLID;
+        flagw[IX(i,j,k)] = SOLID;
+        if(i!=0) flagu[IX(i-1,j,k)] = SOLID;
+        if(j!=0) flagv[IX(i,j-1,k)] = SOLID;
+        if(k!=0) flagw[IX(i,j,k-1)] = SOLID;
+        break;
+      case INLET:
+        flagu[IX(i,j,k)] = INLET;
+        flagv[IX(i,j,k)] = INLET;
+        flagw[IX(i,j,k)] = INLET;
+        if(i!=0) flagu[IX(i-1,j,k)] = INLET;
+        if(j!=0) flagv[IX(i,j-1,k)] = INLET;
+        if(k!=0) flagw[IX(i,j,k-1)] = INLET;
+        break;
+      case OUTLET:
+        flagu[IX(i,j,k)] = OUTLET;
+        flagv[IX(i,j,k)] = OUTLET;
+        flagw[IX(i,j,k)] = OUTLET;
+        if(i!=0) flagu[IX(i-1,j,k)] = OUTLET;
+        if(j!=0) flagv[IX(i,j-1,k)] = OUTLET;
+        if(k!=0) flagw[IX(i,j,k-1)] = OUTLET;
+        break;
+      default:
+        break;
+    }
   END_FOR
 } // End of mark_cell()

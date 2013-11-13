@@ -59,24 +59,26 @@ void ffd_log(char *message, FFD_MSG_TYPE msg_type);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param psi Pointer to the variable
 ///\param BINDEX Pointer to the boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL outflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX);
+REAL outflow(PARA_DATA *para, REAL **var, int **flag, REAL *psi, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Check the inflow rate of the scalar psi
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param psi Pointer to the variable
 ///\param BINDEX Pointer to the boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL inflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX);
+REAL inflow(PARA_DATA *para, REAL **var, int **flag, REAL *psi, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Check the minimum value of the scalar psi at (ci,cj,ck) and its surrounding
@@ -166,14 +168,14 @@ int add_time_averaged_data (PARA_DATA *para, REAL **var);
 ///////////////////////////////////////////////////////////////////////////////
 /// Check the energy transfer rate through the wall to the air
 ///
-///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to the boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX);
+REAL qwall(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Free memory for BINDEX
@@ -189,8 +191,28 @@ void free_index(int **BINDEX);
 /// Free memory for FFD simulation variables
 ///
 ///\param var Pointer to FFD simulation variables
-///
+///\param flag Pointer to FFD flags
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void free_data(REAL **var); 
+void free_data(REAL **var, int **flag); 
+
+///////////////////////////////////////////////////////////////////////////////
+/// Get the maximum value of the scalar psi at the domain
+///
+///\param para Pointer to FFD parameters
+///\param psi Pointer to the variable
+///
+///\return maximum vaue if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+REAL global_max(PARA_DATA *para, REAL *psi);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Get the minimum value of the scalar psi at the domain
+///
+///\param para Pointer to FFD parameters
+///\param psi Pointer to the variable
+///
+///\return minimum value if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+REAL global_min(PARA_DATA *para, REAL *psi);

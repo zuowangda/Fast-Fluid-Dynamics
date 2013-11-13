@@ -148,12 +148,13 @@ REAL length_z(PARA_DATA *para, REAL **var, int i, int j, int k) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///\param A Pointer to the array of area
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
+int bounary_area(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
    
   int i, j, k, it, id;
   //int id0;
@@ -161,7 +162,7 @@ int bounary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
       jmax = para->geom->jmax, kmax = para->geom->kmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
 
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
   REAL tmp;
   REAL *AWall = para->bc->AWall;
   REAL *APort = para->bc->APort;

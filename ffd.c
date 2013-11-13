@@ -17,8 +17,11 @@
 
 #include "ffd.h"
 
-/* global variables */
+/*****************************************************************************
+| Global variables 
+*****************************************************************************/
 REAL **var;
+int **flag;
 int  **BINDEX;
 REAL *locmin,*locmax;
 
@@ -42,25 +45,48 @@ clock_t start, end;
 ///////////////////////////////////////////////////////////////////////////////
 int allocate_memory (PARA_DATA *para) {
 
-  int nb_var, i;
+  int nb_var, nb_flag, i;
   int size = (geom.imax+2) * (geom.jmax+2) * (geom.kmax+2);
 
   /****************************************************************************
   | Allocate memory for variables
   ****************************************************************************/
   nb_var = 46 + para->bc->nb_Xi + para->bc->nb_C;
-  var       = (REAL **) malloc ( nb_var*sizeof(REAL*) );
+  var       = (REAL **) malloc(nb_var*sizeof(REAL*));
+
   if(var==NULL) {
     ffd_log("allocate_memory(): Could not allocate memory for var.",
             FFD_ERROR);
     return 1;
   }
-
+  
   for(i=0; i<nb_var; i++) {
     var[i] = (REAL *) calloc(size, sizeof(REAL));
     if(var[i]==NULL) {
       sprintf(msg, 
               "allocate_memory(): Could not allocate memory for var[%d]", i);
+      ffd_log(msg, FFD_ERROR);
+      return 1;
+    }
+  }
+
+  /****************************************************************************
+  | Allocate memory for flags
+  ****************************************************************************/
+  nb_flag = 6;
+  flag = (int **) malloc(nb_flag*sizeof(int*));
+
+  if(flag==NULL) {
+    ffd_log("allocate_memory(): Could not allocate memory for flag.",
+            FFD_ERROR);
+    return 1;
+  }
+
+  for(i=0; i<nb_flag; i++) {
+    flag[i] = (int *) calloc(size, sizeof(int));
+    if(flag[i]==NULL) {
+      sprintf(msg, 
+              "allocate_memory(): Could not allocate memory for flag[%d]", i);
       ffd_log(msg, FFD_ERROR);
       return 1;
     }
@@ -113,7 +139,7 @@ static void display_func(void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 static void key_func(unsigned char key, int x, int y) {
-  ffd_key_func(&para, var, BINDEX, key);
+  ffd_key_func(&para, var, BINDEX, flag, key);
 } // End of key_func()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -122,7 +148,7 @@ static void key_func(unsigned char key, int x, int y) {
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
 static void idle_func(void) {
-  ffd_idle_func(&para, var, BINDEX);
+  ffd_idle_func(&para, var, flag, BINDEX);
 } // End of idle_func()
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -343,7 +369,7 @@ int ffd(int cosimulation) {
   }
 
   // Set the initial values for the simulation data
-  if(set_initial_data(&para, var, BINDEX)) {
+  if(set_initial_data(&para, var, flag, BINDEX)!=0) {
     ffd_log("ffd(): Could not set initial data.", FFD_ERROR);
     return 1;
   }
@@ -359,7 +385,7 @@ int ffd(int cosimulation) {
     glutMainLoop();
   }
   else
-    if(FFD_solver(&para, var, BINDEX)!=0) {
+    if(FFD_solver(&para, var, flag, BINDEX)!=0) {
       ffd_log("ffd(): FFD solver failed.", FFD_ERROR);
       return 1;
     }
@@ -377,20 +403,20 @@ int ffd(int cosimulation) {
     return 1;
   }
 
-  if(write_tecplot_data(&para, var, "result")!=0) {
+  if(write_tecplot_data(&para, var, flag, "result")!=0) {
     ffd_log("FFD_solver(): Could not write the file result.plt.", FFD_ERROR);
     return 1;
   }
 
 
   if(para.outp->version == DEBUG)
-    write_tecplot_all_data(&para, var, "result_all");
+    write_tecplot_all_data(&para, var, flag, "result_all");
 
   // Write the data in SCI format
   write_SCI(&para, var, "output");
 
   // Free the memory
-  free_data(var);
+  free_data(var, flag);
   free_index(BINDEX);
 
   // End the simulation

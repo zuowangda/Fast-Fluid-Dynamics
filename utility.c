@@ -87,12 +87,13 @@ void ffd_log(char *message, FFD_MSG_TYPE msg_type) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param psi Pointer to the variable
 ///\param BINDEX Pointer to the boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL outflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX) {
+REAL outflow(PARA_DATA *para, REAL **var, int **flag, REAL *psi, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -102,7 +103,7 @@ REAL outflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX) {
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL mass_out=0;
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   /*---------------------------------------------------------------------------
   | Compute the total outflow
@@ -146,7 +147,7 @@ REAL outflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL inflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX) {
+REAL inflow(PARA_DATA *para, REAL **var, int **flag, REAL *psi, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -156,7 +157,7 @@ REAL inflow(PARA_DATA *para, REAL **var, REAL *psi, int **BINDEX) {
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL mass_in=0;
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   /*---------------------------------------------------------------------------
   | Compute the total inflow
@@ -243,6 +244,55 @@ REAL check_max(PARA_DATA *para, REAL *psi, int ci, int cj, int ck) {
 return tmp;
 
 }// End of check_max( )
+
+///////////////////////////////////////////////////////////////////////////////
+/// Get the maximum value of the scalar psi at the domain
+///
+///\param para Pointer to FFD parameters
+///\param psi Pointer to the variable
+///
+///\return maximum value if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+REAL global_max(PARA_DATA *para, REAL *psi) {
+  int i, j, k;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL tmp;
+
+  tmp = psi[IX(1,1,1)];
+
+  FOR_ALL_CELL
+    tmp = tmp > psi[IX(i,j,k)] ? tmp : psi[IX(i,j,k)];
+  END_FOR
+
+  return tmp;
+} // End of global_max()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Get the minimum value of the scalar psi at the domain
+///
+///\param para Pointer to FFD parameters
+///\param psi Pointer to the variable
+///
+///\return minimum value if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+REAL global_min(PARA_DATA *para, REAL *psi) {
+  int i, j, k;
+  int imax = para->geom->imax, jmax = para->geom->jmax;
+  int kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL tmp;
+
+  tmp = psi[IX(1,1,1)];
+
+  FOR_ALL_CELL
+    tmp = tmp < psi[IX(i,j,k)] ? tmp : psi[IX(i,j,k)];
+  END_FOR
+
+  return tmp;
+} //End of global_min()
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate averaged value of psi
@@ -455,11 +505,12 @@ int add_time_averaged_data(PARA_DATA *para, REAL **var) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to the boudnary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX) {
+REAL qwall(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k;
   int it;
   int index=para->geom->index;
@@ -471,82 +522,81 @@ REAL qwall(PARA_DATA *para, REAL **var,int **BINDEX) {
   REAL coeff_h=para->prob->coeff_h;
   REAL qwall=0;
 
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   for(it=0;it<index;it++) {
     i=BINDEX[0][it];
     j=BINDEX[1][it];
     k=BINDEX[2][it];
 
-    if(flagp[IX(i,j,k)]==1)	{
-		  if(i==0) {
-			  if(flagp[IX(i+1,j,k)]<0) {
+    if(flagp[IX(i,j,k)]==SOLID) {
+      // West, North and Interior
+      if(i==0) {
+        if(flagp[IX(i+1,j,k)]==FLUID) {
           qwall += (psi[IX(i,j,k)]-psi[IX(i+1,j,k)])*coeff_h
                 *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
         }
-			}
-			else if(i==imax+1) {
-	      if(flagp[IX(i-1,j,k)]<0) { 
-          qwall += (psi[IX(i,j,k)]-psi[IX(i-1,j,k)])*coeff_h
-                *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }				
       }
-		  else {
-			  if(flagp[IX(i+1,j,k)]<0) {
-          qwall += (psi[IX(i,j,k)]-psi[IX(i+1,j,k)])*coeff_h
-                *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-        }
-				if(flagp[IX(i-1,j,k)]<0) {
+      else if(i==imax+1) {
+        if(flagp[IX(i-1,j,k)]==FLUID) { 
           qwall += (psi[IX(i,j,k)]-psi[IX(i-1,j,k)])*coeff_h
                 *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
         }
-			}
-
-	  	if(j==0) {
-        if(flagp[IX(i,j+1,k)]<0) {
+      }
+      else {
+        if(flagp[IX(i+1,j,k)]==FLUID) {
+          qwall += (psi[IX(i,j,k)]-psi[IX(i+1,j,k)])*coeff_h
+                *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+        else if(flagp[IX(i-1,j,k)]==FLUID) {
+          qwall += (psi[IX(i,j,k)]-psi[IX(i-1,j,k)])*coeff_h
+                *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+      }
+      // South, North and Interior
+      if(j==0) {
+        if(flagp[IX(i,j+1,k)]==FLUID) {
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j+1,k)])*coeff_h
                 *(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
-       }					
-		  }
-		  else if(j==jmax+1) {
-		    if(flagp[IX(i,j-1,k)]<0) {
-         qwall += (psi[IX(i,j,k)]-psi[IX(i,j-1,k)])*coeff_h
-                *(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
         }
-	  	}
-		  else {
-		    if(flagp[IX(i,j-1,k)]<0) {
+      }
+      else if(j==jmax+1) {
+        if(flagp[IX(i,j-1,k)]==FLUID) {
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j-1,k)])*coeff_h
                 *(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
       }
-			  if(flagp[IX(i,j+1,k)]<0) {
+      else {
+        if(flagp[IX(i,j-1,k)]==FLUID) {
+          qwall += (psi[IX(i,j,k)]-psi[IX(i,j-1,k)])*coeff_h
+                *(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
+        }
+        if(flagp[IX(i,j+1,k)]==FLUID) {
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j+1,k)])*coeff_h
                 *(gx[IX(i,j,k)]-gx[IX(i-1,j,k)])*(gz[IX(i,j,k)]-gz[IX(i,j,k-1)]);
         }
-			}
-
-			if(k==0) {
-        if(flagp[IX(i,j,k+1)]<0) {
+      }
+      //Floor, Ceiling and Interior
+      if(k==0) {
+        if(flagp[IX(i,j,k+1)]==FLUID) {
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j,k+1)])*coeff_h
                 *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-        }	
-			}
-			else if(k==kmax+1) {
-		    if(flagp[IX(i,j,k-1)]<0) {
+        }
+      }
+      else if(k==kmax+1) {
+        if(flagp[IX(i,j,k-1)]==FLUID) {
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j,k-1)])*coeff_h
                 *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
         } 
-				}
-			else {
-			  if(flagp[IX(i,j,k+1)]<0) {
+      }
+      else {
+        if(flagp[IX(i,j,k+1)]==FLUID)
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j,k+1)])*coeff_h
-                *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-        } 
-				if(flagp[IX(i,j,k-1)]<0) {
+                *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);        
+        if(flagp[IX(i,j,k-1)]==FLUID)
           qwall += (psi[IX(i,j,k)]-psi[IX(i,j,k-1)])*coeff_h
                 *(gy[IX(i,j,k)]-gy[IX(i,j-1,k)])*(gx[IX(i,j,k)]-gx[IX(i-1,j,k)]);
-        }					
-			}
+      }
     }
   }
 
@@ -572,11 +622,11 @@ void free_index(int **BINDEX) {
 /// Free memory for FFD simulation variables
 ///
 ///\param var Pointer to FFD simulation variables
-///
+///\param flag Pointer to FFD flags
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void free_data(REAL **var) {
+void free_data(REAL **var, int **flag) {
   if(var[X]) free(var[X]);
   if(var[Y]) free(var[Y]);
   if(var[Z]) free(var[Z]);
@@ -609,10 +659,10 @@ void free_data(REAL **var) {
   if(var[GZ])  free(var[GZ]);
   if(var[AP0])  free(var[AP0]);
   if(var[PP])  free(var[PP]);
-  if(var[FLAGP])  free(var[FLAGP]);
-  if(var[FLAGU])  free(var[FLAGU]);
-  if(var[FLAGV])  free(var[FLAGV]);
-  if(var[FLAGW])  free(var[FLAGW]);
+  if(var[FLAGP])  free(flag[FLAGP]);
+  if(var[FLAGU])  free(flag[FLAGU]);
+  if(var[FLAGV])  free(flag[FLAGV]);
+  if(var[FLAGW])  free(flag[FLAGW]);
   if(var[LOCMIN])  free(var[LOCMIN]);
   if(var[LOCMAX])  free(var[LOCMAX]);
   if(var[VXBC])  free(var[VXBC]);

@@ -62,6 +62,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
@@ -70,7 +71,7 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int advect(PARA_DATA *para, REAL **var, int var_type, int index, 
+int advect(PARA_DATA *para, REAL **var, int **flag, int var_type, int index, 
            REAL *d, REAL *d0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,6 +79,7 @@ int advect(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
@@ -85,14 +87,15 @@ int advect(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX);
+int trace_vx(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+             REAL *d, REAL *d0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Advection for velocity at Y-direction
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
@@ -100,14 +103,15 @@ int trace_vx(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX);
+int trace_vy(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+             REAL *d, REAL *d0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Advection for velocity at Z-direction
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param d Pointer to the computed variables at previous time step
 ///\param d0 Pointer to the computed variables for current time step
@@ -115,8 +119,8 @@ int trace_vy(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0, 
-             int **BINDEX);
+int trace_vz(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+             REAL *d, REAL *d0, int **BINDEX);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,6 +128,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable for advection solver
 ///\param index Index of trace substances or species
 ///\param d Pointer to the computed variables at previous time step
@@ -132,7 +137,7 @@ int trace_vz(PARA_DATA *para, REAL **var, int var_type, REAL *d, REAL *d0,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
+int trace_scalar(PARA_DATA *para, REAL **var, int **flag, int var_type, int index,
                  REAL *d, REAL *d0, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,7 +161,7 @@ int trace_scalar(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\return void No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0, 
+void set_x_location(PARA_DATA *para, REAL **var, int *flag, REAL *x, REAL u0, 
                     int i, int j, int k,  
                     REAL *OL, int *OC, int *LOC , int *COOD);
 
@@ -181,7 +186,7 @@ void set_x_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *x, REAL u0,
 ///
 ///\return void No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0, 
+void set_y_location(PARA_DATA *para, REAL **var, int *flag, REAL *y, REAL v0, 
                     int i, int j, int k,  
                     REAL *OL, int *OC, int *LOC , int *COOD);
 
@@ -206,6 +211,6 @@ void set_y_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *y, REAL v0,
 ///
 ///\return void No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void set_z_location(PARA_DATA *para, REAL **var, REAL *flag, REAL *z, REAL w0, 
+void set_z_location(PARA_DATA *para, REAL **var, int *flag, REAL *z, REAL w0, 
                     int i, int j, int k, 
                     REAL *OL, int *OC, int *LOC , int *COOD);

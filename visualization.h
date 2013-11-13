@@ -73,23 +73,25 @@ void ffd_display_func(PARA_DATA *para, REAL **var);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to all variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to bounary index
 ///
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void ffd_idle_func(PARA_DATA *para, REAL **var, int **BINDEX);
+void ffd_idle_func(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// FFD routines for GLUT keyboard callback routines 
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to all variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to bounary index
 ///\param key Character of the key
 ///
 ///\return No return needed
 ///////////////////////////////////////////////////////////////////////////////
-void ffd_key_func(PARA_DATA *para, REAL **var, int **BINDEX, 
+void ffd_key_func(PARA_DATA *para, REAL **var, int **flag, int **BINDEX, 
                   unsigned char key);
 
 ///////////////////////////////////////////////////////////////////////////////

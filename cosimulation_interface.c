@@ -190,10 +190,11 @@ int read_cosim_parameter(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
+int read_cosim_data(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i;
 
   ffd_log("-------------------------------------------------------------------",
@@ -220,7 +221,7 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   /****************************************************************************
   | Read and assign the thermal boundary conditions
   ****************************************************************************/
-  if(assign_thermal_bc(para,var,BINDEX)!=0) {
+  if(assign_thermal_bc(para, var, flag, BINDEX)!=0) {
      ffd_log("read_cosim_data(): Could not assign the Modelicathermal data to FFD",
             FFD_ERROR);
     return 1;
@@ -247,7 +248,7 @@ int read_cosim_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   | Read and assign the inlet conditions
   ****************************************************************************/
   if(para->cosim->para->nPorts>0) {
-    if(assign_port_bc(para,var,BINDEX)!=0) {
+    if(assign_port_bc(para,var,flag,BINDEX)!=0) {
       ffd_log(" read_cosim_data(): Could not assign the Modelica inlet BC to FFD",
       FFD_ERROR);
       return 1;
@@ -551,11 +552,12 @@ int compare_boundary_area(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to the FFD simulaiton variables
+///\param flag Pointer to the FFD flag
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
+int assign_thermal_bc(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k, it, id, modelicaId;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
@@ -610,7 +612,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
       id = BINDEX[4][it];
       modelicaId = para->bc->wallId[id];
 
-      if(var[FLAGP][IX(i,j,k)]==SOLID) 
+      if(flag[FLAGP][IX(i,j,k)]==SOLID) 
         switch(para->cosim->para->bouCon[modelicaId]) {
           case 1: 
             // Need to convert the T from K to degC
@@ -652,7 +654,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 /// boundry condition accordingly. The inlet or outlet boundary is decided 
 /// according to the flow rate para->cosim->modelica->mFloRarPor. The port is
 /// inlet if mFloRarPor>0 and outlet if mFloRarPor<0. We will need to reset the 
-/// var[FLAGP][IX(i,j,k)] to apply the change of boundary conditions.
+/// flag[FLAGP][IX(i,j,k)] to apply the change of boundary conditions.
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to the FFD simulaiton variables
@@ -660,7 +662,7 @@ int assign_thermal_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
+int assign_port_bc(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k, it, id;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -711,9 +713,9 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
     k = BINDEX[2][it];
     id = BINDEX[4][it];
 
-    if(var[FLAGP][IX(i,j,k)]==INLET || var[FLAGP][IX(i,j,k)]==OUTLET) {
+    if(flag[FLAGP][IX(i,j,k)]==INLET || flag[FLAGP][IX(i,j,k)]==OUTLET) {
       if(para->bc->velPort[id]>=0) {
-        var[FLAGP][IX(i,j,k)] = INLET;
+        flag[FLAGP][IX(i,j,k)] = INLET;
         var[TEMPBC][IX(i,j,k)] = para->bc->TPort[id];
         if(i==0)
           var[VXBC][IX(i,j,k)] = para->bc->velPort[id];
@@ -732,7 +734,7 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
       }
       // Set it to outlet if flow out of room
       else
-        var[FLAGP][IX(i,j,k)] = OUTLET;
+        flag[FLAGP][IX(i,j,k)] = OUTLET;
     }
   }
    
@@ -753,16 +755,18 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to the boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX) {
+int surface_integrate(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int imax = para->geom->imax, jmax = para->geom->jmax; 
   int kmax = para->geom->kmax;
   int i, j, k, it, bcid;
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL vel_tmp, A_tmp; 
+  int *flagp = flag[FLAGP];
 
   /****************************************************************************
   | Set the variable to 0
@@ -809,40 +813,45 @@ int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX) {
     | Here is to give the Modelica the missing data (For instance, if Modelica 
     | send FFD Temperature, FFD should then send Modelica Heat Flux).
     -------------------------------------------------------------------------*/
-    if(var[FLAGP][IX(i,j,k)]==SOLID) {
-      switch(BINDEX[3][it]) {
-        // FFD uses heat flux as BC to compute temperature
-        // Then send Modelica the tempearture
-        case 0: 
-          para->bc->temHeaAve[bcid] += var[TEMP][IX(i,j,k)] * A_tmp 
-                                     / para->bc->AWall[i];
-          break;
-        // FFD uses temperature as BC to compute heat flux
-        // Then send Modelica the heat flux
-        case 1: 
-          para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
-          //sprintf(msg, "Cell(%d,%d,%d):\tQFLUX=%f,\tA=%f", i,j,k,var[QFLUX][IX(i,j,k)], A_tmp);
-          //ffd_log(msg, FFD_NORMAL);
-          break;
-        default:
-          sprintf(msg, "average_bc_area(): Thermal boundary (%d)"
-                 "for cell (%d,%d,%d) was not defined",
-                 BINDEX[3][it], i, j, k);
-          ffd_log(msg, FFD_ERROR);
-          return 1;
-      }
-    }
-    else if(var[FLAGP][IX(i,j,k)]==INLET||var[FLAGP][IX(i,j,k)]==OUTLET) {
-      para->bc->TPortAve[bcid] += var[TEMP][IX(i,j,k)] * A_tmp * vel_tmp;
-      para->bc->velPortAve[bcid] += vel_tmp * A_tmp;
-      // To be implemented
-      /*
-      for(j=0; j<para->bc->nb_Xi; j++)
-        para->bc->XiPortAve[bcid][j] += xi[j][IX(i,j,k)] * A_tmp * vel_tmp;
-      for(j=0, j<para->bc->nb_C; j++)
-        para->bc->CPortAve[bcid][j] = c[j][IX(i,j,k)] * A_tmp * vel_tmp;
-        */
-    }
+    switch (flagp[IX(i,j,k)]) {
+      case SOLID:
+        switch(BINDEX[3][it]) {
+          // FFD uses heat flux as BC to compute temperature
+          // Then send Modelica the tempearture
+          case 0: 
+            para->bc->temHeaAve[bcid] += var[TEMP][IX(i,j,k)] * A_tmp 
+                                       / para->bc->AWall[i];
+            break;
+          // FFD uses temperature as BC to compute heat flux
+          // Then send Modelica the heat flux
+          case 1: 
+            para->bc->temHeaAve[bcid] += var[QFLUX][IX(i,j,k)]*A_tmp;
+            //sprintf(msg, "Cell(%d,%d,%d):\tQFLUX=%f,\tA=%f", i,j,k,var[QFLUX][IX(i,j,k)], A_tmp);
+            //ffd_log(msg, FFD_NORMAL);
+            break;
+          default:
+            sprintf(msg, "average_bc_area(): Thermal boundary (%d)"
+                   "for cell (%d,%d,%d) was not defined",
+                   BINDEX[3][it], i, j, k);
+            ffd_log(msg, FFD_ERROR);
+            return 1;
+        }
+        break;
+      case INLET:
+      case OUTLET:
+        para->bc->TPortAve[bcid] += var[TEMP][IX(i,j,k)] * A_tmp * vel_tmp;
+        para->bc->velPortAve[bcid] += vel_tmp * A_tmp;
+        // To be implemented
+        /*
+        for(j=0; j<para->bc->nb_Xi; j++)
+          para->bc->XiPortAve[bcid][j] += xi[j][IX(i,j,k)] * A_tmp * vel_tmp;
+        for(j=0, j<para->bc->nb_C; j++)
+          para->bc->CPortAve[bcid][j] = c[j][IX(i,j,k)] * A_tmp * vel_tmp;
+          */
+        break;
+      default:
+        break;
+    } // End of Switch case
   } // End of for(it=0; it<para->geom->index; it++)
 
 //  for(i=0; i<para->bc->nb_wall; i++) {

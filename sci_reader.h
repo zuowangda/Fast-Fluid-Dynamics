@@ -59,7 +59,7 @@ int read_sci_max(PARA_DATA *para, REAL **var);
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX);
+int read_sci_input(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Read the zoneone.dat file to indentify the block cells
@@ -70,7 +70,7 @@ int read_sci_input(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX);
+int read_sci_zeroone(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Identify the properties of cells
@@ -80,6 +80,6 @@ int read_sci_zeroone(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-void mark_cell(PARA_DATA *para, REAL **var);
+void mark_cell(PARA_DATA *para, REAL **var, int **flag);
 
 

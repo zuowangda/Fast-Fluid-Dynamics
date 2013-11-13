@@ -114,14 +114,15 @@ void set_default_parameter(PARA_DATA *para) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
+int set_initial_data(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i; 
   int size = (para->geom->imax+2)*(para->geom->jmax+2)*(para->geom->kmax+2);
-  int flag = 0;
+  int flag1 = 0;
   
   para->mytime->t = 0.0;
   para->mytime->step_current = 0;
@@ -160,10 +161,10 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
     var[TMP2][i]   = 0.0;
     var[TMP3][i]   = 0.0;
     var[PP][i]     = 0.0;
-    var[FLAGP][i]  = -1.0;
-    var[FLAGU][i]  = -1.0;
-    var[FLAGV][i]  = -1.0;
-    var[FLAGW][i]  = -1.0;
+    flag[FLAGP][i]  = FLUID;
+    flag[FLAGU][i]  = FLUID;
+    flag[FLAGV][i]  = FLUID;
+    flag[FLAGW][i]  = FLUID;
     var[VXBC][i]   = 0.0;
     var[VYBC][i]   = 0.0;
     var[VZBC][i]   = 0.0;
@@ -176,19 +177,21 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   | Read the configurations defined by SCI 
   ****************************************************************************/
   if(para->inpu->parameter_file_format == SCI) {
-    flag = read_sci_input(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = read_sci_input(para, var, flag, BINDEX);
+    
+    if(flag1 != 0) {
       sprintf(msg, "set_inital_data(): Could not read file %s", 
               para->inpu->parameter_file_name);
       ffd_log(msg, FFD_ERROR);
-      return flag; 
+      return flag1; 
     }
-    flag = read_sci_zeroone(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = read_sci_zeroone(para, var, flag, BINDEX);
+    
+    if(flag1 != 0) {
       ffd_log("set_inital_data(): Could not read zeroone file", FFD_ERROR);
-      return flag; 
+      return flag1; 
     }
-    mark_cell(para, var);
+    mark_cell(para, var, flag);
   }
 
   /****************************************************************************
@@ -199,7 +202,7 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
     if(para->sens->senVal==NULL) {
       ffd_log("set_initial_data(): Could not allocate memory for "
         "para->sens->senVal", FFD_ERROR);
-      return -1;
+      return 1;
     }
     para->sens->senValMean = (REAL *) malloc(para->sens->nb_sensor*sizeof(REAL));
     if(para->sens->senValMean==NULL) {
@@ -266,11 +269,11 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
   /****************************************************************************
   | Set all the averaged data to 0
   ****************************************************************************/
-  flag = reset_time_averaged_data(para, var);
-  if(flag != 0) {
+  flag1 = reset_time_averaged_data(para, var);
+  if(flag1 != 0) {
     ffd_log("FFD_solver(): Could not reset averaged data.",
       FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
   /****************************************************************************
@@ -280,17 +283,17 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
     /*------------------------------------------------------------------------
     | Calculate the area of boundary
     ------------------------------------------------------------------------*/
-    flag = bounary_area(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = bounary_area(para, var, flag, BINDEX);
+    if(flag1 != 0) {
       ffd_log("set_initial_data(): Could not get the boundary area.",
               FFD_ERROR);
-      return flag;
+      return flag1;
     }
     /*------------------------------------------------------------------------
     | Read the cosimulation parameter data (Only need once)
     ------------------------------------------------------------------------*/
-    flag = read_cosim_parameter(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = read_cosim_parameter(para, var, BINDEX);
+    if(flag1 != 0) {
       ffd_log("set_initial_data(): Could not read cosimulaiton parameters.",
               FFD_ERROR);
       return 1;
@@ -298,23 +301,23 @@ int set_initial_data(PARA_DATA *para, REAL **var, int **BINDEX) {
     /*------------------------------------------------------------------------
     | Read the cosimulation data
     ------------------------------------------------------------------------*/
-    flag = read_cosim_data(para, var, BINDEX);
-    if(flag != 0) {
+    flag1 = read_cosim_data(para, var, flag, BINDEX);
+    if(flag1 != 0) {
       ffd_log("set_initial_data(): Could not read initial data for "
                "cosimulaiton.", FFD_ERROR);
-      return flag;
+      return flag1;
     }
     /*------------------------------------------------------------------------
     | Write the cosimulation data
     ------------------------------------------------------------------------*/
-    flag = write_cosim_data(para, var);
-    if(flag != 0) {
+    flag1 = write_cosim_data(para, var);
+    if(flag1 != 0) {
       ffd_log("set_initial_data(): Could not write initial data for "
-              "cosimulaiton.", FFD_ERROR);
-      return flag;
+              "cosimulation.", FFD_ERROR);
+      return flag1;
     }
   }
 
-  return flag;
+  return flag1;
 } // set_initial_data()
 

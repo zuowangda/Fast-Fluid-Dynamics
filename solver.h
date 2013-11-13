@@ -83,44 +83,48 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flag
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int FFD_solver(PARA_DATA *para, REAL **var, int **BINDEX);
+int FFD_solver(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the temperature
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int temp_step(PARA_DATA *para, REAL **var, int **BINDEX);
+int temp_step(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the contaminant concentration
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-int den_step(PARA_DATA *para, REAL **var, int **BINDEX);
+int den_step(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate the velocity
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 /////////////////////////////////////////////////////////////////////////////// 
-int vel_step(PARA_DATA *para, REAL **var,int **BINDEX);
+int vel_step(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Solver for equations

@@ -52,6 +52,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable
 ///\param index Index of trace substances or species
 ///\param psi Pointer to the variable needing the boundary conditions
@@ -59,35 +60,37 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd(PARA_DATA *para, REAL **var, int var_type, int index, REAL *psi, 
-            int **BINDEX) ;
+int set_bnd(PARA_DATA *para, REAL **var, int **flag, int var_type, int index, 
+            REAL *psi, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Set boundary conditions for velocity
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *vx, 
-                int **BINDEX);
+int set_bnd_vel(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+                REAL *psi, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Set the boundary condition for temperature
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
+int set_bnd_temp(PARA_DATA *para, REAL **var, int **flag, int var_type, REAL *psi,
                  int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,7 +104,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
+int set_bnd_trace(PARA_DATA *para, REAL **var, int **flag, int trace_index, REAL *psi,
                  int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,12 +112,14 @@ int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param p Pointer to pressure variable
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p,int **BINDEX);
+int set_bnd_pressure(PARA_DATA *para, REAL **var, int **flag, REAL *p, 
+                     int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Enforce the mass conservation by adjusting the outlet flow rate
@@ -126,11 +131,12 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p,int **BINDEX);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX);
+int mass_conservation(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Get the mass flow difference divided by outflow area 
@@ -142,11 +148,12 @@ int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX);
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return Mass flow difference divided by the outflow area
 ///////////////////////////////////////////////////////////////////////////////
-REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX);
+REAL adjust_velocity(PARA_DATA *para, REAL **var, int **flag, int **BINDEX);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Calculate convective hrat transfer coefficient

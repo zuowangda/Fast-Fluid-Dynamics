@@ -24,11 +24,12 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param name Pointer to file name
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
+int write_tecplot_data(PARA_DATA *para, REAL **var, int **flag, char *name) {
   int i, j, k;
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -37,7 +38,7 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   REAL *u = var[VX], *v = var[VY], *w = var[VZ], *p = var[IP];
   REAL *d = var[TRACE];
   REAL *T = var[TEMP];
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
   char *filename;
   FILE *datafile;
 
@@ -78,7 +79,7 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
   FOR_ALL_CELL
     fprintf(datafile, "%f\t%f\t%f\t%d\t%d\t%d\t",
        x[IX(i,j,k)], y[IX(i,j,k)], z[IX(i,j,k)], i, j, k);    
-    fprintf(datafile, "%f\t%f\t%f\t%f\t%f\t%f\n",
+    fprintf(datafile, "%f\t%f\t%f\t%f\t%d\t%f\n",
             u[IX(i,j,k)], v[IX(i,j,k)], w[IX(i,j,k)], T[IX(i,j,k)],
             flagp[IX(i,j,k)], p[IX(i,j,k)]);    
   END_FOR
@@ -96,11 +97,12 @@ int write_tecplot_data(PARA_DATA *para, REAL **var, char *name) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param name Pointer to file name
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
+int write_tecplot_all_data(PARA_DATA *para, REAL **var, int **flag, char *name) {
   int i, j, k;
   int imax=para->geom->imax, jmax=para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -172,10 +174,10 @@ int write_tecplot_all_data(PARA_DATA *para, REAL **var, char *name) {
     // Gravity
     fprintf(dataFile, "%f\t%f\t%f\t",
             var[GX][IX(i,j,k)], var[GY][IX(i,j,k)], var[GZ][IX(i,j,k)]);
-    // Flags for simulaiton
-    fprintf(dataFile, "%f\t%f\t%f\t%f\t",
-            var[FLAGU][IX(i,j,k)], var[FLAGV][IX(i,j,k)], 
-            var[FLAGW][IX(i,j,k)], var[FLAGP][IX(i,j,k)]);
+    // Flags for simulation
+    fprintf(dataFile, "%d\t%d\t%d\t%d\t",
+            flag[FLAGU][IX(i,j,k)], flag[FLAGV][IX(i,j,k)], 
+            flag[FLAGW][IX(i,j,k)], flag[FLAGP][IX(i,j,k)]);
     // Boundary conditions
     fprintf(dataFile, "%f\t%f\t%f\t%f\t",
             var[VXBC][IX(i,j,k)], var[VYBC][IX(i,j,k)], 

@@ -25,6 +25,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type Type of variable
 ///\param index Index of trace substance or species
 ///\param psi Pointer to the variable at current time step
@@ -33,25 +34,25 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
-               REAL *psi, REAL *psi0, int **BINDEX) {
-  int flag = 0;
+int diffusion(PARA_DATA *para, REAL **var, int **flag, int var_type, int index,
+              REAL *psi, REAL *psi0, int **BINDEX) {
+  int flag1 = 0;
 
   /****************************************************************************
   | Define the coeffcients for diffusion euqation
   ****************************************************************************/
-  flag = coef_diff(para, var, psi, psi0, var_type, index, BINDEX);
-  if(flag!=0) {
+  flag1 = coef_diff(para, var, flag, psi, psi0, var_type, index, BINDEX);
+  if(flag1!=0) {
     ffd_log("diffsuion(): Could not calculate coefficents for "
             "diffusion equation.", FFD_ERROR);
-    return flag;
+    return flag1;
   }
 
   // Solve the equations
   equ_solver(para, var, var_type, psi);
 
   // Define B.C.
-  set_bnd(para, var, var_type, index, psi, BINDEX);
+  set_bnd(para, var, flag, var_type, index, psi, BINDEX);
 
   // Check residual
   if(para->solv->check_residual==1) {
@@ -85,11 +86,11 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
         sprintf(msg, "diffusion(): No sovler for varibale type %d", 
                 var_type);
         ffd_log(msg, FFD_ERROR);
-        flag = 1;
+        flag1 = 1;
     }
   }
        
-  return flag;
+  return flag1;
 } // End of diffusion( )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,7 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param psi Pointer to the variable at current time step
 ///\param psi0 Pointer to the variable at previous time step
 ///\param var_type Type of variable
@@ -105,7 +107,7 @@ int diffusion(PARA_DATA *para, REAL **var, int var_type, int index,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0, 
+int coef_diff(PARA_DATA *para, REAL **var, int **flag, REAL *psi, REAL *psi0, 
                int var_type, int index, int **BINDEX) {
   int i, j, k;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -115,7 +117,7 @@ int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
   REAL *af = var[AF], *ab = var[AB], *ap = var[AP], *ap0 = var[AP0], *b = var[B];
   REAL *x = var[X], *y = var[Y], *z = var[Z];
   REAL *gx = var[GX], *gy = var[GY], *gz = var[GZ];
-  REAL *pp = var[PP];
+  REAL *pp = var[PP]; // Fixme: Definition of PP Unknown
   REAL *Temp = var[TEMP];
   REAL dxe, dxw, dyn, dys, dzf, dzb, Dx, Dy, Dz;
   REAL dt = para->mytime->dt, beta = para->prob->beta;
@@ -158,7 +160,7 @@ int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
         ap0[IX(i,j,k)] = Dx*Dy*Dz/dt;
         b[IX(i,j,k)] = psi0[IX(i,j,k)]*ap0[IX(i,j,k)]
                      - beta*gravx*(Temp[IX(i,j,k)]-Temp_Buoyancy)*Dx*Dy*Dz
-                     + (pp[IX(i,j,k)]-pp[IX(i+1,j,k)])*Dy*Dz;
+                     + (pp[IX(i,j,k)]-pp[IX(i+1,j,k)])*Dy*Dz;  // Fixme: Definition of PP Unknown
       END_FOR
 
       //set_bnd(para, var, var_type, psi, BINDEX);
@@ -284,7 +286,7 @@ int coef_diff(PARA_DATA *para, REAL **var, REAL *psi, REAL *psi0,
         b[IX(i,j,k)] = psi0[IX(i,j,k)]*ap0[IX(i,j,k)];
       END_FOR
 
-      set_bnd(para, var, var_type, index, psi, BINDEX);
+      set_bnd(para, var, flag, var_type, index, psi, BINDEX);
 
       FOR_EACH_CELL
         ap[IX(i,j,k)] = ap0[IX(i,j,k)] + ae[IX(i,j,k)] + aw[IX(i,j,k)] 

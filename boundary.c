@@ -30,6 +30,7 @@
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable
 ///\param index Index of trace substances or species
 ///\param psi Pointer to the variable needing the boundary conditions
@@ -37,49 +38,49 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd(PARA_DATA *para, REAL **var, int var_type, int index, REAL *psi, 
-            int **BINDEX) {
-  int flag;
+int set_bnd(PARA_DATA *para, REAL **var, int **flag, int var_type, int index, 
+            REAL *psi, int **BINDEX) {
+  int flag1;
   switch(var_type) {
     case VX:
-      flag = set_bnd_vel(para, var, VX, psi, BINDEX); 
-      if(flag!=0)
+      flag1 = set_bnd_vel(para, var, flag, VX, psi, BINDEX); 
+      if(flag1!=0)
         ffd_log("set_bnd(): Could not set boundary condition for X-velocity.",
                 FFD_ERROR);
       break;
     case VY:
-      flag = set_bnd_vel(para, var, VY, psi, BINDEX); 
-      if(flag!=0)
+      flag1 = set_bnd_vel(para, var, flag, VY, psi, BINDEX); 
+      if(flag1!=0)
         ffd_log("set_bnd(): Could not set boundary condition for Y-velocity.",
                 FFD_ERROR);
       break;
     case VZ:
-      flag = set_bnd_vel(para, var, VZ, psi, BINDEX); 
-      if(flag!=0)
+      flag1 = set_bnd_vel(para, var, flag, VZ, psi, BINDEX); 
+      if(flag1!=0)
         ffd_log("set_bnd(): Could not set boundary condition for Z-velocity.",
                 FFD_ERROR);
       break;
     case TEMP:
-      flag = set_bnd_temp(para, var, TEMP, psi, BINDEX); 
-      if(flag!=0)
+      flag1 = set_bnd_temp(para, var, flag, TEMP, psi, BINDEX); 
+      if(flag1!=0)
         ffd_log("set_bnd(): Could not set boundary condition for temperature.",
                 FFD_ERROR);
       break;
     case TRACE:
-      flag = set_bnd_trace(para, var, index, psi, BINDEX); 
-      if(flag!=0)
+      flag1 = set_bnd_trace(para, var, flag, index, psi, BINDEX); 
+      if(flag1!=0)
         ffd_log("set_bnd(): Could not set boundary condition for trace.",
                 FFD_ERROR);
       break;
     default:
-      flag = 1;
+      flag1 = 1;
       sprintf(msg, 
               "set_bnd(): boundary condition for variable type %d is not defined.",
               var_type);
       ffd_log(msg, FFD_ERROR);
   }
 
-  return flag;
+  return flag1;
 } // End of set_bnd() 
 
 
@@ -88,14 +89,15 @@ int set_bnd(PARA_DATA *para, REAL **var, int var_type, int index, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi, 
-                int **BINDEX) {
+int set_bnd_vel(PARA_DATA *para, REAL **var, int **flag, int var_type, 
+                REAL *psi, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -104,7 +106,7 @@ int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB];
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   switch(var_type) {
     /* --------------------------------------------------------------------------
@@ -115,118 +117,121 @@ int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
         i = BINDEX[0][it];
         j = BINDEX[1][it];
         k = BINDEX[2][it];
-        // Inlet
-        if(flagp[IX(i,j,k)]==0) {
-          psi[IX(i,j,k)] = var[VXBC][IX(i,j,k)];
-          if(i!=0) psi[IX(i-1,j,k)] = var[VXBC][IX(i,j,k)];
-        }
-        // Solid wall
-        if(flagp[IX(i,j,k)]==1) {
-          psi[IX(i,j,k)] = 0;
-          if(i!=0) psi[IX(i-1,j,k)] = 0;
-        }
-        // Outlet
-        if(flagp[IX(i,j,k)]==2) {
-          // West
-          if(i==0) {
-            psi[IX(i,j,k)] = psi[IX(i+1,j,k)]; 
-            aw[IX(i+1,j,k)] = 0;
-          }
-          // East
-          if(i==imax+1) {
-            psi[IX(i-1,j,k)] = psi[IX(i-2,j,k)]; 
-            ae[IX(i-2,j,k)] = 0;
-          }
-          // South
-          if(j==0) as[IX(i,j+1,k)] = 0;
-          // North
-          if(j==jmax+1) an[IX(i,j-1,k)] = 0;
-          // Floor
-          if(k==0) ab[IX(i,j,k+1)] = 0;
-          // Ceiling
-          if(k==kmax+1) af[IX(i,j,k-1)] = 0;
-        }
-      } // End of setting VX
-      break;
+
+        switch(flagp[IX(i,j,k)]) {
+          case INLET:
+            psi[IX(i,j,k)] = var[VXBC][IX(i,j,k)];
+            if(i!=0) psi[IX(i-1,j,k)] = var[VXBC][IX(i,j,k)];
+            break;
+          case SOLID: 
+            psi[IX(i,j,k)] = 0;
+            if(i!=0) psi[IX(i-1,j,k)] = 0;
+            break;
+          case OUTLET:
+            // West and East
+            if(i==0) {
+              psi[IX(i,j,k)] = psi[IX(i+1,j,k)]; 
+              aw[IX(i+1,j,k)] = 0;
+            }
+            else if(i==imax+1) { 
+              psi[IX(i-1,j,k)] = psi[IX(i-2,j,k)]; 
+              ae[IX(i-2,j,k)] = 0;
+            }
+            // South and North
+            if(j==0) as[IX(i,j+1,k)] = 0;
+            else if(j==jmax+1) an[IX(i,j-1,k)] = 0;
+            // Floor and Ceiling
+            if(k==0) ab[IX(i,j,k+1)] = 0;
+            else if(k==kmax+1) af[IX(i,j,k-1)] = 0;
+            break;
+          default:
+            ffd_log("set_bnd_vel(): Wrong property for VX", FFD_ERROR);
+            return 1;
+          } // End of cell IX(i,j,k)
+      } 
+      break;// End of setting VX
     /* --------------------------------------------------------------------------
     | VY
     -------------------------------------------------------------------------- */
     case VY:
-      for(it=0;it<index;it++) {
+      for(it=0; it<index; it++) {
         i = BINDEX[0][it];
         j = BINDEX[1][it];
         k = BINDEX[2][it];
-        // Inlet
-        if(flagp[IX(i,j,k)]==0) {
-          psi[IX(i,j,k)] = var[VYBC][IX(i,j,k)];
-          if(j!=0) psi[IX(i,j-1,k)] = var[VYBC][IX(i,j,k)];
-        }
-        // Solid wall
-        if(flagp[IX(i,j,k)]==1) {
-          psi[IX(i,j,k)] = 0;
-          if(j!=0) psi[IX(i,j-1,k)] = 0;
-        }
-        // Outlet
-        if(flagp[IX(i,j,k)]==2) {
-          // West
-          if(i==0) aw[IX(i+1,j,k)]=0;
-          // East
-          if(i==imax+1) ae[IX(i-1,j,k)]=0;
-          // South
-          if(j==0) {
-            as[IX(i,j+1,k)] = 0; 
-            psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
-          }
-          // North
-          if(j==jmax+1) {
-            an[IX(i,j-2,k)] = 0;
-            psi[IX(i,j-1,k)] = psi[IX(i,j-2,k)];
-          }
-          // Floor
-          if(k==0) ab[IX(i,j,k+1)] = 0;
-          if(k==kmax+1) af[IX(i,j,k-1)] = 0;
-        }
-      } // End of setting VY
-      break;
+
+        switch(flagp[IX(i,j,k)]) {
+          case INLET: 
+            psi[IX(i,j,k)] = var[VYBC][IX(i,j,k)];
+            if(j!=0) psi[IX(i,j-1,k)] = var[VYBC][IX(i,j,k)];
+            break;
+          case SOLID:
+            psi[IX(i,j,k)] = 0;
+            if(j!=0) psi[IX(i,j-1,k)] = 0;
+            break;
+          case OUTLET: 
+            // West and East
+            if(i==0) aw[IX(i+1,j,k)]=0;
+            else if(i==imax+1) ae[IX(i-1,j,k)]=0;
+            // South and North
+            if(j==0) {
+              as[IX(i,j+1,k)] = 0; 
+              psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
+            }
+            else if(j==jmax+1) {
+              an[IX(i,j-2,k)] = 0;
+              psi[IX(i,j-1,k)] = psi[IX(i,j-2,k)];
+            }
+            // Floor and Ceiling
+            if(k==0) ab[IX(i,j,k+1)] = 0;
+            else if(k==kmax+1) af[IX(i,j,k-1)] = 0;
+            break;
+          default:
+            ffd_log("set_bnd_vel(): Wrong cell property for VY", FFD_ERROR);
+            return 1;
+        } // End of cell IX(i,j,k)
+      } 
+      break; // End of setting VY
     /* --------------------------------------------------------------------------
     | VZ
     -------------------------------------------------------------------------- */
     case VZ:
-      for(it=0;it<index;it++) {
+      for(it=0; it<index; it++) {
         i = BINDEX[0][it];
         j = BINDEX[1][it];
         k = BINDEX[2][it];
-        // Inlet
-        if(flagp[IX(i,j,k)]==INLET) {
-          psi[IX(i,j,k)] = var[VZBC][IX(i,j,k)];
-          if(k!=0) psi[IX(i,j,k-1)] = var[VZBC][IX(i,j,k)];
-        }
-        if(flagp[IX(i,j,k)]==SOLID) {
-          psi[IX(i,j,k)] = 0;
-          if(k!=0) psi[IX(i,j,k-1)] = 0;
-        }
-        if(flagp[IX(i,j,k)]==OUTLET) {
-          // West
-          if(i==0) aw[IX(i+1,j,k)] = 0;
-          // East
-          if(i==imax+1) ae[IX(i-1,j,k)] = 0;
-          //South
-          if(j==0) as[IX(i,j+1,k)] = 0;
-          // North
-          if(j==jmax+1) an[IX(i,j-1,k)] = 0;
-          // Floor
-          if(k==0) { 
-            ab[IX(i,j,k+1)] = 0;
-            psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
-          }
-          // Ceiling
-          if(k==kmax+1) { 
-            af[IX(i,j,k-2)] = 0;
-            psi[IX(i,j,k-1)] = psi[IX(i,j,k-2)];
-          }
-        }
-      } // End of setting VZ
-      break;
+
+        switch(flagp[IX(i,j,k)]) {
+          case INLET:
+            psi[IX(i,j,k)] = var[VZBC][IX(i,j,k)];
+            if(k!=0) psi[IX(i,j,k-1)] = var[VZBC][IX(i,j,k)];
+            break;
+          case SOLID:
+            psi[IX(i,j,k)] = 0;
+            if(k!=0) psi[IX(i,j,k-1)] = 0;
+            break;
+          case OUTLET:
+            // West and East
+            if(i==0) aw[IX(i+1,j,k)] = 0;
+            else if(i==imax+1) ae[IX(i-1,j,k)] = 0;
+            //South and North
+            if(j==0) as[IX(i,j+1,k)] = 0;
+            else if(j==jmax+1) an[IX(i,j-1,k)] = 0;
+            // Floor and Ceiling
+            if(k==0) { 
+              ab[IX(i,j,k+1)] = 0;
+              psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
+            }
+            else if(k==kmax+1) { 
+              af[IX(i,j,k-2)] = 0;
+              psi[IX(i,j,k-1)] = psi[IX(i,j,k-2)];
+            }
+            break;
+          default:
+            ffd_log("set_bnd_vel(): Wrong property for VZ", FFD_ERROR);
+            return 1;
+          } // End of cell IX(i,j,k)
+      } 
+      break; // End of setting VZ
    } // End of switch case
 
    return 0;
@@ -238,13 +243,14 @@ int set_bnd_vel(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param var_type The type of variable
 ///\param psi Pointer to the variable needing the boundary conditions
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
+int set_bnd_temp(PARA_DATA *para, REAL **var, int **flag, int var_type, REAL *psi,
                  int **BINDEX) {
   int i, j, k;
   int it;
@@ -259,7 +265,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
   REAL h;
   REAL rhoCp_1 = 1/ (para->prob->rho * para->prob->Cp);
   REAL D;
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   /****************************************************************************
   | Go through all the boundary cells
@@ -282,7 +288,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     /*-------------------------------------------------------------------------
     | Solid wall or block
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==SOLID) {
+    else if(flagp[IX(i,j,k)]==SOLID) {
       /*......................................................................
       | Constant temperature
       ......................................................................*/
@@ -298,7 +304,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
             qflux[IX(i,j,k)] = h * (psi[IX(i+1,j,k)]-psi[IX(i,j,k)]);
           }
         } // End of if(i==0)
-        // East boundary wall and western neigbor cell is fluid
+        // East boundary wall and western neighbor cell is fluid
         else if(i==imax+1) {
           if(flagp[IX(i-1,j,k)]==FLUID) {
             D = 0.5 * length_x(para,var,i-1,j,k);
@@ -534,34 +540,31 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
     /*-------------------------------------------------------------------------
     | Outlet boundary
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==OUTLET) {
-      // West
+    else if(flagp[IX(i,j,k)]==OUTLET) {
+      // West and East
       if(i==0) {
         aw[IX(i+1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
       }
-      // North
-      if(i==imax+1) {
+      else if(i==imax+1) {
         ae[IX(i-1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
       }
-      // South
+      // South and North
       if(j==0) {
         as[IX(i,j+1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
       }
-      // North
-      if(j==jmax+1) {
+      else if(j==jmax+1) {
         an[IX(i,j-1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
       }
-      // Floor
+      // Floor and Ceiling
       if(k==0) {
         ab[IX(i,j,k+1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
       }
-      // Ceiling
-      if(k==kmax+1) {
+      else if(k==kmax+1) {
         af[IX(i,j,k-1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
       }
@@ -582,7 +585,7 @@ int set_bnd_temp(PARA_DATA *para, REAL **var, int var_type, REAL *psi,
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
+int set_bnd_trace(PARA_DATA *para, REAL **var, int **flag, int trace_index, REAL *psi,
                  int **BINDEX) {
   int i, j, k, it, id;
   int index=para->geom->index;
@@ -591,7 +594,7 @@ int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB], *b=var[B];
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   /****************************************************************************
   | Go through all the boundary cells
@@ -650,34 +653,31 @@ int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
     /*-------------------------------------------------------------------------
     | Outlet boundary
     -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==OUTLET) {
-      // West
+    else if(flagp[IX(i,j,k)]==OUTLET) {
+      // West and East
       if(i==0) {
         aw[IX(i+1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i+1,j,k)];
       }
-      // North
-      if(i==imax+1) {
+      else if(i==imax+1) {
         ae[IX(i-1,j,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i-1,j,k)];
       }
-      // South
+      // South and North
       if(j==0) {
         as[IX(i,j+1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j+1,k)];
       }
-      // North
-      if(j==jmax+1) {
+      else if(j==jmax+1) {
         an[IX(i,j-1,k)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j-1,k)];
       }
-      // Floor
+      // Floor and Ceiling
       if(k==0) {
         ab[IX(i,j,k+1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k+1)];
       }
-      // Ceiling
-      if(k==kmax+1) {
+      else if(k==kmax+1) {
         af[IX(i,j,k-1)] = 0;
         psi[IX(i,j,k)] = psi[IX(i,j,k-1)];
       }
@@ -692,12 +692,14 @@ int set_bnd_trace(PARA_DATA *para, REAL **var, int trace_index, REAL *psi,
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param p Pointer to pressure variable
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
+int set_bnd_pressure(PARA_DATA *para, REAL **var, int **flag, REAL *p, 
+                     int **BINDEX) {
   int i, j, k, it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
   int kmax = para->geom->kmax;
@@ -706,7 +708,7 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
   REAL *aw = var[AW], *ae = var[AE], *as = var[AS], *an = var[AN];
   REAL *af = var[AF], *ab = var[AB];
 
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
 
   for(it=0;it<index;it++) {
     i = BINDEX[0][it];
@@ -717,13 +719,13 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
     | For X direction
     -------------------------------------------------------------------------*/
     if(i>0) { 
-      if(flagp[IX(i-1,j,k)]<0) { 
+      if(flagp[IX(i-1,j,k)]==FLUID) { // Note: Must ensure i>0 for i-1
         p[IX(i,j,k)] = p[IX(i-1,j,k)];
         ae[IX(i-1,j,k)] = 0;
       } 
     }
     if(i<imax+1) { 
-      if(flagp[IX(i+1,j,k )]<0) { 
+      if(flagp[IX(i+1,j,k )]==FLUID) { 
         p[IX(i,j,k)] = p[IX(i+1,j,k)];
         aw[IX(i+1,j,k)] = 0;
       }
@@ -732,13 +734,13 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
     | For Y direction
     -------------------------------------------------------------------------*/
     if(j>0) { 
-      if(flagp[IX(i,j-1,k)]<0) { 
+      if(flagp[IX(i,j-1,k)]==FLUID) { 
         p[IX(i,j,k)] = p[IX(i,j-1,k )];  
         an[IX(i,j-1,k)] = 0;
       }
     } 
     if(j<jmax+1) { 
-      if(flagp[IX(i,j+1,k)]<0) { 
+      if(flagp[IX(i,j+1,k)]==FLUID) { 
         p[IX(i,j,k )] = p[IX(i,j+1,k )];
         as[IX(i,j+1,k)] = 0;
       }
@@ -747,13 +749,13 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
     | For Z direction
     -------------------------------------------------------------------------*/
     if(k>0) {
-      if(flagp[IX(i,j,k-1)]<0) { 
+      if(flagp[IX(i,j,k-1)]==FLUID) { 
         p[IX(i,j,k)] = p[IX(i,j,k-1)];
         af[IX(i,j,k-1)] = 0; 
       }
     }
     if(k<kmax+1) { 
-      if(flagp[IX(i,j,k+1 )]<0) {
+      if(flagp[IX(i,j,k+1 )]==FLUID) {
         p[IX(i,j,k)] = p[IX(i,j,k+1)];   
         ab[IX(i,j,k+1)] = 0; 
       } 
@@ -773,11 +775,12 @@ int set_bnd_pressure(PARA_DATA *para, REAL **var, REAL *p, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX) {
+int mass_conservation(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -786,9 +789,9 @@ int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX) {
   int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL dvel;
-  REAL *flagp = var[FLAGP]; 
+  int *flagp = flag[FLAGP]; 
   
-  dvel = adjust_velocity(para, var, BINDEX); //(mass_in-mass_out)/area_out
+  dvel = adjust_velocity(para, var, flag, BINDEX); //(mass_in-mass_out)/area_out
 
   /*---------------------------------------------------------------------------
   | Adjust the outflow
@@ -821,11 +824,12 @@ int mass_conservation(PARA_DATA *para, REAL **var, int **BINDEX) {
 ///
 ///\param para Pointer to FFD parameters
 ///\param var Pointer to FFD simulation variables
+///\param flag Pointer to FFD flags
 ///\param BINDEX Pointer to boundary index
 ///
 ///\return Mass flow difference divided by the outflow area
 ///////////////////////////////////////////////////////////////////////////////
-REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
+REAL adjust_velocity(PARA_DATA *para, REAL **var, int **flag, int **BINDEX) {
   int i, j, k;
   int it;
   int imax = para->geom->imax, jmax = para->geom->jmax;
@@ -835,10 +839,10 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
   REAL *u = var[VX], *v = var[VY], *w = var[VZ];
   REAL mass_in = (REAL) 0.0, mass_out = (REAL) 0.00000001;
   REAL area_out=0;
-  REAL *flagp = var[FLAGP];
+  int *flagp = flag[FLAGP];
   REAL axy, ayz, azx;
 
-  // Go through all the inelt and outlets
+  // Go through all the inlet and outlets
   for(it=0; it<index; it++) {
     i = BINDEX[0][it];
     j = BINDEX[1][it];
@@ -847,58 +851,63 @@ REAL adjust_velocity(PARA_DATA *para, REAL **var, int **BINDEX) {
     axy = area_xy(para, var, i, j, k);
     ayz = area_yz(para, var, i, j, k);
     azx = area_zx(para, var, i, j, k);
-    /*-------------------------------------------------------------------------
-    | Compute the total inflow
-    -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==0) {
-      // West
-      if(i==0) mass_in += u[IX(i,j,k)] * ayz;
-      // East
-      if(i==imax+1) mass_in += (-u[IX(i,j,k)]) * ayz;
-      // South
-      if(j==0) mass_in += v[IX(i,j,k)] * azx;
-      // North
-      if(j==jmax+1) mass_in += (-v[IX(i,j,k)]) * azx;
-      // Floor
-      if(k==0) mass_in += w[IX(i,j,k)] * axy;
-      // Ceiling
-      if(k==kmax+1) mass_in += (-w[IX(i,j,k)]) * axy;
-    }
-    /*-------------------------------------------------------------------------
-    | Compute the total outflow
-    -------------------------------------------------------------------------*/
-    if(flagp[IX(i,j,k)]==2) {
-      // West
-      if(i==0) {
-        mass_out += (-u[IX(i,j,k)]) * ayz; 
-        area_out +=  ayz;
-      }
-      // East
-      if(i==imax+1) {
-        mass_out += u[IX(i-1,j,k)] * ayz;
-        area_out += ayz;
-      }
-      // South
-      if(j==0) {
-        mass_out += (-v[IX(i,j,k)]) * azx;
-        area_out += azx;
-      }
-      // North
-      if(j==jmax+1) {
-        mass_out += v[IX(i,j-1,k)] * azx;
-        area_out += azx;
-      }
-      // Floor
-      if(k==0) {
-        mass_out += (-w[IX(i,j,k)]) * axy;
-        area_out += axy;
-      }
-      // Ceiling
-      if(k==kmax+1) {
-        mass_out += w[IX(i,j,k-1)] * axy;
-        area_out += axy;
-      }
-    } // End of computing outflow
+
+    switch(flagp[IX(i,j,k)]) {
+      /*-----------------------------------------------------------------------
+      | Compute the total inflow
+      -----------------------------------------------------------------------*/
+      case INLET:
+        // West and East
+        if(i==0)
+          mass_in += u[IX(i,j,k)] * ayz;
+        else if(i==imax+1)
+          mass_in += (-u[IX(i,j,k)]) * ayz;
+        // South and North
+        if(j==0)
+          mass_in += v[IX(i,j,k)] * azx;
+        else if(j==jmax+1)
+          mass_in += (-v[IX(i,j,k)]) * azx;
+        // Floor and Ceiling
+        if(k==0)
+          mass_in += w[IX(i,j,k)] * axy; 
+        else if(k==kmax+1)
+          mass_in += (-w[IX(i,j,k)]) * axy;
+        break;
+      /*-----------------------------------------------------------------------
+      | Compute the total outflow
+      -----------------------------------------------------------------------*/
+      case OUTLET:
+        // West and East
+        if(i==0) {
+          mass_out += (-u[IX(i,j,k)]) * ayz; 
+          area_out +=  ayz;
+        }
+        else if(i==imax+1) {
+          mass_out += u[IX(i-1,j,k)] * ayz;
+          area_out += ayz;
+        }
+        // South and North
+        if(j==0) {
+          mass_out += (-v[IX(i,j,k)]) * azx;
+          area_out += azx;
+        }
+        else if(j==jmax+1) {
+          mass_out += v[IX(i,j-1,k)] * azx;
+          area_out += azx;
+        }
+        // Floor and Ceiling
+        if(k==0) {
+          mass_out += (-w[IX(i,j,k)]) * axy;
+          area_out += axy;
+        }
+        else if(k==kmax+1) {
+          mass_out += w[IX(i,j,k-1)] * axy;
+          area_out += axy;
+        }
+        break;
+      default:
+        break;
+    } // End of cell IX[(i,j,k)]
   } // End of for loop for going through all the inlets and outlets
   
   /*---------------------------------------------------------------------------
