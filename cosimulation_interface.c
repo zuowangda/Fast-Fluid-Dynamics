@@ -373,10 +373,12 @@ int write_cosim_data(PARA_DATA *para, REAL **var) {
   /****************************************************************************
   | Set data for sensors
   ****************************************************************************/
-  para->sens->senVal[0] = para->cosim->ffd->TRoo;
-  para->sens->senVal[1] = 0.1;
-
-  ffd_log("\tSensor Information:", FFD_NORMAL); 
+  if (set_sensor_data(para, var)!=0) {
+    ffd_log("\tCould not get sensor data", FFD_ERROR);
+    return 1;
+  }
+  else
+    ffd_log("\tSensor Information:", FFD_NORMAL); 
 
   for(i=0; i<para->cosim->para->nSen; i++) {
     para->cosim->ffd->senVal[i] = para->sens->senVal[i];
@@ -852,3 +854,28 @@ int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX) {
   
   return 0;
 } // End of surface_integrate()
+
+///////////////////////////////////////////////////////////////////////////////
+/// Set sensor data
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD data
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_sensor_data(PARA_DATA *para, REAL **var) {
+  int imax = para->geom->imax, jmax = para->geom->jmax,
+      kmax = para->geom->kmax;
+  int IMAX = imax+2, IJMAX = (imax+2)*(jmax+2);
+  REAL u = var[VX][IX(imax/2,jmax/2,kmax/2)],
+       v = var[VY][IX(imax/2,jmax/2,kmax/2)],
+       w = var[VZ][IX(imax/2,jmax/2,kmax/2)];
+
+  // Averaged room temperature
+  para->sens->senVal[0] = para->cosim->ffd->TRoo;
+
+  //Velocity at the center of the space
+  para->sens->senVal[1] = sqrt(u*u + v*v + w*w);
+
+  return 0;
+} // End of set_sensor_data

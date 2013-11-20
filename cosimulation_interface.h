@@ -137,3 +137,13 @@ int assign_port_bc(PARA_DATA *para, REAL **var, int **BINDEX);
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
 int surface_integrate(PARA_DATA *para, REAL **var, int **BINDEX);
+
+///////////////////////////////////////////////////////////////////////////////
+/// Set sensor data
+///
+///\param para Pointer to FFD parameters
+///\param var Pointer to FFD data
+///
+///\return 0 if no error occurred
+///////////////////////////////////////////////////////////////////////////////
+int set_sensor_data(PARA_DATA *para, REAL **var);
