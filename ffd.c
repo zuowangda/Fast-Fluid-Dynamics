@@ -30,6 +30,7 @@ static OUTP_DATA outp1;
 static BC_DATA bc;
 static SOLV_DATA solv;
 static SENSOR_DATA sens;
+static INIT_DATA init;
 
 clock_t start, end;
 
@@ -311,7 +312,7 @@ int ffd(int cosimulation) {
   para.bc     = &bc;
   para.solv   = &solv;
   para.sens   = &sens;
-  
+  para.init   = &init;
   // Stand alone simulation: 0; Cosimulaiton: 1
   para.solv->cosimulation = cosimulation; 
 

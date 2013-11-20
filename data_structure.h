@@ -331,6 +331,13 @@ typedef struct {
 }SOLV_DATA;
 
 typedef struct {
+  REAL T; // Initial temperature
+  REAL u; // Initial velocity for u
+  REAL v; // Initial velocity for v
+  REAL w; // Initial velocity for w
+}INIT_DATA;
+
+typedef struct {
   GEOM_DATA  *geom;
   INPU_DATA  *inpu;
   OUTP_DATA  *outp;
@@ -340,6 +347,7 @@ typedef struct {
   SOLV_DATA  *solv;
   CosimulationData *cosim;
   SENSOR_DATA *sens;
+  INIT_DATA *init;
 }PARA_DATA;
 
 typedef struct {

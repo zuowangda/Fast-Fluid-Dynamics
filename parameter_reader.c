@@ -187,6 +187,11 @@ int assign_parameter(PARA_DATA *para, char *string) {
     sprintf(msg, "assign_parameter(): %s=%f", tmp, para->prob->rho);
     ffd_log(msg, FFD_NORMAL);
   }
+  else if(!strcmp(tmp, "prob.beta")) {
+    sscanf(string, "%s%f", tmp, &para->prob->beta);
+    sprintf(msg, "assign_parameter(): %s=%f", tmp, para->prob->beta);
+    ffd_log(msg, FFD_NORMAL);
+  }
   else if(!strcmp(tmp, "prob.diff")) {
     sscanf(string, "%s%f", tmp, &para->prob->diff);
     sprintf(msg, "assign_parameter(): %s=%f", tmp, para->prob->diff);
@@ -334,6 +339,29 @@ int assign_parameter(PARA_DATA *para, char *string) {
   else if(!strcmp(tmp, "solv.cosimulation")) {
     sscanf(string, "%s%d", tmp, &para->solv->cosimulation);
     sprintf(msg, "assign_parameter(): %s=%d", tmp, para->solv->cosimulation);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  /****************************************************************************
+  | get the initial condition
+  ****************************************************************************/
+  else if(!strcmp(tmp, "init.T")) {
+    sscanf(string, "%s%f", tmp, &para->init->T);
+    sprintf(msg, "assign_parameter(): %s=%f", tmp, para->init->T);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "init.u")) {
+    sscanf(string, "%s%f", tmp, &para->init->u);
+    sprintf(msg, "assign_parameter(): %s=%f", tmp, para->init->u);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "init.v")) {
+    sscanf(string, "%s%f", tmp, &para->init->v);
+    sprintf(msg, "assign_parameter(): %s=%f", tmp, para->init->v);
+    ffd_log(msg, FFD_NORMAL);
+  }
+  else if(!strcmp(tmp, "init.w")) {
+    sscanf(string, "%s%f", tmp, &para->init->w);
+    sprintf(msg, "assign_parameter(): %s=%f", tmp, para->init->w);
     ffd_log(msg, FFD_NORMAL);
   }
   /****************************************************************************
