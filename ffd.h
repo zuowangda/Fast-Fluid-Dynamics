@@ -58,7 +58,6 @@
 #include "visualization.h"
 #endif
 
-#ifdef _MSC_VER
 ///////////////////////////////////////////////////////////////////////////////
 /// Lanuch the FFD simulation through a thread
 ///
@@ -66,9 +65,10 @@
 ///
 ///\return 0 if no error occurred
 ///////////////////////////////////////////////////////////////////////////////
-DWORD WINAPI ffd_thread(void* p);
-#else // Fixme: Add function for linux?
-
+#ifdef _MSC_VER //Windows
+DWORD WINAPI ffd_thread(void *p);
+#else //Linux
+void ffd_thread(void *p);
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
